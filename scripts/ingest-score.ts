@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { toBase } from '../server/parsing.ts'
+import { toBase } from '../server/core/parsing.ts'
 
 /** Compares what a file import found with the ground truth beside the datasets. The tests and the real Meta check both use this. */
 

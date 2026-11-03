@@ -1,13 +1,13 @@
-import { t, tk } from '../i18n'
+import { t, tk } from '../lib/i18n'
 import { useEffect, useState } from 'react'
 import { Camera, Check, Copy, EnvelopeSimple, Package, Pause, PhoneCall, Play, Plus, Receipt, Trash, Truck } from '@phosphor-icons/react'
-import { dayWords, whenWords } from '../dates'
-import { EvidenceSheet } from '../Evidence'
-import { MediaGrid } from '../MediaGrid'
-import { evidenceForm } from '../media'
-import { api, niceDate, pounds, qty } from '../api'
-import { useClip } from '../clip'
-import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Sheet } from '../ui'
+import { dayWords, whenWords } from '../lib/dates'
+import { EvidenceSheet } from '../components/Evidence'
+import { MediaGrid } from '../components/MediaGrid'
+import { evidenceForm } from '../lib/media'
+import { api, niceDate, pounds, qty } from '../lib/api'
+import { useClip } from '../lib/clip'
+import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Sheet } from '../components/ui'
 
 const ISSUES: Record<string, string> = { short: tk('Short'), damaged: tk('Damaged'), wrong: tk('Wrong item'), missing: tk('Missing') }
 

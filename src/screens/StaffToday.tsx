@@ -1,9 +1,9 @@
-import { t, tn } from '../i18n'
+import { t, tn } from '../lib/i18n'
 import { useEffect, useState } from 'react'
 import { ChatCircleText, Package, Siren, Truck } from '@phosphor-icons/react'
-import { api } from '../api'
-import { atWords, inSentence, longToday } from '../dates'
-import { Chip, Empty, ErrorNote, Loading, Screen } from '../ui'
+import { api } from '../lib/api'
+import { atWords, inSentence, longToday } from '../lib/dates'
+import { Chip, Empty, ErrorNote, Loading, Screen } from '../components/ui'
 
 function RunState({ run }: { run: any }) {
   if (run.state === 'done') return <Chip tone="good">{t('Done')}</Chip>

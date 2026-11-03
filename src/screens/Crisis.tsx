@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { ArrowDown, ArrowUp, Camera, Drop, Fire, Lightning, PencilSimple, PhoneCall, Plus, Siren, Thermometer, Trash, WifiSlash, type Icon } from '@phosphor-icons/react'
-import { api } from '../api'
-import { currentLanguage, t } from '../i18n'
-import { CRISIS_CARDS } from '../../server/crisis'
-import { Dock, ErrorNote, Screen, Sheet } from '../ui'
+import { api } from '../lib/api'
+import { currentLanguage, t } from '../lib/i18n'
+import { CRISIS_CARDS } from '../../server/operations/crisis'
+import { Dock, ErrorNote, Screen, Sheet } from '../components/ui'
 
 const ICONS: Record<string, Icon> = { gas: Fire, power: Lightning, water: Drop, fridge: Thermometer, wifi: WifiSlash }
 const SAVED = 'stockpot-crisis-cards'

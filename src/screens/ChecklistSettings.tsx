@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { CaretRight, ClipboardText, Plus, Trash } from '@phosphor-icons/react'
-import { api } from '../api'
-import { locale, t, tk, tn } from '../i18n'
-import { Dock, Empty, ErrorNote, Loading, Screen, Segment, Sheet } from '../ui'
+import { api } from '../lib/api'
+import { locale, t, tk, tn } from '../lib/i18n'
+import { Dock, Empty, ErrorNote, Loading, Screen, Segment, Sheet } from '../components/ui'
 
 const TYPES = [{ value: 'tick', label: tk('Tick') }, { value: 'temperature', label: tk('Temperature') }, { value: 'stock', label: tk('Stock count') }]
 const WEEKS = [{ value: 1, label: tk('First') }, { value: 2, label: tk('Second') }, { value: 3, label: tk('Third') }, { value: 4, label: tk('Fourth') }, { value: -1, label: tk('Last') }]

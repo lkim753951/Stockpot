@@ -1,9 +1,9 @@
-import { locale, t } from '../i18n'
+import { locale, t } from '../lib/i18n'
 import { useEffect, useState } from 'react'
 import { CheckCircle, Circle, ClipboardText, Clock, Microphone, PhoneCall, Receipt, UsersThree } from '@phosphor-icons/react'
-import { api, wholePounds } from '../api'
-import { longToday } from '../dates'
-import { Chip, Empty, ErrorNote, Sk, Tile, type TileChange } from '../ui'
+import { api, wholePounds } from '../lib/api'
+import { longToday } from '../lib/dates'
+import { Chip, Empty, ErrorNote, Sk, Tile, type TileChange } from '../components/ui'
 import { ActionCard, ToConfirm } from './ActionCard'
 
 const percentChange = (value: number | null): TileChange | null =>

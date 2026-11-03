@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CaretRight, CookingPot, MagnifyingGlass } from '@phosphor-icons/react'
-import { api, portionAmount } from '../api'
-import { t } from '../i18n'
-import { Empty, ErrorNote, Loading, Screen } from '../ui'
+import { api, portionAmount } from '../lib/api'
+import { t } from '../lib/i18n'
+import { Empty, ErrorNote, Loading, Screen } from '../components/ui'
 
 function useRecipes() {
   const [recipes, setRecipes] = useState<any[] | null>(null)

@@ -66,7 +66,7 @@ async function runSampleCall(supplierId: number) {
 
 before(async () => {
   // These tests are about readings and ticks. Pictures have their own tests in setup.test.ts.
-  ;await (await import('../server/db.ts')).run('UPDATE checklist_items SET proof = 0')
+  ;await (await import('../server/core/db.ts')).run('UPDATE checklist_items SET proof = 0')
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   const { port } = server.address() as { port: number }
   base = `http://127.0.0.1:${port}`
@@ -205,7 +205,7 @@ test('call, delivery and invoice flow finds the money owed', async () => {
 })
 
 test('a printed sum that does not add up is flagged, not trusted', async () => {
-  const { checkInvoiceSums } = await import('../server/documents.ts')
+  const { checkInvoiceSums } = await import('../server/setup/documents.ts')
   const result = checkInvoiceSums({
     supplier_id: 1, supplier_name: 'X', invoice_number: '1', invoice_date: '2026-11-02',
     lines: [{ description: 'Onions', item_id: 2, quantity: 10, unit: 'kg', pack_quantity: null, unit_price_pence: 85, line_total_pence: 950, vat_rate: 0 }],
@@ -216,7 +216,7 @@ test('a printed sum that does not add up is flagged, not trusted', async () => {
 })
 
 test('a formula in a printed description cannot run in a spreadsheet export', async () => {
-  const { insert, nowIso } = await import('../server/db.ts')
+  const { insert, nowIso } = await import('../server/core/db.ts')
   const invoice = await insert('INSERT INTO invoices (file, original_name, status, created_at) VALUES (?, ?, ?, ?)', 'x.png', 'x.png', 'read', nowIso())
   await insert(`INSERT INTO invoice_lines (invoice_id, description, qty_billed, unit, unit_price_p, line_total_p, qty_base_milli, price_base_p)
           VALUES (?, ?, 1, 'each', 100, 100, 1000, 100)`, invoice, '=HYPERLINK("http://x")')
@@ -244,8 +244,8 @@ test('if Muse Spark is down during a call, clear prices still show and the call 
 })
 
 test('a price the model cannot point to in the transcript goes to the owner for review', async () => {
-  const { saveDraftOrder } = await import('../server/calls.ts')
-  const { all, get, insert, nowIso } = await import('../server/db.ts')
+  const { saveDraftOrder } = await import('../server/operations/calls.ts')
+  const { all, get, insert, nowIso } = await import('../server/core/db.ts')
   const callId = await insert('INSERT INTO calls (supplier_id, consent_at) VALUES (?, ?)', 1, nowIso())
   const item = (await get("SELECT id FROM items WHERE name = 'Brown onions'"))!
   const orderId = await saveDraftOrder(callId, 1, {

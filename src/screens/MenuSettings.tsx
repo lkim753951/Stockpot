@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Camera, CookingPot, FileText, Plus, Trash, UploadSimple } from '@phosphor-icons/react'
 import { marginPercent, prepPerPortion } from '../../shared/costing'
-import { api, niceDate, portionAmount, pounds } from '../api'
-import { t, tn } from '../i18n'
-import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Segment, Sheet, Tile } from '../ui'
+import { api, niceDate, portionAmount, pounds } from '../lib/api'
+import { t, tn } from '../lib/i18n'
+import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Segment, Sheet, Tile } from '../components/ui'
 
 const BLANK = { name: '', pounds: '', targetMargin: '70', portions: '', prepMinutes: '', serviceMinutes: '', method: '', lines: [{ name: '', quantity: '', unit: 'g' }] }
 

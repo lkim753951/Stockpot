@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import http from 'node:http'
 import path from 'node:path'
 import { WebSocketServer } from 'ws'
-import { findNumbers, findPrices, findQuantities, formatPounds } from '../money.ts'
+import { findNumbers, findPrices, findQuantities, formatPounds } from '../money/money.ts'
 
 /**
  * A stand-in for the Meta API, matching the documented wire formats.

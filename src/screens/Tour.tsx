@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
-import { t } from '../i18n'
-import { Screen, Sk } from '../ui'
+import { t } from '../lib/i18n'
+import { Screen, Sk } from '../components/ui'
 
 // The demos carry the Stageshow kit, so they load on their own and never slow the app itself.
 const Stories = lazy(() => import('../demo/Stories').then((module) => ({ default: module.Stories })))

@@ -6,18 +6,18 @@ import path from 'node:path'
 
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'stockpot-check-'))
 process.env.SAMPLE_DATA = '1'
-const { config } = await import('../server/config.ts')
+const { config } = await import('../server/core/config.ts')
 if (config.mode !== 'live') {
   console.error('Add MODEL_API_KEY to .env first.')
   process.exit(1)
 }
-const { openRealtime, samFind, samTrack, sparkJson, sparkTools, transcribeWav } = await import('../server/meta.ts')
-const { seedIfEmpty } = await import('../server/seed.ts')
+const { openRealtime, samFind, samTrack, sparkJson, sparkTools, transcribeWav } = await import('../server/ai/meta.ts')
+const { seedIfEmpty } = await import('../server/core/seed.ts')
 const {
   invoicePrompt, invoiceSchema, quotesPrompt, quotesSchema, readingPrompt, readingSchema,
   reportPrompt, reportSchema, teamReplyPrompt, teamReplySchema, thermometerPrompt, thermometerSchema,
-} = await import('../server/prompts.ts')
-const { checkInvoiceSums } = await import('../server/documents.ts')
+} = await import('../server/ai/prompts.ts')
+const { checkInvoiceSums } = await import('../server/setup/documents.ts')
 await seedIfEmpty()
 
 let failed = 0

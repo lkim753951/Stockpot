@@ -34,7 +34,7 @@ process.env.META_BASE_URL = mock.httpBase
 process.env.META_REALTIME_URL = mock.wsUrl
 process.env.WHATSAPP_BASE_URL = mock.httpBase
 const { buildApp, startWebhookListener } = await import('../server/app.ts')
-const { voiceNoteToWav } = await import('../server/voicenote.ts')
+const { voiceNoteToWav } = await import('../server/ai/voicenote.ts')
 
 const server = await buildApp()
 let base = ''
@@ -88,7 +88,7 @@ const item = (detail: any, label: string) => detail.items.find((candidate: any) 
 
 before(async () => {
   // These tests are about readings and ticks. Pictures have their own tests in setup.test.ts.
-  ;await (await import('../server/db.ts')).run('UPDATE checklist_items SET proof = 0')
+  ;await (await import('../server/core/db.ts')).run('UPDATE checklist_items SET proof = 0')
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   base = `http://127.0.0.1:${(server.address() as { port: number }).port}`
   const login = async (passcode: string) => {
@@ -122,9 +122,9 @@ test('a message without Meta\'s signature is refused', async () => {
 })
 
 test('a checklist goes out by itself an hour before it is due, and only once', async () => {
-  const { sendDueChecklists } = await import('../server/team.ts')
-  const { localTime } = await import('../server/clock.ts')
-  const { run: sql } = await import('../server/db.ts')
+  const { sendDueChecklists } = await import('../server/operations/team.ts')
+  const { localTime } = await import('../server/core/clock.ts')
+  const { run: sql } = await import('../server/core/db.ts')
   const { stamp } = localTime()
   const soon = new Date(Date.parse(`${stamp}:00Z`) + 20 * 60000).toISOString().slice(0, 16)
   const later = new Date(Date.parse(`${stamp}:00Z`) + 180 * 60000).toISOString().slice(0, 16)
@@ -256,7 +256,7 @@ test('a voice note in Polish reaches the owner in English, and the worker gets t
   const card = (await api('/api/home')).json.actions.find((action: any) => action.title === 'Fridge two is not cooling')
   assert.equal(card.urgency, 'now')
   assert.equal(card.source, 'Maria reported this in Polish')
-  ;await (await import('../server/db.ts')).saveSetting('language:Maria', null)
+  ;await (await import('../server/core/db.ts')).saveSetting('language:Maria', null)
   assert.equal(card.suggested.label, 'Open the crisis card')
 })
 
@@ -282,7 +282,7 @@ test('a photo that shows no thermometer reading becomes a report with the photo 
     await deliver({ type: 'image', image: { id: 'media-photo', caption: 'Door seal is split' } })
     assert.match(words(await replyAfter(count)), /Owner told/)
   } finally { mock.state.failSpark = false }
-  const { get } = await import('../server/db.ts')
+  const { get } = await import('../server/core/db.ts')
   const report = await get(`SELECT photo_file, reporter, original_text FROM staff_reports WHERE original_text LIKE '%Door seal%'`)
   assert.equal(report?.reporter, 'Maria')
   assert.ok(report?.photo_file)
@@ -319,7 +319,7 @@ test('staff can\'t read the team log or send checklists', async () => {
 })
 
 test('the webhook listener answers only the webhook', async () => {
-  const { config } = await import('../server/config.ts')
+  const { config } = await import('../server/core/config.ts')
   config.whatsapp.webhookPort = 0
   const hook = startWebhookListener()
   await new Promise((resolve) => setTimeout(resolve, 60))
@@ -357,8 +357,8 @@ test('a recording needs consent, and goes through the same write-up as a live ca
 })
 
 test('a call with no order on it still gives its tasks, with the urgency the model chose', async () => {
-  const { saveDraftOrder } = await import('../server/calls.ts')
-  const { all, insert, nowIso } = await import('../server/db.ts')
+  const { saveDraftOrder } = await import('../server/operations/calls.ts')
+  const { all, insert, nowIso } = await import('../server/core/db.ts')
   const callId = await insert(`INSERT INTO calls (supplier_id, status, consent_at) VALUES (1, 'done', ?)`, nowIso())
   const orderId = await saveDraftOrder(callId, 1, {
     speaker_roles: [], lines: [], delivery_date: null, summary: 'Engineer booked.',
@@ -390,7 +390,7 @@ test('assigning a card sends it to that person, and only a real team member can 
 })
 
 test('a voice note decodes into the format Meta accepts', async () => {
-  const { isUsableClip } = await import('../server/wav.ts')
+  const { isUsableClip } = await import('../server/ai/wav.ts')
   const out = path.join(dataDir, 'note.wav')
   await voiceNoteToWav(fs.readFileSync('/tmp/stockpot-note.ogg'), out)
   assert.equal(isUsableClip(out), true)

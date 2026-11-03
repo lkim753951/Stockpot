@@ -21,16 +21,16 @@ if (useMock) {
   Object.assign(process.env, { MODEL_API_KEY: 'mock-key', META_BASE_URL: mock.httpBase, META_REALTIME_URL: mock.wsUrl })
 }
 
-const { config } = await import('../server/config.ts')
+const { config } = await import('../server/core/config.ts')
 if (config.mode !== 'live') {
   console.error('Add MODEL_API_KEY to .env first.')
   process.exit(1)
 }
-const { seedIfEmpty } = await import('../server/seed.ts')
-const { saveDish } = await import('../server/setup.ts')
-const { all } = await import('../server/db.ts')
-const { readIngest } = await import('../server/ingest.ts')
-const { uploadDir } = await import('../server/files.ts')
+const { seedIfEmpty } = await import('../server/core/seed.ts')
+const { saveDish } = await import('../server/setup/setup.ts')
+const { all } = await import('../server/core/db.ts')
+const { readIngest } = await import('../server/setup/ingest.ts')
+const { uploadDir } = await import('../server/core/files.ts')
 const { loadTruth, scoreFile } = await import('./ingest-score.ts')
 
 /** Takes out anything that looks like a secret, so the report can be shared. */

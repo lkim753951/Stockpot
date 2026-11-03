@@ -1,13 +1,13 @@
-import { TrackedVideo } from '../Tracked'
-import { locale, t, tk } from '../i18n'
-import { EvidenceSheet } from '../Evidence'
-import { evidenceForm } from '../media'
+import { TrackedVideo } from '../components/Tracked'
+import { locale, t, tk } from '../lib/i18n'
+import { EvidenceSheet } from '../components/Evidence'
+import { evidenceForm } from '../lib/media'
 import { useEffect, useRef, useState } from 'react'
 import { Camera, CaretLeft, CaretRight, Check, CheckCircle, Microphone, PaperPlaneRight, Plus, Stop, WarningCircle, WhatsappLogo } from '@phosphor-icons/react'
-import { api, niceDate } from '../api'
-import { atWords, clockWords, inSentence, momentWords } from '../dates'
-import { useRecorder } from '../recorder'
-import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Segment } from '../ui'
+import { api, niceDate } from '../lib/api'
+import { atWords, clockWords, inSentence, momentWords } from '../lib/dates'
+import { useRecorder } from '../lib/recorder'
+import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Segment } from '../components/ui'
 
 const dueWords = (dueAt: string) => t('Due {when}', { when: inSentence(atWords(dueAt)) })
 

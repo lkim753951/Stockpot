@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { LANGUAGES, SAVED_PATTERNS } from '../shared/lang.ts'
-import { CRISIS_CARDS } from '../server/crisis.ts'
+import { CRISIS_CARDS } from '../server/operations/crisis.ts'
 
 /**
  * Lists every English sentence the app can show, by reading the code. A language file needs a
@@ -31,7 +31,7 @@ const EXTRA = [
 ]
 
 /** Fixed rows in the code that only reach the screen through t(variable). */
-const DATA_FILES = ['server/checklists.ts', 'server/setup.ts', 'server/reports.ts', 'server/analyst.ts', 'server/actions.ts'].map((file) => path.normalize(file))
+const DATA_FILES = ['server/operations/checklists.ts', 'server/setup/setup.ts', 'server/operations/reports.ts', 'server/ai/analyst.ts', 'server/operations/actions.ts'].map((file) => path.normalize(file))
 const DATA_PATTERNS = [
   /template\((?:'|")([^'"]+)(?:'|"), '(?:daily|weekly|monthly)'/g,
   /^\s*\[(?:'|")([^'"]+)(?:'|"), '(?:tick|temperature|stock)'/gm,

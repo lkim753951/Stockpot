@@ -29,7 +29,7 @@ Vocabulary improves with use: supplier names, items and past invoice lines are s
 
 ## What keeps it honest
 
-- **Maths in code.** Margins, differences and amounts owed are calculated in SQL or TypeScript, never by a model. See the views in `server/db.ts`.
+- **Maths in code.** Margins, differences and amounts owed are calculated in SQL or TypeScript, never by a model. See the views in `server/core/db.ts`.
 - **Nothing logged without a person.** A voice or photo reading is a proposal until staff confirm it. Range checks are plain code.
 - **Figures must have a source.** Any amount or percentage in the weekly summary must come from a tool result. If one doesn't, the words are thrown out and the owner gets a plain summary written from the same SQL facts.
 - **Models choose the view, not the numbers.** In an answer, Muse Spark names a tool result and a table or chart. Code copies the figures into the view.
@@ -47,7 +47,7 @@ Vocabulary improves with use: supplier names, items and past invoice lines are s
 
 ## How it works
 
-Every AI call goes through the Node server, so the key never reaches a device. Every feature adds its decisions to one action inbox through `addAction` in `server/actions.ts`.
+Every AI call goes through the Node server, so the key never reaches a device. Every feature adds its decisions to one action inbox through `addAction` in `server/operations/actions.ts`.
 
 ```
 Owner web app ─┐                   ┌→ live call gateway → Meta client → Muse Voice Transcribe
@@ -56,4 +56,4 @@ Staff web app ─┴→ routes, sign-in ─┤→ feature modules  → Meta clie
                                    └→ action inbox     → owner's home screen
 ```
 
-The instant check in `server/spotter.ts` runs on every partial transcript, so a clear price appears before the sentence ends. Muse Spark then settles anything less clear at the end of the turn.
+The instant check in `server/ai/spotter.ts` runs on every partial transcript, so a clear price appears before the sentence ends. Muse Spark then settles anything less clear at the end of the turn.

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle, EnvelopeSimple } from '@phosphor-icons/react'
-import { api } from '../api'
-import { t } from '../i18n'
-import { momentWords, inSentence } from '../dates'
-import { ErrorNote, Loading, Sheet } from '../ui'
+import { api } from '../lib/api'
+import { t } from '../lib/i18n'
+import { momentWords, inSentence } from '../lib/dates'
+import { ErrorNote, Loading, Sheet } from '../components/ui'
 
 /** The owner reads every email before it goes. It is written in English, because it goes to the supplier. */
 export function OrderEmailSheet({ orderId, onClose }: { orderId: number; onClose: () => void }) {

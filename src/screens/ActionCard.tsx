@@ -1,8 +1,8 @@
-import { t, tk } from '../i18n'
+import { t, tk } from '../lib/i18n'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
-import { api } from '../api'
-import { dayWords, inSentence, whenWords } from '../dates'
-import { Chip, ErrorNote, Reveal, Sheet } from '../ui'
+import { api } from '../lib/api'
+import { dayWords, inSentence, whenWords } from '../lib/dates'
+import { Chip, ErrorNote, Reveal, Sheet } from '../components/ui'
 
 export type Bucket = 'urgent' | 'due' | 'later'
 

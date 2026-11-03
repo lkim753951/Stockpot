@@ -25,9 +25,9 @@ const mock = await startMockMeta()
 process.env.META_BASE_URL = mock.httpBase
 process.env.META_REALTIME_URL = mock.wsUrl
 const { buildApp } = await import('../server/app.ts')
-const files = await import('../server/files.ts')
-const { backupIfDue, dataStatus } = await import('../server/backup.ts')
-const { all, get, insert, isPostgres, nowIso, run } = await import('../server/db.ts')
+const files = await import('../server/core/files.ts')
+const { backupIfDue, dataStatus } = await import('../server/core/backup.ts')
+const { all, get, insert, isPostgres, nowIso, run } = await import('../server/core/db.ts')
 
 const server = await buildApp()
 let base = ''
@@ -280,10 +280,10 @@ test('a backup is only made once when two passes run together', { skip: !isPostg
   assert.equal(done.filter(Boolean).length, 1)
 })
 
-const { config } = await import('../server/config.ts')
+const { config } = await import('../server/core/config.ts')
 
 test('a newer Supabase secret key travels in apikey alone', async () => {
-  const { storageHeaders } = await import('../server/files.ts')
+  const { storageHeaders } = await import('../server/core/files.ts')
   assert.deepEqual(storageHeaders('sb_secret_abc'), { apikey: 'sb_secret_abc' })
   assert.deepEqual(storageHeaders('eyJabc'), { Authorization: 'Bearer eyJabc', apikey: 'eyJabc' })
 })

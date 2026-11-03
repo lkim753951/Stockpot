@@ -48,11 +48,11 @@ const mock = await startMockMeta()
 process.env.META_BASE_URL = mock.httpBase
 process.env.META_REALTIME_URL = mock.wsUrl
 const { buildApp } = await import('../server/app.ts')
-const { readSamBoxes, readSamFrames } = await import('../server/meta.ts')
-const { mp4FrameCount, summariseTrack } = await import('../server/proof.ts')
-const { priceCheck } = await import('../server/priceCheck.ts')
-const { insert, run } = await import('../server/db.ts')
-const { countObjects, phraseFor } = await import('../server/countVideo.ts')
+const { readSamBoxes, readSamFrames } = await import('../server/ai/meta.ts')
+const { mp4FrameCount, summariseTrack } = await import('../server/money/proof.ts')
+const { priceCheck } = await import('../server/money/priceCheck.ts')
+const { insert, run } = await import('../server/core/db.ts')
+const { countObjects, phraseFor } = await import('../server/ai/countVideo.ts')
 const { translateCount, translateSaved } = await import('../shared/lang.ts')
 
 let base = ''
@@ -253,7 +253,7 @@ test('Gmail signs in, sends a confirmation, and brings each supplier invoice in 
   assert.equal(status.gmail.account, 'owner@restaurant.test')
   assert.doesNotMatch(JSON.stringify(status), /refresh/)
 
-  const { buildMail } = await import('../server/gmail.ts')
+  const { buildMail } = await import('../server/integrations/gmail.ts')
   const raw = Buffer.from(buildMail({ to: 'a@b.test\r\nBcc: evil@b.test', subject: 'Hello\r\nBcc: evil@b.test', body: 'Hi' }), 'base64url').toString()
   assert.doesNotMatch(raw, /\r\nBcc:/)
 
@@ -279,7 +279,7 @@ test('keys and staff numbers saved in the app go to the file and never come back
 })
 
 test('schedules land on the right days', async () => {
-  const { occursOn, cleanSchedule } = await import('../server/schedule.ts')
+  const { occursOn, cleanSchedule } = await import('../server/core/schedule.ts')
   const firstAndThirdWednesday = { kind: 'monthly', rules: [{ week: 1, day: 3 }, { week: 3, day: 3 }] } as const
   assert.deepEqual(['2026-11-04', '2026-11-11', '2026-11-18', '2026-11-25'].map((date) => occursOn(firstAndThirdWednesday as any, date)), [true, false, true, false])
   assert.equal(occursOn({ kind: 'monthly', rules: [{ week: -1, day: 5 }] }, '2026-11-27'), true)
@@ -291,7 +291,7 @@ test('schedules land on the right days', async () => {
 })
 
 test('the calendar shows what happened and what is planned', async () => {
-  const { localTime } = await import('../server/clock.ts')
+  const { localTime } = await import('../server/core/clock.ts')
   const { date } = localTime()
   const days = (await call(owner, `/api/checklists/calendar?month=${date.slice(0, 7)}`)).data
   const today = days.find((day: any) => day.date === date)
@@ -313,16 +313,16 @@ test('the owner adds a task and sets its priority, and Stockpot keeps to it', as
 })
 
 test('a late checklist goes to the person, then the owner, and rings a phone once', async () => {
-  const { db } = await import('../server/db.ts')
-  const { chaseLate } = await import('../server/chase.ts')
-  const { config } = await import('../server/config.ts')
-  const { callScript } = await import('../server/phone.ts')
+  const { db } = await import('../server/core/db.ts')
+  const { chaseLate } = await import('../server/operations/chase.ts')
+  const { config } = await import('../server/core/config.ts')
+  const { callScript } = await import('../server/integrations/phone.ts')
   Object.assign(config.twilio, { accountSid: 'AC1', authToken: 'secret', fromNumber: '+15550001111', baseUrl: mock.httpBase })
   Object.assign(config.whatsapp, { token: 'wa', phoneNumberId: '555', ownerNumber: '447700900001', baseUrl: mock.httpBase, staff: [{ name: 'Maria', number: '447700900002', language: 'pl' }] })
   const list = await call(owner, '/api/setup/checklists', 'POST', { name: 'Late list', schedule: { kind: 'days', days: [0, 1, 2, 3, 4, 5, 6] }, dueTime: '00:00', assignee: 'Maria', chaseAfter: 0, callWho: 'assignee', items: [{ label: 'One', type: 'tick', proof: false }] })
   await call(staff, '/api/staff/runs')
   const before = mock.state.whatsapp.length
-  const { localTime } = await import('../server/clock.ts')
+  const { localTime } = await import('../server/core/clock.ts')
   const earlier = new Date(Date.parse(`${localTime().stamp}:00Z`) - 5 * 60000).toISOString().slice(0, 16)
   await db.exec(`UPDATE checklist_runs SET due_at = '${earlier}', completed_at = NULL WHERE template_id = ${list.data.id}`)
   await chaseLate()
@@ -339,8 +339,8 @@ test('a late checklist goes to the person, then the owner, and rings a phone onc
 })
 
 test('numbers become ones Twilio can dial, and its errors never quote them', async () => {
-  const { config } = await import('../server/config.ts')
-  const { dialable, testCall } = await import('../server/phone.ts')
+  const { config } = await import('../server/core/config.ts')
+  const { dialable, testCall } = await import('../server/integrations/phone.ts')
   assert.equal(dialable('07700 900123'), '+447700900123')
   assert.equal(dialable('0044 7700 900123'), '+447700900123')
   assert.equal(dialable('+1 (415) 555-0100'), '+14155550100')
@@ -366,9 +366,9 @@ test('numbers become ones Twilio can dial, and its errors never quote them', asy
 })
 
 test('the database is copied once a day and only a week is kept', async () => {
-  const { backupIfDue, dataStatus } = await import('../server/backup.ts')
-  const { config } = await import('../server/config.ts')
-  const { isPostgres, run: sql } = await import('../server/db.ts')
+  const { backupIfDue, dataStatus } = await import('../server/core/backup.ts')
+  const { config } = await import('../server/core/config.ts')
+  const { isPostgres, run: sql } = await import('../server/core/db.ts')
   const folder = path.join(config.dataDir, 'backups')
   const ending = isPostgres() ? 'json' : 'sqlite'
   assert.equal(await backupIfDue(), true)
@@ -383,7 +383,7 @@ test('the database is copied once a day and only a week is kept', async () => {
 })
 
 test('an invite link adds someone the moment they send it, and only once', async () => {
-  const { joinByInvite } = await import('../server/invites.ts')
+  const { joinByInvite } = await import('../server/operations/invites.ts')
   const made = await call(owner, '/api/team/invites', 'POST', { name: 'Tomasz', language: 'pl' })
   assert.match(made.data.link, /^https:\/\/wa\.me\/447700900111\?text=JOIN%20[0-9A-F]{6}$/)
   assert.equal(await joinByInvite({ from: '447700900055', text: { body: 'hello' } }), false)
@@ -427,7 +427,7 @@ test('staff can read recipes, and never a price', async () => {
 })
 
 test('the owner edits a crisis card, staff get it, and it can go back to the standard one', async () => {
-  const { crisisCard } = await import('../server/crisisCards.ts')
+  const { crisisCard } = await import('../server/operations/crisisCards.ts')
   const standard = (await crisisCard('gas'))!
   assert.equal(standard.edited, false)
   assert.equal((await call(staff, '/api/crisis/gas', 'PUT', { title: 'x', steps: [{ text: 'y' }] })).status, 403)

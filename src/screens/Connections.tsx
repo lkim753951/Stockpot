@@ -1,9 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { GoogleLogo } from '@phosphor-icons/react'
-import { api } from '../api'
-import { t, tn } from '../i18n'
-import { clockWords, inSentence, momentWords } from '../dates'
-import { Chip, ErrorNote, Loading, Screen } from '../ui'
+import { api } from '../lib/api'
+import { t, tn } from '../lib/i18n'
+import { clockWords, inSentence, momentWords } from '../lib/dates'
+import { Chip, ErrorNote, Loading, Screen } from '../components/ui'
 
 function TestButton({ url, label }: { url: string; label: string }) {
   const [busy, setBusy] = useState(false)

@@ -1,10 +1,10 @@
-import { t } from '../i18n'
+import { t } from '../lib/i18n'
 import { useEffect, useState } from 'react'
 import { EnvelopeSimple, Pause, Play } from '@phosphor-icons/react'
 import { OrderEmailSheet } from './OrderEmail'
-import { api } from '../api'
-import { useClip } from '../clip'
-import { Chip, Dock, ErrorNote, Loading, Screen } from '../ui'
+import { api } from '../lib/api'
+import { useClip } from '../lib/clip'
+import { Chip, Dock, ErrorNote, Loading, Screen } from '../components/ui'
 
 export function Order({ id }: { id: string }) {
   const [emailing, setEmailing] = useState(false)

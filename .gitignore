@@ -18,6 +18,7 @@ scripts/go-online.ts
 scripts/check-await.cjs
 scripts/mock-server.ts
 src/demo/REHEARSAL.md
+notes
 
 # Machine and hosting files
 .DS_Store

@@ -8,45 +8,20 @@
 <p align="center"><strong>Helping small restaurants get on their feet.</strong></p>
 
 <p align="center">
-  Stockpot hears the price on a supplier call, watches the delivery and reads the invoice.<br>
-  Then it shows the owner what needs fixing today, with the numbers behind it.
-</p>
-
-<p align="center">
-  <a href="https://stockpot-app.vercel.app"><img src="https://img.shields.io/badge/Try_the_sample-no_sign--in-4a2d6e?style=for-the-badge" alt="Try the sample, no sign-in"></a>
-  <a href="https://stockpot-five.vercel.app"><img src="https://img.shields.io/badge/Open_the_real_app-passcode-22704a?style=for-the-badge" alt="Open the real app, passcode needed"></a>
-</p>
-
-<p align="center">
-  <img src="docs/images/owner-home.png" alt="The owner's Home screen, with an urgent delivery problem to confirm" width="240">
-  <img src="docs/images/deliveries.png" alt="The Deliveries screen, showing one problem and one delivery due today" width="240">
-  <img src="docs/images/staff-today.png" alt="The staff Today screen, with five checklists to finish" width="240">
+  <a href="https://stockpot-app.vercel.app">Sample site</a>
+  &nbsp;·&nbsp;
+  <a href="https://stockpot-five.vercel.app">Real app</a>
+  &nbsp;·&nbsp;
+  <a href="docs/features.md">Docs</a>
 </p>
 
 <p align="center"><sub>Built for the Meta Global AI Developer Hackathon 2026, Build for Your World theme.</sub></p>
 
-## Try it
-
-| | [Sample](https://stockpot-app.vercel.app) | [Real app](https://stockpot-five.vercel.app) |
-| --- | --- | --- |
-| **Best for** | A quick look | Real files and calls |
-| **Data** | A made-up restaurant | Real data |
-| **AI** | Simulated | Real Meta models |
-| **Sign-in** | None | Passcode |
-
 ## Who it's for
 
-Independent UK restaurant owners who run the business from their phone, and the staff who work with them.
+Stockpot is for independent restaurant and café owners who are too busy to check everything themselves.
 
-## What it does
-
-| | Goal | How Stockpot helps |
-| --- | --- | --- |
-| 🧾 | **Less manual work** | Turns receipts, spoken readings and supplier calls into rows, checklist entries and tasks |
-| 💷 | **Less money lost** | Shows the last price paid during a call, then compares what was agreed, delivered and billed |
-| 📈 | **More opportunities** | Traces an unusual number to its cause and suggests 3 actions |
-| 🚨 | **Ready for a crisis** | Keeps crisis cards that open in two taps with no connection, and checklists with photo proof |
-| 💬 | **Better communication** | Lets staff report in their own language, and the owner reads it in English |
+Prices change on the phone, deliveries arrive short and invoices don't always match. Stockpot checks all of it, then shows the owner what needs attention today, with the numbers behind it.
 
 ## How one order works
 
@@ -57,20 +32,118 @@ flowchart LR
     C --> D["✅ Show the owner<br>what they're owed"]
 ```
 
-## Built on Meta models
+## Features
 
-| Model | What it does in Stockpot |
+### For owners
+
+| Feature | What it does |
 | --- | --- |
-| `muse-voice-transcribe-1.0` | Follows live supplier calls, labels who said what and hears staff voice reports |
-| `muse-spark-1.3` | Reads invoices, menus and recipes, understands prices on calls and investigates unusual numbers |
-| `sam-3.1` | Finds objects in proof photos and videos, counts deliveries on video and separates receipts in one photo |
+| **Supplier calls** | Shows the last price paid during a call, then writes the summary, draft order and tasks |
+| **Deliveries** | Shows what was agreed, delivered and billed for each line, and counts boxes on video |
+| **Receipts and invoices** | Turns photos and PDFs into rows, checks the printed sums and flags anything unsure |
+| **Price check** | Finds price rises and possible double billing from old invoices |
+| **Menu and margins** | Reads recipes, costs each dish and shows the menu price that hits your target margin |
+| **File import** | Reads sales, recipes and price lists from CSV, Excel, PDF, Word, text and photos |
+| **Analyst** | Traces an unusual number to its cause, suggests 3 actions and answers questions |
+| **What to say** | Prepares the owner for a hard call with the opening, the facts and the ask |
 
-## Why you can trust the numbers
+### For staff
 
-- **Code does the maths.** Margins and amounts owed come from SQL or TypeScript, never from a model.
+| Feature | What it does |
+| --- | --- |
+| **Checklists** | Logs checks by voice, photo or video, with deadlines and WhatsApp reminders |
+| **Reports** | Lets staff report in their own language, and the owner reads it in English |
+| **Crisis cards** | Opens the right steps in two taps, even with no connection |
+| **Recipes** | Shows ingredients, steps and timings, and never shows costs |
+| **Deliveries** | Records what arrived, where it went and what went wrong |
+
+The app works in 18 languages. [See every feature](docs/features.md).
+
+## Technical implementation
+
+### Stack
+
+| Layer | Technology |
+| --- | --- |
+| **Web app** | React 19, TypeScript, Vite and a service worker for offline crisis cards |
+| **Server** | Node 22, Express 5 and WebSockets |
+| **AI** | Meta Model API: Muse Spark, Muse Voice Transcribe and SAM 3.1 |
+| **Data** | Postgres and private file storage on Supabase, with SQLite for local use |
+| **Hosting** | Vercel Functions in Frankfurt, with Supabase Cron running timed work every 5 minutes |
+
+### Architecture
+
+Every AI call goes through the server, so the Meta key never reaches a device.
+
+```mermaid
+flowchart LR
+    Owner["Owner app"] --> Server["Node server"]
+    Staff["Staff app"] --> Server
+    WhatsApp["WhatsApp"] --> Server
+    Server --> Meta["Meta models"]
+    Server --> Checks["Checks in SQL<br>and TypeScript"]
+    Checks --> Database["Postgres"]
+    Server --> Files["File storage"]
+    Checks --> Inbox["Owner's action list"]
+```
+
+### Meta models
+
+| Model | How Stockpot uses it |
+| --- | --- |
+| `muse-voice-transcribe-1.0` | Streams live calls, labels who said what after the call and transcribes staff voice reports |
+| `muse-spark-1.3` | Reads documents through JSON schemas, tells a new price from a remembered one and runs the analyst with function tools |
+| `sam-3.1` | Finds objects in proof photos, tracks them through video and separates receipts in one photo |
+
+### Live call flow
+
+1. The browser streams microphone audio to the server over a WebSocket.
+2. The server passes it to Muse Voice Transcribe in real time.
+3. A quick check reads each partial transcript, so a clear price appears before the sentence ends.
+4. Muse Spark settles anything less clear at the end of the turn.
+5. After the call, Muse Voice Transcribe labels the speakers, and Muse Spark drafts the order.
+6. Each order line must point to the words that prove it.
+7. The browser moves to a new socket every 4 minutes, because Vercel closes a socket at about 300 seconds.
+
+### How the numbers stay correct
+
+- **Code does the maths.** SQL views and TypeScript work out margins and amounts owed, never a model.
+- **Model output is checked.** Muse Spark answers through a JSON schema, and the server validates every answer with Ajv.
+- **The analyst can only read.** Its function tools can't change data or contact anyone.
 - **People confirm.** A voice or photo reading stays a proposal until a person saves it.
-- **Every figure has a source.** A figure in the weekly summary must come from a tool result. If one doesn't, a plain summary replaces the words.
-- **Nothing is sent without approval.** Stockpot drafts, and the owner approves and sends.
+- **Data stays private.** Files sit in a private bucket, and row level security is on for every table.
+
+[Read the full technical guide](docs/how-it-works.md).
+
+## Project structure
+
+```text
+stockpot/
+├── api/                  Vercel entry point
+├── docs/                 Full documentation
+├── public/               Logos, fonts and sample files
+├── scripts/              Model checks, sample data and test tools
+├── server/
+│   ├── ai/               Meta models, prompts and the analyst
+│   ├── core/             Settings, sign-in, database, files and timers
+│   ├── integrations/     WhatsApp, Gmail and phone
+│   ├── money/            Pricing, margins, sales and proof
+│   ├── operations/       Calls, deliveries, checklists, crisis cards and tasks
+│   ├── sample/           Stand-in for the Meta API
+│   ├── setup/            Onboarding, file import and documents
+│   ├── app.ts            Routes
+│   └── index.ts          Server start
+├── shared/               Costing code and translations
+├── src/
+│   ├── components/       Shared interface parts
+│   ├── demo/             Welcome page stories
+│   ├── kit/              Stageshow animation kit
+│   ├── lib/              Browser helpers
+│   ├── screens/          App screens
+│   ├── App.tsx           Navigation
+│   └── main.tsx          App start
+└── test/                 Automated tests
+```
 
 ## Run it
 
@@ -92,36 +165,12 @@ npm run check:meta       # test each model
 npm start
 ```
 
-## Project map
-
-| Folder | What's inside |
-| --- | --- |
-| [`src`](src) | The web app that owners and staff use |
-| [`server`](server) | Routes, Meta model calls, money checks and the database |
-| [`api`](api) | The entry point Vercel uses to run the server |
-| [`shared`](shared) | Code used by both sides, and translations for 18 languages |
-| [`public`](public) | Logos, fonts and sample files |
-| [`scripts`](scripts) | Model checks, sample data and test tools |
-| [`test`](test) | Automated tests |
-| [`docs`](docs) | The full documentation |
-
-## Tested so far
+## Testing
 
 - ✅ 238 automated tests
 - ✅ 13 of 13 real Meta model checks
 - ✅ 22 of 22 sample files read correctly by real Muse Spark
 - ✅ Real deployment on Vercel and Supabase
-- ⏳ Not yet measured: real speakerphone audio, kitchen noise and accuracy on real deliveries
-- ⏳ Only tested against stand-ins: WhatsApp, Twilio and Gmail
-
-## Known limits
-
-- One restaurant only, with passcode sign-in instead of individual accounts.
-- Food cost doesn't include labour, so this isn't a full P&L.
-- Crisis cards, temperature ranges and translations need a qualified review before real use.
-- Recording law and the privacy notice need review before real use.
-
-[See all known limits](docs/testing-and-limits.md#known-limits).
 
 ## Read more
 
@@ -130,7 +179,7 @@ npm start
 | [Features](docs/features.md) | A day in the restaurant, setup, WhatsApp and phones |
 | [How it works](docs/how-it-works.md) | Every model step, the safety rules and the architecture |
 | [Deploy](docs/deploy.md) | Where data lives, and how to host it on Vercel and Supabase |
-| [Testing and limits](docs/testing-and-limits.md) | How it was tested, and what it can't do yet |
+| [Testing](docs/testing.md) | How it was tested, and how to repeat it |
 
 ## Credits
 

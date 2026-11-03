@@ -1,12 +1,12 @@
 import { lazy, Suspense } from 'react'
 import { ArrowRight } from '@phosphor-icons/react'
-import { t } from '../i18n'
+import { t } from '../lib/i18n'
 import type { Role } from '../App'
-import { Sk } from '../ui'
+import { Sk } from '../components/ui'
 
 // The demos carry the Stageshow kit, so they load on their own and never slow the app itself.
 const Stories = lazy(() => import('../demo/Stories').then((module) => ({ default: module.Stories })))
-import { LanguageButton } from '../Language'
+import { LanguageButton } from '../components/Language'
 
 /** The sample and the real app are separate sites, so the second choice is a plain link to the other one. */
 export function Welcome({ onChoose, sample, otherSite }: { onChoose: (role: Role) => void; sample: boolean; otherSite: string | null }) {

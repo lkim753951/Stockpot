@@ -1,11 +1,11 @@
-import { t, tk } from '../i18n'
+import { t, tk } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { EnvelopeSimple, PhoneCall, Record, UploadSimple } from '@phosphor-icons/react'
 import { OrderEmailSheet } from './OrderEmail'
-import { api } from '../api'
-import { toCallWav } from '../audioFile'
-import { dayWords, inSentence, momentWords, whenWords } from '../dates'
-import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Sheet } from '../ui'
+import { api } from '../lib/api'
+import { toCallWav } from '../lib/audioFile'
+import { dayWords, inSentence, momentWords, whenWords } from '../lib/dates'
+import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Sheet } from '../components/ui'
 
 const PRIORITY: Record<string, { tone: 'urgent' | 'due' | 'neutral'; word: string }> = {
   urgent: { tone: 'urgent', word: tk('Urgent') },

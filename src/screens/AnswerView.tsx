@@ -1,4 +1,4 @@
-import { t } from '../i18n'
+import { t } from '../lib/i18n'
 import { Component, useEffect, useState, type ReactNode } from 'react'
 import { CopilotKitProvider } from '@copilotkit/react-core/v2'
 import { GenerativeUISurface, standardUI, useGenerativeUIRuntime } from '@copilotkit/react-core/v2/generative-ui'

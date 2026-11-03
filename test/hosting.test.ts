@@ -7,7 +7,7 @@ import os from 'node:os'
 import path from 'node:path'
 import WebSocket from 'ws'
 import { startInstance } from './standins.ts'
-import { CallLink } from '../src/callLink.ts'
+import { CallLink } from '../src/lib/callLink.ts'
 
 /**
  * What changes when the app has no one process to rely on. A second server in its own process stands
@@ -48,13 +48,13 @@ process.env.META_REALTIME_URL = mock.wsUrl
 process.env.WHATSAPP_BASE_URL = mock.httpBase
 process.env.TWILIO_BASE_URL = mock.httpBase
 const { buildApp } = await import('../server/app.ts')
-const db = await import('../server/db.ts')
-const { localTime } = await import('../server/clock.ts')
-const { addAction, listActions, listProposed } = await import('../server/actions.ts')
-const { chaseLate } = await import('../server/chase.ts')
-const { sendDueChecklists } = await import('../server/team.ts')
-const { refreshActions } = await import('../server/actions.ts')
-const { resetSample, clearSampleData, RefusedWipe, refreshStaleSample } = await import('../server/seed.ts')
+const db = await import('../server/core/db.ts')
+const { localTime } = await import('../server/core/clock.ts')
+const { addAction, listActions, listProposed } = await import('../server/operations/actions.ts')
+const { chaseLate } = await import('../server/operations/chase.ts')
+const { sendDueChecklists } = await import('../server/operations/team.ts')
+const { refreshActions } = await import('../server/operations/actions.ts')
+const { resetSample, clearSampleData, RefusedWipe, refreshStaleSample } = await import('../server/core/seed.ts')
 
 const server = await buildApp()
 let base = ''
@@ -137,7 +137,7 @@ test('/healthz answers with no database work, and /api/cron needs the secret', a
 })
 
 test('cron refuses everyone when no secret is set', async () => {
-  const { config } = await import('../server/config.ts')
+  const { config } = await import('../server/core/config.ts')
   const saved = config.cronSecret
   config.cronSecret = ''
   try {
@@ -312,7 +312,7 @@ test('Start again, the clear button and the stale reset refuse while a key is se
 })
 
 test('a missing key can never turn real data into a sample to be wiped', async () => {
-  const { config } = await import('../server/config.ts')
+  const { config } = await import('../server/core/config.ts')
   const mode = config.mode
   const schema = config.dbSchema
   config.mode = 'sample'
@@ -461,8 +461,8 @@ test('an action someone added, or the app made itself, is not held back', async 
 })
 
 test('sample mode\'s demo clock lives in the database', async () => {
-  const { config } = await import('../server/config.ts')
-  const clock = await import('../server/clock.ts')
+  const { config } = await import('../server/core/config.ts')
+  const clock = await import('../server/core/clock.ts')
   const mode = config.mode
   config.mode = 'sample'
   try {
@@ -614,7 +614,7 @@ test('the socket keeps its sign-in and same-origin checks, and a finished call c
 /** Every route in the code, read from the code, so a new one can't dodge this audit. */
 function allRoutes() {
   const routes: Array<{ method: string; path: string }> = []
-  for (const file of ['server/app.ts', 'server/setupRoutes.ts', 'server/uploads.ts']) {
+  for (const file of ['server/app.ts', 'server/setup/setupRoutes.ts', 'server/core/uploads.ts']) {
     const text = fs.readFileSync(file, 'utf8')
     for (const match of text.matchAll(/\bapp\.(get|post|put|delete)\('(\/[^']*)'/g)) routes.push({ method: match[1].toUpperCase(), path: match[2] })
   }

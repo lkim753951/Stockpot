@@ -1,12 +1,12 @@
-import { locale, t, tn } from '../i18n'
+import { locale, t, tn } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { CaretRight, MagnifyingGlass } from '@phosphor-icons/react'
-import { setAgentPeriod } from '../Agent'
-import { Mascot } from '../Mascot'
+import { setAgentPeriod } from '../components/Agent'
+import { Mascot } from '../components/Mascot'
 import { ReportBody } from './Reports'
-import { PeriodPicker, rangeQuery, usePeriod } from '../Period'
-import { api, niceDate, pounds, wholePounds } from '../api'
-import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Tile, type TileChange } from '../ui'
+import { PeriodPicker, rangeQuery, usePeriod } from '../components/Period'
+import { api, niceDate, pounds, wholePounds } from '../lib/api'
+import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Tile, type TileChange } from '../components/ui'
 
 /** The figure counts to its new value when the dates change, so it reads as the same number moving. */
 function Counted({ pence }: { pence: number }) {

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { findPrices, findQuantities, formatPounds } from '../server/money.ts'
+import { findPrices, findQuantities, formatPounds } from '../server/money/money.ts'
 
 const pence = (text: string) => findPrices(text).map((price) => price.pence)
 

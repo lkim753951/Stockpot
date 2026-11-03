@@ -1,9 +1,9 @@
-import { t } from '../i18n'
+import { t } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, Megaphone, Phone, Stop } from '@phosphor-icons/react'
-import { api, niceDate, pounds } from '../api'
-import { CallLink } from '../callLink'
-import { Chip, ErrorNote, Loading, Screen } from '../ui'
+import { api, niceDate, pounds } from '../lib/api'
+import { CallLink } from '../lib/callLink'
+import { Chip, ErrorNote, Loading, Screen } from '../components/ui'
 
 interface Card {
   itemId: number; itemName: string; unit: string; kind: 'offer' | 'agreed' | 'reference'; pricePence: number

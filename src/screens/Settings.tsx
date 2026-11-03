@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { CaretRight, ClipboardText, CookingPot, DownloadSimple, FileArrowUp, GlobeSimple, LinkSimple, PlugsConnected, Plus, Trash, Truck, UploadSimple, UsersThree, ChartBar } from '@phosphor-icons/react'
-import { api } from '../api'
-import { t, tk, LANGUAGES } from '../i18n'
-import { LanguagePicker } from '../Language'
-import { Mascot } from '../Mascot'
-import { Dock, Empty, ErrorNote, Loading, Screen, Sheet } from '../ui'
+import { api } from '../lib/api'
+import { t, tk, LANGUAGES } from '../lib/i18n'
+import { LanguagePicker } from '../components/Language'
+import { Mascot } from '../components/Mascot'
+import { Dock, Empty, ErrorNote, Loading, Screen, Sheet } from '../components/ui'
 
 const ROWS = [
   { href: '#/settings/suppliers', Icon: Truck, title: tk('Suppliers'), note: tk('Who you buy from, with their email and phone.') },

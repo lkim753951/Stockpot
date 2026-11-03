@@ -1,10 +1,10 @@
-import { t, tn } from '../i18n'
+import { t, tn } from '../lib/i18n'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Camera, DownloadSimple, FileText, ImageSquare, Scales, UploadSimple, WarningCircle } from '@phosphor-icons/react'
-import { PeriodPicker, rangeQuery, usePeriod } from '../Period'
-import { api, pounds } from '../api'
-import { dayWords } from '../dates'
-import { Chip, Dock, Empty, ErrorNote, Screen, Sk, useWide } from '../ui'
+import { PeriodPicker, rangeQuery, usePeriod } from '../components/Period'
+import { api, pounds } from '../lib/api'
+import { dayWords } from '../lib/dates'
+import { Chip, Dock, Empty, ErrorNote, Screen, Sk, useWide } from '../components/ui'
 
 function ReceiptCard({ invoice, order }: { invoice: any; order: number }) {
   if (invoice.status === 'reading') {

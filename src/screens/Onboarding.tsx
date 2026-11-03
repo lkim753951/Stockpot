@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
 import { ArrowRight, CheckCircle, FileText, GoogleLogo, Plus } from '@phosphor-icons/react'
-import { api } from '../api'
-import { t, tn } from '../i18n'
-import { Mascot } from '../Mascot'
-import { LanguageButton } from '../Language'
+import { api } from '../lib/api'
+import { t, tn } from '../lib/i18n'
+import { Mascot } from '../components/Mascot'
+import { LanguageButton } from '../components/Language'
 import { InviteForm } from './Settings'
-import { ErrorNote } from '../ui'
+import { ErrorNote } from '../components/ui'
 
 const STEPS = 5
 

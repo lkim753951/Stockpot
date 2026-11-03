@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { CaretLeft, CaretRight, Microphone, PhoneCall, Siren } from '@phosphor-icons/react'
 import { Count, Phone, Stage, States, type Act } from '../kit'
-import { t, tk } from '../i18n'
-import { Mascot } from '../Mascot'
+import { t, tk } from '../lib/i18n'
+import { Mascot } from '../components/Mascot'
 import './stories.css'
 
 /**

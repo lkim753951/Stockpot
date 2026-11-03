@@ -26,7 +26,7 @@ const hosted = {
 
 /** The hosted rules, checked in a process of their own, because they read the settings at start. */
 async function startsWith(env: Record<string, string>) {
-  const script = `const { assertSafeToStart } = await import('./server/config.ts'); assertSafeToStart(); console.log('started')`
+  const script = `const { assertSafeToStart } = await import('./server/core/config.ts'); assertSafeToStart(); console.log('started')`
   try {
     const { stdout } = await promisify(execFile)(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', script], { env: { PATH: process.env.PATH, NODE_TEST_CONTEXT: undefined, ...env } as NodeJS.ProcessEnv })
     return stdout.trim()
@@ -157,7 +157,7 @@ test('the default export is a server, and it answers with no key, in sample mode
 })
 
 test('sample data is in the sample schema, and files are in Storage', { skip: !postgres }, async () => {
-  const { all } = await import('../server/db.ts')
+  const { all } = await import('../server/core/db.ts')
   assert.ok((await all('SELECT id FROM suppliers')).length >= 3)
   const pg = (await import('pg')).default
   const client = new pg.Client({ connectionString: process.env.DATABASE_URL })
@@ -216,7 +216,7 @@ test('Start again works in sample mode, from any instance, and the seed is safe 
 })
 
 test('the hosted scheduler stays off, and /api/cron does the work', { skip: !postgres }, async () => {
-  const { startScheduler } = await import('../server/scheduler.ts')
+  const { startScheduler } = await import('../server/core/scheduler.ts')
   startScheduler()
   const pass = await json(base, '/api/cron', 'POST')
   assert.equal(pass.status, 200)

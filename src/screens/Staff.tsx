@@ -1,12 +1,12 @@
-import { t, tk } from '../i18n'
-import { EvidenceSheet } from '../Evidence'
-import { evidenceForm } from '../media'
+import { t, tk } from '../lib/i18n'
+import { EvidenceSheet } from '../components/Evidence'
+import { evidenceForm } from '../lib/media'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { MediaGrid } from '../MediaGrid'
-import { CountVideo } from '../CountVideo'
+import { MediaGrid } from '../components/MediaGrid'
+import { CountVideo } from '../components/CountVideo'
 import { Camera, Minus, Plus, VideoCamera } from '@phosphor-icons/react'
-import { api, niceDate } from '../api'
-import { Chip, Dock, Empty, ErrorNote, Loading, Screen } from '../ui'
+import { api, niceDate } from '../lib/api'
+import { Chip, Dock, Empty, ErrorNote, Loading, Screen } from '../components/ui'
 
 const ISSUES = [{ value: 'damaged', label: tk('Damaged') }, { value: 'wrong', label: tk('Wrong item') }, { value: 'missing', label: tk('Missing') }]
 const PLACES = [tk('Walk-in fridge'), tk('Freezer'), tk('Dry store'), tk('Kitchen')]

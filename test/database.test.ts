@@ -11,7 +11,7 @@ import { promisify } from 'node:util'
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'stockpot-database-'))
 process.env.DATA_DIR = dataDir
 
-const { all, claim, get, insert, isPostgres, locked, outsideTransaction, postgresConnection, postgresSchema, releaseClaim, run, saveSetting, setting, toPostgres, transaction } = await import('../server/db.ts')
+const { all, claim, get, insert, isPostgres, locked, outsideTransaction, postgresConnection, postgresSchema, releaseClaim, run, saveSetting, setting, toPostgres, transaction } = await import('../server/core/db.ts')
 
 after(() => fs.rmSync(dataDir, { recursive: true, force: true }))
 
@@ -174,7 +174,7 @@ test('locked work runs one at a time', async () => {
 
 test('several instances booting an empty Postgres schema build it once, safely', { skip: !isPostgres() }, async () => {
   const schema = `boot_${process.pid}`
-  const start = `const { all } = await import('./server/db.ts'); console.log((await all("SELECT COUNT(*) AS total FROM settings")).length)`
+  const start = `const { all } = await import('./server/core/db.ts'); console.log((await all("SELECT COUNT(*) AS total FROM settings")).length)`
   const boot = () => promisify(execFile)(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', start], { env: { ...process.env, DB_SCHEMA: schema, NODE_TEST_CONTEXT: undefined } })
   const results = await Promise.all([boot(), boot(), boot(), boot()])
   for (const { stdout } of results) assert.equal(stdout.trim(), '1')
@@ -198,7 +198,7 @@ test('an old database file keeps its rows and gains the new columns', { skip: is
             CREATE TABLE crisis_cards (key TEXT PRIMARY KEY, title TEXT NOT NULL, call_number TEXT, steps TEXT NOT NULL);
             INSERT INTO crisis_cards (key, title, steps) VALUES ('own-1', 'Flood', '[]')`)
   old.close()
-  const read = `const { all } = await import('./server/db.ts'); console.log(JSON.stringify([await all("SELECT name, phone FROM suppliers"), await all("SELECT key, added_at FROM crisis_cards")]))`
+  const read = `const { all } = await import('./server/core/db.ts'); console.log(JSON.stringify([await all("SELECT name, phone FROM suppliers"), await all("SELECT key, added_at FROM crisis_cards")]))`
   const { stdout } = await promisify(execFile)(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', read], { env: { ...process.env, DATA_DIR: folder, NODE_TEST_CONTEXT: undefined } })
   fs.rmSync(folder, { recursive: true, force: true })
   assert.deepEqual(JSON.parse(stdout.trim().split('\n').at(-1)!), [[{ name: 'Kept Foods', phone: null }], [{ key: 'own-1', added_at: null }]])

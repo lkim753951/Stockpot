@@ -18,7 +18,7 @@ const mock = await startMockMeta()
 process.env.META_BASE_URL = mock.httpBase
 process.env.META_REALTIME_URL = mock.wsUrl
 const { buildApp } = await import('../server/app.ts')
-const { daysAgo } = await import('../server/db.ts')
+const { daysAgo } = await import('../server/core/db.ts')
 
 let base = ''
 let ownerCookie = ''
@@ -52,7 +52,7 @@ async function runNamed(name: string) {
 
 before(async () => {
   // These tests are about readings and ticks. Pictures have their own tests in setup.test.ts.
-  ;await (await import('../server/db.ts')).run('UPDATE checklist_items SET proof = 0')
+  ;await (await import('../server/core/db.ts')).run('UPDATE checklist_items SET proof = 0')
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   base = `http://127.0.0.1:${(server.address() as { port: number }).port}`
   const login = async (passcode: string) => {
@@ -113,7 +113,7 @@ test('correcting a reading back into range clears the flag', async () => {
 })
 
 test('a number the speaker never said is marked for a closer look', async () => {
-  const { findNumbers } = await import('../server/money.ts')
+  const { findNumbers } = await import('../server/money/money.ts')
   assert.deepEqual(findNumbers('Fridge two is at nine degrees, freezer minus 18.5'), [2, 9, 18.5])
   const fridge = await runNamed('Fridge and water checks')
   mock.state.clipWords = 'Fridge two is fine'
@@ -262,7 +262,7 @@ test('a figure no tool produced is refused, and the owner gets the plain summary
 })
 
 test('the tool loop survives bad arguments, unknown tools and endless requests', async () => {
-  const { sparkTools } = await import('../server/meta.ts')
+  const { sparkTools } = await import('../server/ai/meta.ts')
   const ran: unknown[] = []
   const tool = {
     name: 'get_thing', description: 'x', run: (args: unknown) => { ran.push(args); return { ok: true } },
@@ -326,7 +326,7 @@ test('wrong audio is refused before it costs a model call', async () => {
 })
 
 test('an overdue check is flagged, and clears when the work is done', async () => {
-  const { run } = await import('../server/db.ts')
+  const { run } = await import('../server/core/db.ts')
   const closing = await runNamed('Closing checks')
   await run('UPDATE checklist_runs SET due_at = ? WHERE id = ?', '2020-01-01T22:00', closing.id)
   const flag = (await inbox()).find((action) => action.href === `#/run/${closing.id}`)
@@ -339,7 +339,7 @@ test('an overdue check is flagged, and clears when the work is done', async () =
 })
 
 test('the crisis cards never touch a model and the gas card starts as agreed', async () => {
-  const { CRISIS_CARDS } = await import('../server/crisis.ts')
+  const { CRISIS_CARDS } = await import('../server/operations/crisis.ts')
   assert.deepEqual(CRISIS_CARDS.map((card) => card.key).sort(), ['fridge', 'gas', 'power', 'water', 'wifi'])
   const gas = CRISIS_CARDS.find((card) => card.key === 'gas')!
   assert.match(gas.steps[0], /Open windows/)
@@ -408,7 +408,7 @@ test('a trend leaves out weeks with no sales, instead of showing them as zero', 
 })
 
 test('a made-up figure in an answer is dropped', async () => {
-  const { allowedFigures, unknownFigures } = await import('../server/analyst.ts')
+  const { allowedFigures, unknownFigures } = await import('../server/ai/analyst.ts')
   assert.deepEqual(unknownFigures('Food cost hit 40%', allowedFigures([{ food_cost_percent: 17.2 }])), ['40'])
 })
 
@@ -431,7 +431,7 @@ test('the owner can tick an item off Today and untick it', async () => {
 })
 
 test('a call task can be ticked and unticked', async () => {
-  const { insert, nowIso, run } = await import('../server/db.ts')
+  const { insert, nowIso, run } = await import('../server/core/db.ts')
   const callId = await insert('INSERT INTO calls (supplier_id, status, consent_at) VALUES (1, ?, ?)', 'done', nowIso())
   const taskId = await insert('INSERT INTO tasks (call_id, title, due_date) VALUES (?, ?, ?)', callId, 'Ring Dave back', '2030-01-01')
   // A task from a call waits for the owner, then behaves as it always has.
@@ -466,8 +466,8 @@ test('connection status never reveals a secret', async () => {
 })
 
 test('an urgent item goes out on WhatsApp once, and a failure stays out of the way', async () => {
-  const { config } = await import('../server/config.ts')
-  const { addAction } = await import('../server/actions.ts')
+  const { config } = await import('../server/core/config.ts')
+  const { addAction } = await import('../server/operations/actions.ts')
   config.whatsapp = { ...config.whatsapp, baseUrl: mock.httpBase, token: 'wa-token', phoneNumberId: '555', ownerNumber: '441234000000' }
   try {
     mock.state.whatsapp.length = 0

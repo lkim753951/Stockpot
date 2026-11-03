@@ -1,9 +1,9 @@
-import { t, tk } from '../i18n'
+import { t, tk } from '../lib/i18n'
 import { useEffect, useState } from 'react'
 import { CaretRight, UsersThree } from '@phosphor-icons/react'
-import { Mascot } from '../Mascot'
-import { api } from '../api'
-import { ErrorNote, FEATURE_ICONS, Loading, Screen } from '../ui'
+import { Mascot } from '../components/Mascot'
+import { api } from '../lib/api'
+import { ErrorNote, FEATURE_ICONS, Loading, Screen } from '../components/ui'
 import { FeatureDot } from './Home'
 
 const WORDS: Record<string, string> = {

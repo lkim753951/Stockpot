@@ -1,8 +1,8 @@
 import { useRef, useState, type ChangeEvent } from 'react'
 import { UploadSimple } from '@phosphor-icons/react'
-import { api, niceDate, pounds } from '../api'
-import { t, tn } from '../i18n'
-import { Chip, Dock, ErrorNote, Screen, Segment } from '../ui'
+import { api, niceDate, pounds } from '../lib/api'
+import { t, tn } from '../lib/i18n'
+import { Chip, Dock, ErrorNote, Screen, Segment } from '../components/ui'
 import { DishSheet, formFromRecipe } from './MenuSettings'
 
 const SHOWN = 12

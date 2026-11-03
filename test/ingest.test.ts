@@ -26,9 +26,9 @@ const mock = await startMockMeta()
 process.env.META_BASE_URL = mock.httpBase
 process.env.META_REALTIME_URL = mock.wsUrl
 const { buildApp } = await import('../server/app.ts')
-const { all, get, isPostgres, run } = await import('../server/db.ts')
-const parsing = await import('../server/parsing.ts')
-const { parseDelimited, decodeText } = await import('../server/ingest.ts')
+const { all, get, isPostgres, run } = await import('../server/core/db.ts')
+const parsing = await import('../server/core/parsing.ts')
+const { parseDelimited, decodeText } = await import('../server/setup/ingest.ts')
 const { marginPercent, priceForMargin, prepPerPortion } = await import('../shared/costing.ts')
 
 const server = await buildApp()
@@ -370,7 +370,7 @@ test('sales save once confirmed, and the dashboard agrees with the ground truth 
 })
 
 test('the price rise behind October is what the analyst can find', async () => {
-  const { priceChanges } = await import('../server/analyst.ts')
+  const { priceChanges } = await import('../server/ai/analyst.ts')
   const [top] = await priceChanges('2026-10-01', '2026-10-31')
   assert.equal(top.item, 'Chicken thighs')
   assert.equal(top.supplier, 'Harrow Lane Foods')
@@ -754,7 +754,7 @@ test('the sample recipe works with no key, on a site with no database or Storage
 test('a database on the last version gains the recipe columns on the next start', { skip: !isPostgres() }, async () => {
   const pg = (await import('pg')).default
   const schema = `old_${process.pid}`
-  const start = `const { all } = await import('./server/db.ts'); console.log(JSON.stringify(await all("SELECT id, portions, recipe_file FROM dishes")))`
+  const start = `const { all } = await import('./server/core/db.ts'); console.log(JSON.stringify(await all("SELECT id, portions, recipe_file FROM dishes")))`
   const boot = () => promisify(execFile)(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', start], { env: { ...process.env, DB_SCHEMA: schema, NODE_TEST_CONTEXT: undefined } })
   await boot()
   const client = new pg.Client({ connectionString: process.env.DATABASE_URL })
@@ -772,7 +772,7 @@ test('a database on the last version gains the recipe columns on the next start'
 })
 
 test('a recipe name in capitals becomes a normal dish name', async () => {
-  const { plainName } = await import('../server/ingest.ts')
+  const { plainName } = await import('../server/setup/ingest.ts')
   assert.equal(plainName('CHICKEN BIRYANI'), 'Chicken biryani')
   assert.equal(plainName('Chicken Biryani'), 'Chicken Biryani')
 })

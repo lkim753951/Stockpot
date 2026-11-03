@@ -1,4 +1,4 @@
-import { assertSafeToStart, config } from './config.ts'
+import { assertSafeToStart, config } from './core/config.ts'
 
 // node:sqlite needs this version, and the crash without it says nothing useful.
 const [major, minor] = process.versions.node.split('.').map(Number)
@@ -10,7 +10,7 @@ if (major < 22 || (major === 22 && minor < 13)) {
 assertSafeToStart()
 
 const { buildApp, startWebhookListener } = await import('./app.ts')
-const { startScheduler } = await import('./scheduler.ts')
+const { startScheduler } = await import('./core/scheduler.ts')
 const server = await buildApp()
 startScheduler()
 

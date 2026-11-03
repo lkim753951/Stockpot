@@ -1,4 +1,4 @@
-import { t } from '../i18n'
+import { t } from '../lib/i18n'
 import { Bar, Bubble, Count, Stage, States, Text, Thread, type Act } from '../kit'
 import { Siren } from '@phosphor-icons/react'
 import './feature-grid.css'

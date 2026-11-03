@@ -1,12 +1,12 @@
-import { t, tk } from '../i18n'
+import { t, tk } from '../lib/i18n'
 import { useEffect, useState } from 'react'
-import { evidenceForm } from '../media'
-import { EvidenceSheet } from '../Evidence'
+import { evidenceForm } from '../lib/media'
+import { EvidenceSheet } from '../components/Evidence'
 import { Camera, CheckCircle, DotsThree, Drop, Fire, Lightning, Microphone, Package, Siren, Stop, Wrench } from '@phosphor-icons/react'
-import { api } from '../api'
-import { CRISIS_CARDS } from '../../server/crisis'
-import { useRecorder } from '../recorder'
-import { Chip, Dock, ErrorNote, Loading, Screen } from '../ui'
+import { api } from '../lib/api'
+import { CRISIS_CARDS } from '../../server/operations/crisis'
+import { useRecorder } from '../lib/recorder'
+import { Chip, Dock, ErrorNote, Loading, Screen } from '../components/ui'
 
 const TONE: Record<string, 'urgent' | 'due' | 'neutral'> = { now: 'urgent', today: 'due', soon: 'neutral' }
 const WORD: Record<string, string> = { now: tk('Urgent'), today: tk('Due today'), soon: tk('Not important') }

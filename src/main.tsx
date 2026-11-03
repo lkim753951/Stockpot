@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 import { App } from './App'
-import { loadLanguage, useLanguage } from './i18n'
+import { loadLanguage, useLanguage } from './lib/i18n'
 
 /** A new language draws everything again from the top, including words fetched from the server. */
 function Root() {

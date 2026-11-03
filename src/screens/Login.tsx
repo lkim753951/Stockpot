@@ -1,9 +1,9 @@
-import { t } from '../i18n'
-import { LanguageButton } from '../Language'
+import { t } from '../lib/i18n'
+import { LanguageButton } from '../components/Language'
 import { useState, type FormEvent } from 'react'
-import { api } from '../api'
+import { api } from '../lib/api'
 import type { Role } from '../App'
-import { ErrorNote, Segment } from '../ui'
+import { ErrorNote, Segment } from '../components/ui'
 
 export function Login({ role, onRole, onDone, onBack }: { role: Role; onRole: (role: Role) => void; onDone: () => void; onBack: () => void }) {
   const [passcode, setPasscode] = useState('')

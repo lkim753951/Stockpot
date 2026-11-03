@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { ArrowDown, ArrowUp, CaretRight, Plus } from '@phosphor-icons/react'
-import { api, niceDate, wholePounds } from '../api'
-import { t } from '../i18n'
-import { whenWords } from '../dates'
-import { Chip, Empty, ErrorNote, Loading, Screen, Tile } from '../ui'
+import { api, niceDate, wholePounds } from '../lib/api'
+import { t } from '../lib/i18n'
+import { whenWords } from '../lib/dates'
+import { Chip, Empty, ErrorNote, Loading, Screen, Tile } from '../components/ui'
 
 /** Written by the AI analyst, with the numbers kept as they were on the day it was written. */
 export function ReportBody({ report, onAdded }: { report: any; onAdded?: (index: number) => void }) {

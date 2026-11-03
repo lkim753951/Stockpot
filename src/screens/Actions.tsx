@@ -1,8 +1,8 @@
-import { t, tk } from '../i18n'
+import { t, tk } from '../lib/i18n'
 import { Plus } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
-import { api } from '../api'
-import { Dock, ErrorNote, Empty, Loading, Screen, Segment, Sheet } from '../ui'
+import { api } from '../lib/api'
+import { Dock, ErrorNote, Empty, Loading, Screen, Segment, Sheet } from '../components/ui'
 import { ActionCard, bucketOf, ToConfirm, type Bucket } from './ActionCard'
 
 const BUCKETS: Array<{ value: Bucket; label: string; empty: string }> = [
