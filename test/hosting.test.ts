@@ -263,6 +263,7 @@ test('the analyst\'s state is the same whichever instance is asked', async () =>
     const view = (await api(`/api/summary?from=${range.from}&to=${range.to}`, { at: other.base })).json
     return !view.running && view
   }, 'the run to end, seen from the other instance')
+  assert.ok(finished.report, `no report: ${JSON.stringify(finished).slice(0, 400)}`)
   assert.equal(finished.report.weekStart, range.from)
   assert.ok(finished.progress.length, 'progress crossed between instances')
 })

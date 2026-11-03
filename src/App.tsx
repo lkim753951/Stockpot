@@ -13,6 +13,7 @@ import { Order } from './screens/Order'
 import { Receipts } from './screens/Receipts'
 import { Checks, CheckDetail } from './screens/Checks'
 import { SalesSettings, Settings, SuppliersSettings, TeamSettings } from './screens/Settings'
+import { ImportSettings } from './screens/ImportSettings'
 import { MenuSettings } from './screens/MenuSettings'
 import { ChecklistSettings } from './screens/ChecklistSettings'
 import { LanguageButton } from './Language'
@@ -99,7 +100,8 @@ function OwnerScreen({ parts, sample, onClock }: { parts: string[]; sample: bool
     case 'run': return <RunDetail id={id} sample={sample} readOnly />
     case 'settings':
       if (id === 'suppliers') return <SuppliersSettings />
-      if (id === 'menu') return <MenuSettings />
+      if (id === 'menu') return <MenuSettings sample={sample} />
+      if (id === 'import') return <ImportSettings />
       if (id === 'checklists') return <ChecklistSettings />
       if (id === 'team') return <TeamSettings />
       if (id === 'sales') return <SalesSettings />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { CaretRight, ClipboardText, CookingPot, DownloadSimple, GlobeSimple, LinkSimple, PlugsConnected, Plus, Trash, Truck, UploadSimple, UsersThree, ChartBar } from '@phosphor-icons/react'
+import { CaretRight, ClipboardText, CookingPot, DownloadSimple, FileArrowUp, GlobeSimple, LinkSimple, PlugsConnected, Plus, Trash, Truck, UploadSimple, UsersThree, ChartBar } from '@phosphor-icons/react'
 import { api } from '../api'
 import { t, tk, LANGUAGES } from '../i18n'
 import { LanguagePicker } from '../Language'
@@ -12,6 +12,7 @@ const ROWS = [
   { href: '#/settings/checklists', Icon: ClipboardText, title: tk('Checklists'), note: tk('What staff check, and when.') },
   { href: '#/settings/team', Icon: UsersThree, title: tk('Team'), note: tk('Invite staff with a link.') },
   { href: '#/settings/sales', Icon: ChartBar, title: tk('Sales'), note: tk('Import what you sold from your till.') },
+  { href: '#/settings/import', Icon: FileArrowUp, title: tk('Import a file'), note: tk('Sales, recipes and price lists from any file.') },
   { href: '#/connections', Icon: PlugsConnected, title: tk('Connections'), note: tk('Gmail, WhatsApp and phone calls.') },
 ]
 
@@ -281,10 +282,11 @@ export function SalesSettings() {
   return (
     <Screen title={t('Sales')} lead={t('Export a sales CSV from your till and import it here. Dish names need to match your menu.')}>
       <ErrorNote message={error} />
-      {imported ? <p className="notice" role="status">{t('Imported {imported} rows.', { imported: imported.imported })}{imported.problems.length ? ` ${imported.problems.join(' ')}` : ''}</p> : null}
+      {imported ? <p className="notice" role="status">{t('Imported {imported} rows.', { imported: imported.imported })}{imported.skipped ? ` ${t('{skipped} rows were already saved, so they were skipped.', { skipped: imported.skipped })}` : ''}{imported.problems.length ? ` ${imported.problems.join(' ')}` : ''}</p> : null}
       <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={upload} />
       <button className="btn primary block" type="button" onClick={() => input.current?.click()}><UploadSimple size={24} aria-hidden="true" />{t('Import sales CSV')}</button>
       <a className="btn block" href="/api/sales/template.csv"><DownloadSimple size={24} aria-hidden="true" />{t('Download a template')}</a>
+      <a className="btn text block" href="#/settings/import">{t('Import any other file')}</a>
     </Screen>
   )
 }

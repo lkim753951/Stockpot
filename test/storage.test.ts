@@ -287,3 +287,49 @@ test('a newer Supabase secret key travels in apikey alone', async () => {
   assert.deepEqual(storageHeaders('sb_secret_abc'), { apikey: 'sb_secret_abc' })
   assert.deepEqual(storageHeaders('eyJabc'), { Authorization: 'Bearer eyJabc', apikey: 'eyJabc' })
 })
+
+test('a recipe file and a dish photo live in Storage, and a read needs only the instance that gets the request', async () => {
+  const dishes = (await api(owner, '/api/setup/dishes')).json
+  const dish = dishes.find((row: any) => row.name === 'Chicken curry')
+  const pdf = fs.readFileSync('public/samples/sample-recipe.pdf')
+  const form = new FormData()
+  form.append('recipe', new Blob([pdf]), 'sample-recipe.pdf')
+  form.append('photo', new Blob([fs.readFileSync('public/samples/sample-dish.png')]), 'sample-dish.png')
+  const saved = await api(owner, `/api/setup/dishes/${dish.id}/files`, { form })
+  assert.equal(saved.status, 200)
+  assert.ok(storage.state.objects.has(`uploads/${saved.json.recipeFile}`))
+  assert.ok(storage.state.objects.has(`uploads/${saved.json.photo}`))
+
+  // A new instance has an empty temp folder, so the file has to come back from Storage.
+  fs.rmSync(path.join(dataDir, 'uploads', saved.json.recipeFile))
+  const again = await api(owner, `/api/setup/dishes/${dish.id}/read-again`, { method: 'POST' })
+  assert.equal(again.status, 200)
+  assert.equal(again.json.recipe.name, 'Lamb kofta')
+
+  const redirected = await api(staff, `/api/staff/recipe-photo/${saved.json.photo}`)
+  assert.equal(redirected.status, 302)
+  assert.equal((await api(staff, `/api/files/${saved.json.recipeFile}`)).status, 403)
+})
+
+test('a big Word file or workbook can go straight to Storage, and the upload is gone after a read', async () => {
+  const docx = fs.readFileSync('public/samples/datasets/2026-08/recipes-book.docx')
+  const ticket = (await api(owner, '/api/uploads/sign', { body: { name: 'recipes-book.docx', size: docx.length } })).json
+  assert.equal(ticket.direct, true)
+  assert.equal(ticket.contentType, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+  assert.equal((await fetch(ticket.url, { method: 'PUT', headers: { 'Content-Type': ticket.contentType }, body: docx })).status, 200)
+  const form = new FormData()
+  form.append('kind', 'recipes')
+  form.append('storedFiles', JSON.stringify([{ field: 'file', path: ticket.path, name: 'recipes-book.docx' }]))
+  const read = await api(owner, '/api/ingest/read', { form })
+  assert.equal(read.status, 200)
+  assert.deepEqual(read.json.recipes.map((recipe: any) => recipe.name), ['Chicken curry', 'Grilled chicken wrap'])
+  assert.ok(!storage.state.objects.has(`uploads/${ticket.path}`))
+
+  // Staff can ask for a link, but the file can't then be used on an owner's route.
+  const staffTicket = (await api(staff, '/api/uploads/sign', { body: { name: 'a.xlsx', size: 10 } })).json
+  assert.equal(staffTicket.direct, true)
+  const bad = new FormData()
+  bad.append('kind', 'sales')
+  bad.append('storedFiles', JSON.stringify([{ field: 'file', path: staffTicket.path, name: 'a.xlsx' }]))
+  assert.equal((await api(owner, '/api/ingest/read', { form: bad })).status, 400)
+})

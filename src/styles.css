@@ -481,7 +481,7 @@ button.feature-row { width: 100%; border: 0; background: none; font: inherit; te
 .recipe-lines li, .read-menu li, .check-editors li { max-width: none; }
 .recipe-lines input, .recipe-lines select, .read-menu input, .row-fill input { width: 100%; min-width: 0; }
 .recipe-lines select { padding-inline: 6px; }
-.recipe-lines li { display: grid; grid-template-columns: minmax(0, 1fr) 64px 76px 40px; gap: var(--space-2); align-items: center; }
+.recipe-lines li { display: grid; grid-template-columns: minmax(0, 1fr) 72px 72px 48px; gap: var(--space-2); align-items: center; }
 .read-menu li { display: grid; grid-template-columns: minmax(0, 1fr) 88px; gap: var(--space-2); }
 .check-editor { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-sunken); }
 .row-fill { display: grid; grid-template-columns: minmax(0, 1fr) 40px; gap: var(--space-2); align-items: center; }
@@ -616,6 +616,13 @@ button.feature-row { width: 100%; border: 0; background: none; font: inherit; te
 .search svg { position: absolute; left: var(--space-3); top: 50%; translate: 0 -50%; color: var(--ink-muted); }
 .search input { min-height: var(--tap-min); padding-left: 44px; }
 .method { white-space: pre-wrap; }
+.method-steps { gap: var(--space-3); padding-left: 0; padding-inline-start: 24px; }
+.recipe-lines input.num { padding-inline: 6px; }
+.recipe-lines .line-note { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); margin: 0; }
+.recipe-lines .line-note p { margin: 0; }
+.cost-cell { text-align: end; flex: none; }
+.picked { display: flex; align-items: center; gap: var(--space-2); overflow-wrap: anywhere; }
+.dish-photo { max-height: 200px; }
 .analyst-working .trail { margin: 0; }
 .welcome { gap: var(--space-4); }
 

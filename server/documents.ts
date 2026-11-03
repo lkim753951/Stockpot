@@ -15,6 +15,9 @@ const MIME: Record<string, string> = {
 
 export const allowedExtension = (name: string) => path.extname(name).toLowerCase() in MIME
 
+/** Stops a printed value from running as a formula when the file opens in a spreadsheet. */
+export const safeCell = (text: string) => (/^[=+\-@\t\r]/.test(text) ? `'${text}` : text)
+
 export async function documentPart(file: string, originalName: string): Promise<ContentPart> {
   const extension = path.extname(file).toLowerCase()
   const data = `data:${MIME[extension]};base64,${fs.readFileSync(await localFile(file)).toString('base64')}`
@@ -178,9 +181,7 @@ export async function invoiceLinesCsv(range?: { from: string; to: string }) {
     WHERE COALESCE(inv.date, substr(inv.created_at, 1, 10)) BETWEEN ? AND ? ORDER BY inv.date NULLS FIRST, inv.id, il.id`, range?.from ?? '0000', range?.to ?? '9999')
   const header = ['Date', 'Supplier', 'Invoice', 'Item', 'Quantity', 'Unit', 'Pack size', 'Unit price (£)', 'Line total (£)', 'VAT rate', 'Check', 'Photo']
   const cell = (value: unknown) => {
-    let text = value === null || value === undefined ? '' : String(value)
-    // Stops a printed value from running as a formula when the file opens in a spreadsheet.
-    if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
+    const text = safeCell(value === null || value === undefined ? '' : String(value))
     return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
   }
   const body = rows.map((row) => [

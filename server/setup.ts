@@ -1,11 +1,14 @@
-import { all, get, insert, nowIso, run, saveSetting, setting } from './db.ts'
+import { all, get, insert, priceOn, run, saveSetting, setting, transaction } from './db.ts'
 import { config } from './config.ts'
+import { localTime } from './clock.ts'
 import { sparkJson } from './meta.ts'
+import { nameKey } from './parsing.ts'
 import { documentPart } from './documents.ts'
 import { proofTargetFor } from './proof.ts'
 import { EARLIEST_CHASE } from './chase.ts'
 import { cleanSchedule, frequencyOf, scheduleFor, type Schedule } from './schedule.ts'
 import { menuPrompt, menuSchema, type ExtractedMenu } from './prompts.ts'
+import { marginPercent, prepPerPortion, priceForMargin } from '../shared/costing.ts'
 
 /** Everything the owner adds about their own restaurant: suppliers, the menu and their checklists. */
 
@@ -41,26 +44,59 @@ const TO_BASE: Record<string, { base: string; factor: number }> = {
   g: { base: 'kg', factor: 0.001 }, kg: { base: 'kg', factor: 1 }, ml: { base: 'l', factor: 0.001 }, l: { base: 'l', factor: 1 }, each: { base: 'each', factor: 1 },
 }
 
+/** Finds a saved item by its name or an alias, then by the words before a comma, then without a plural s. */
+export async function itemMatcher() {
+  const items = await all('SELECT id, name, base_unit, case_qty, aliases FROM items')
+  const names = new Map(items.flatMap((item) => [item.name, ...JSON.parse(String(item.aliases ?? '[]'))].map((label) => [nameKey(String(label)), item] as const)))
+  return (name: string) => {
+    const key = nameKey(name)
+    return names.get(key) ?? names.get(nameKey(name.split(',')[0])) ?? names.get(key.replace(/e?s$/, '')) ?? names.get(`${key}s`) ?? null
+  }
+}
+
 export async function itemFor(name: string, unit: string) {
-  const known = await get('SELECT id, base_unit FROM items WHERE lower(name) = lower(?)', name)
+  const known = (await itemMatcher())(name)
   const { base, factor } = TO_BASE[unit] ?? TO_BASE.each
-  if (known && known.base_unit !== base) throw new SetupError(`${known.base_unit === 'each' ? 'Count' : `Weigh or measure`} ${name} the way it is saved, in ${known.base_unit}.`)
+  if (known && known.base_unit !== base) throw new SetupError(`${known.base_unit === 'each' ? 'Count' : `Weigh or measure`} ${known.name} the way it is saved, in ${known.base_unit}.`)
   return { id: known ? Number(known.id) : await insert('INSERT INTO items (name, base_unit) VALUES (?, ?)', name, base), factor }
 }
 
-const latestPrice = async (itemId: unknown) => (await get('SELECT price_p FROM price_history WHERE item_id = ? ORDER BY date DESC, id DESC LIMIT 1', itemId))?.price_p as number | undefined
-
+/** Every dish with its full costing. This uses the Dashboard's price rule for today, so the two screens agree. */
 export async function listDishes() {
-  return await Promise.all((await all('SELECT id, name, price_p AS pricePence, target_margin AS targetMargin, method, photo_file AS photo FROM dishes ORDER BY name')).map(async (dish) => {
-    const lines = await all(`SELECT r.item_id, r.qty_base, i.name, i.base_unit FROM recipe_lines r JOIN items i ON i.id = r.item_id WHERE r.dish_id = ? ORDER BY i.name`, dish.id)
-    const priced = await Promise.all(lines.map(async (line) => ({ line, price: await latestPrice(line.item_id) })))
-    const complete = lines.length > 0 && priced.every(({ price }) => price !== undefined)
-    const costPence = complete ? Math.round(priced.reduce((sum, { line, price }) => sum + Number(line.qty_base) * price!, 0)) : null
+  const today = localTime().date
+  return await Promise.all((await all(`SELECT id, name, price_p AS pricePence, target_margin AS targetMargin, method, photo_file AS photo, portions,
+      prep_minutes AS prepMinutes, service_minutes AS serviceMinutes, recipe_file AS recipeFile, recipe_file_name AS recipeFileName FROM dishes ORDER BY name`)).map(async (dish) => {
+    const lines = await all(`SELECT r.qty_base, i.name, i.base_unit, ${priceOn('?')} AS price_p, ${priceOn('?', 'date')} AS price_date
+      FROM recipe_lines r JOIN items i ON i.id = r.item_id WHERE r.dish_id = ? ORDER BY i.name`, today, today, dish.id)
+    const costs = lines.map((line) => (line.price_p === null ? null : Number(line.qty_base) * Number(line.price_p)))
+    const known = costs.reduce<number>((sum, cost) => sum + (cost ?? 0), 0)
+    const complete = lines.length > 0 && costs.every((cost) => cost !== null)
     return {
-      ...dish, costPence, unpriced: priced.filter(({ price }) => price === undefined).map(({ line }) => line.name),
-      lines: lines.map((line) => ({ name: line.name, quantity: Number(line.qty_base), unit: line.base_unit })),
+      ...dish,
+      costPence: complete ? Math.round(known) : null,
+      /** Unrounded, because the Dashboard's margin isn't worked out from a rounded cost. */
+      exactCostPence: complete ? known : null,
+      knownCostPence: Math.round(known),
+      marginPercent: complete ? marginPercent(Number(dish.pricePence), known) : null,
+      pricePenceForTarget: complete ? priceForMargin(known, Number(dish.targetMargin)) : null,
+      prepPerPortion: prepPerPortion(dish.prepMinutes, dish.portions),
+      unpriced: lines.filter((line) => line.price_p === null).map((line) => line.name),
+      lines: lines.map((line, index) => ({
+        name: line.name, quantity: Number(line.qty_base), unit: line.base_unit,
+        pricePence: line.price_p === null ? null : Number(line.price_p), priceDate: line.price_date ?? null, costPence: costs[index],
+        sharePercent: complete && known > 0 ? Math.round((costs[index]! / known) * 1000) / 10 : null,
+      })),
     }
   }))
+}
+
+/** A number the owner may leave empty. Null clears it, and missing leaves the saved one alone. */
+function optionalWhole(value: unknown, most: number, message: string) {
+  if (value === undefined) return undefined
+  if (value === null || value === '') return null
+  const number = Number(value)
+  if (!(Number.isInteger(number) && number > 0 && number <= most)) throw new SetupError(message)
+  return number
 }
 
 export async function saveDish(input: Record<string, any>, id?: number) {
@@ -70,29 +106,48 @@ export async function saveDish(input: Record<string, any>, id?: number) {
   if (!name) throw new SetupError('Add the dish name.')
   if (!(pricePence > 0)) throw new SetupError('Add the menu price.')
   if (!(targetMargin >= 0 && targetMargin <= 100)) throw new SetupError('The target margin has to be between 0 and 100.')
+  const portions = optionalWhole(input.portions, 1000, 'Portions has to be a whole number.')
+  const prep = optionalWhole(input.prepMinutes, 10080, 'Prep time has to be a whole number of minutes.')
+  const service = optionalWhole(input.serviceMinutes, 1440, 'Service time has to be a whole number of minutes.')
   const lines = (Array.isArray(input.lines) ? input.lines : []).filter((line: any) => text(line?.name))
-  for (const line of lines) if (!(Number(line.quantity) > 0)) throw new SetupError(`Add a quantity for ${text(line.name)}.`)
-  // One at a time: two lines can name the same new ingredient, and only the first should add it.
-  const resolved: Array<{ item: { id: number; factor: number }; quantity: number }> = []
-  for (const line of lines) resolved.push({ item: await itemFor(text(line.name), String(line.unit ?? 'each')), quantity: Number(line.quantity) })
-  const method = text(input.method, 4000) || null
-  const dishId = id ?? await insert('INSERT INTO dishes (name, price_p, target_margin, method) VALUES (?, ?, ?, ?)', name, pricePence, targetMargin, method)
-  if (id) await run('UPDATE dishes SET name = ?, price_p = ?, target_margin = ?, method = ? WHERE id = ?', name, pricePence, targetMargin, method, id)
-  await run('DELETE FROM recipe_lines WHERE dish_id = ?', dishId)
-  for (const { item, quantity } of resolved) {
-    await run(`INSERT INTO recipe_lines (dish_id, item_id, qty_base) VALUES (?, ?, ?)
-         ON CONFLICT (dish_id, item_id) DO UPDATE SET qty_base = recipe_lines.qty_base + excluded.qty_base`, dishId, item.id, quantity * item.factor)
+  for (const line of lines) {
+    if (!(Number(line.quantity) > 0)) throw new SetupError(`Add a quantity for ${text(line.name)}.`)
+    if (line.unit !== undefined && line.unit !== null && !(line.unit in TO_BASE)) throw new SetupError(`Choose a unit for ${text(line.name)}.`)
   }
-  return dishId
+  const method = text(input.method, 8000) || null
+  return transaction(async () => {
+    // One at a time: two lines can name the same new ingredient, and only the first should add it.
+    const resolved: Array<{ item: { id: number; factor: number }; quantity: number }> = []
+    for (const line of lines) resolved.push({ item: await itemFor(text(line.name), String(line.unit ?? 'each')), quantity: Number(line.quantity) })
+    const dishId = id ?? await insert('INSERT INTO dishes (name, price_p, target_margin, method) VALUES (?, ?, ?, ?)', name, pricePence, targetMargin, method)
+    if (id) await run('UPDATE dishes SET name = ?, price_p = ?, target_margin = ?, method = ? WHERE id = ?', name, pricePence, targetMargin, method, id)
+    if (portions !== undefined) await run('UPDATE dishes SET portions = ? WHERE id = ?', portions, dishId)
+    if (prep !== undefined) await run('UPDATE dishes SET prep_minutes = ? WHERE id = ?', prep, dishId)
+    if (service !== undefined) await run('UPDATE dishes SET service_minutes = ? WHERE id = ?', service, dishId)
+    await run('DELETE FROM recipe_lines WHERE dish_id = ?', dishId)
+    for (const { item, quantity } of resolved) {
+      await run(`INSERT INTO recipe_lines (dish_id, item_id, qty_base) VALUES (?, ?, ?)
+           ON CONFLICT (dish_id, item_id) DO UPDATE SET qty_base = recipe_lines.qty_base + excluded.qty_base`, dishId, item.id, quantity * item.factor)
+    }
+    return dishId
+  })
 }
+
+/** A recipe sheet can print its costing beside the method, so anything about money is taken out before staff see it. */
+const ABOUT_MONEY = /£|\bGBP\b|\b\d+(?:\.\d+)?\s?p\b|\b(?:cost|costs|costing|costed|price|prices|priced|margin|margins|gp|sell(?:s|ing)? (?:at|for))\b/i
+
+export const stepsOf = (method: unknown) => String(method ?? '').split(/\r?\n/).map((line) => line.replace(/^\s*(?:\d+[.)]|[-•*])\s*/, '').trim()).filter(Boolean)
 
 /** What staff need to cook it: no prices, costs or margins ever leave in here. */
 export async function staffRecipes() {
-  return await Promise.all((await all('SELECT id, name, method, photo_file AS photo FROM dishes ORDER BY name')).map(async (dish) => ({
-    ...dish,
-    lines: (await all('SELECT r.qty_base, i.name, i.base_unit FROM recipe_lines r JOIN items i ON i.id = r.item_id WHERE r.dish_id = ? ORDER BY i.name', dish.id))
-      .map((line) => ({ name: line.name, quantity: Number(line.qty_base), unit: line.base_unit })),
-  })))
+  return await Promise.all((await all('SELECT id, name, method, photo_file AS photo, portions, prep_minutes AS prepMinutes, service_minutes AS serviceMinutes FROM dishes ORDER BY name')).map(async (dish) => {
+    const steps = stepsOf(dish.method).filter((step) => !ABOUT_MONEY.test(step))
+    return {
+      ...dish, method: steps.join('\n') || null, steps, prepPerPortion: prepPerPortion(dish.prepMinutes, dish.portions),
+      lines: (await all('SELECT r.qty_base, i.name, i.base_unit FROM recipe_lines r JOIN items i ON i.id = r.item_id WHERE r.dish_id = ? ORDER BY i.name', dish.id))
+        .map((line) => ({ name: String(line.name).replace(/\s*[(,]?\s*£[\d.,]+[^,)]*\)?/g, '').trim(), quantity: Number(line.qty_base), unit: line.base_unit })),
+    }
+  }))
 }
 
 export async function deleteDish(id: number) {

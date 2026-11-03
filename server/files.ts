@@ -49,7 +49,9 @@ const refused = (doing: string, response: { status: number }) => new Error(`Stor
 const CONTENT_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf',
   '.wav': 'audio/wav', '.mp4': 'video/mp4', '.m4v': 'video/mp4', '.mov': 'video/quicktime', '.webm': 'video/webm', '.3gp': 'video/3gpp',
-  '.json': 'application/json', '.csv': 'text/csv',
+  '.json': 'application/json', '.csv': 'text/csv', '.txt': 'text/plain',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 }
 export const contentTypeOf = (name: string) => CONTENT_TYPES[path.extname(name).toLowerCase()] ?? 'application/octet-stream'
 

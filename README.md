@@ -55,12 +55,14 @@ Sample mode starts the day at 07:30 and has a **Demo: jump to 22:30** button on 
 On first sign-in, Stockpot asks five short questions and saves the answers: your name, suppliers, menu, Google sign-in and team. You can run it again from Settings. Everything else is under the gear icon.
 
 - **Suppliers:** name, contact, email and phone. Calls, receipts and Gmail all match against this list.
-- **Menu and recipes:** add dishes one at a time, or upload a menu photo or PDF. Muse Spark reads it and you check it before anything is saved.
+- **Menu and recipes:** add dishes one at a time, upload a menu photo or PDF, or use **Add a recipe** to upload a recipe as a PDF, photo or Word file, with a dish photo if you have one. Muse Spark reads it and you check it before anything is saved. It reads portions, ingredients, method, prep time and service time, turns quantities into amounts for one portion in kg, l or each, and flags anything it can't convert. A time or quantity the file doesn't state stays empty. An existing dish can take a file too, and **Read the file again** shows what would change first.
+- **Cost and margin:** every dish shows each ingredient's quantity, latest price, cost per portion and share of the total, then the food cost, the margin against your target, the menu price that hits the target, and prep and service time. Type a price to try it, with no saving needed. It uses the Dashboard's costing, so the numbers agree. A new ingredient shows **No price yet**, and the cost is marked incomplete rather than understated. Labour isn't included, because there's no wage data.
+- **Import a file:** one place for sales, recipes and supplier price lists, as CSV, Excel, PDF, Word, text or a photo. Column names don't have to match anything. You see a preview with anything unsure flagged, and nothing is saved until you confirm. A price list needs a supplier and a date, and adds to the price history without changing it. An unknown dish is flagged, never created, and loading a file twice doesn't count twice: the preview says what was skipped.
 - **Checklists:** every day, chosen days, or rules like the first and third Wednesday of the month. Each list has a deadline and a person. It can chase on WhatsApp, then ring a phone, once, at a time you choose from an hour before the deadline to an hour after. A list always goes out before it's chased. Each check needs a photo or video unless you turn that off.
 - **Team:** send an invite link. The worker taps it and presses send, and is added. This also opens WhatsApp's 24-hour window. Adding a number by hand works too.
-- **Sales:** import a CSV from your till. Till connections are not built.
+- **Sales:** import a CSV from your till, or any file through **Import a file**. Till connections are not built.
 - **Crisis cards:** the owner can change any card, add photos to steps, make new cards, or go back to the standard card. The cards stay readable with no connection.
-- **Recipes for staff:** staff see ingredients and method, never prices or margins.
+- **Recipes for staff:** staff see the dish photo, ingredients, numbered steps, and prep and service time, never prices, costs or margins. The server enforces this, and it takes any line about money out of the method before staff get it. The uploaded recipe file stays with the owner.
 - **Deliveries:** every order on one timeline, from the call to the invoice, with its order date and delivery date. A new supplier can be added while adding a delivery. Whoever takes it in, owner or staff, records the day it came, who received it, how much came, where it was put, what went wrong, and any photos or videos. Counting can be done by filming the delivery. A problem becomes an urgent task with a Call button, and **What to say** gives the owner an opening, the facts, the ask and a reply if they push back. Every number comes from the check. The proof for each line shows what was heard on the call, what arrived and what was billed.
 - **Price check:** old invoices alone show what was paid above the first price for each item, and anything that may be billed twice. It needs no calls or orders, so a restaurant can see a figure from its first batch of invoices.
 - **Language:** 18 languages for UK kitchens: English, Polish, Romanian, Spanish, Portuguese, Italian, French, Turkish, Bengali, Hindi, Urdu, Nepali, Arabic, Chinese, Vietnamese, Tagalog, Korean and Japanese. Arabic and Urdu run right to left. The app follows the browser the first time and remembers your choice. WhatsApp replies use the language each person writes in.
@@ -87,6 +89,9 @@ Owners never see keys. Open `#/developer` directly to add the Meta key, Google c
 | Counting a delivery on video | `sam-3.1` | Each object keeps its id through a pan, so a worker films along the pallet and gets a count against the order, with a number on each box. The worker checks it before it's used | An object that leaves shot and comes back can be counted twice. Accuracy on real deliveries hasn't been measured |
 | Several receipts in one photo | `sam-3.1` | Finds each receipt, so each gets its own row | A pile has to be photographed one at a time |
 | Menus | `muse-spark-1.3` | Reads dishes, prices and printed recipes | Every dish is typed by hand |
+| Recipe files | `muse-spark-1.3` | Reads a PDF, photo, Word or text recipe through a strict schema: portions, ingredients as printed, method, and each time with the words that state it. Code does every conversion | Recipes are typed by hand, and the cost breakdown starts empty |
+| Spreadsheets to import | `muse-spark-1.3` | Sees only the header and the first rows of a CSV or Excel file, and says which column holds what. Code reads every row, so no row's numbers pass through a model and a big file costs one call | Column names have to match the template |
+| Documents to import | `muse-spark-1.3` | Reads sales reports and price lists in a PDF, photo, Word or text file into typed rows. Code checks them against the printed totals and, for Word and text, against the file's own words | Sales and prices on paper are typed by hand |
 | Voice checks | `muse-voice-transcribe-1.0`, `PUSH_TO_TALK`, then `muse-spark-1.3` | Turns a spoken reading into the right checklist item and value | Staff stop with wet hands to type every reading |
 | Photo checks | `muse-spark-1.3` | Reads a thermometer from a photo | Readings are typed and easily skipped |
 | Spoken reports | `muse-voice-transcribe-1.0` with language detection, then `muse-spark-1.3` | Turns a report in any supported language into an English task | Staff who aren't confident in English go unheard |
@@ -107,11 +112,12 @@ Vocabulary improves with use: supplier names, items and past invoice lines are s
 - **The owner confirms new work.** Tasks from calls, staff reports and delivery problems wait under **To confirm** on Home and Tasks, with Confirm and Dismiss. They stay out of the lists and the badge until then, and a dismissed one doesn't come back. An urgent one still reaches the owner on WhatsApp.
 - **Safety never waits.** A report with a crisis card, an urgent report about safety, and any reading out of range go straight to the list. So does a report that couldn't be read.
 - **Evidence required.** Each order line must point to a transcript turn. If the price or quantity isn't in those words, the line goes to the owner to check.
-- **Printed sums checked.** Quantity × price, line totals, net plus VAT and duplicate invoice numbers are all checked after reading.
+- **Printed sums checked.** Quantity × price, line totals, net plus VAT and duplicate invoice numbers are all checked after reading. An imported file's rows are checked against its printed totals.
+- **A file can't invent a number.** In a Word or text file, every figure a model gives must be in the file, or the row is flagged and left out. A time needs the words that state it. In any format, a time with no words behind it is dropped, and a price far from your last one is flagged, because a pack size is the likely mistake. The owner sees all of it first.
 - **Originals kept.** A spoken report keeps its original words and audio, even if translation fails.
 - **Nothing sent without approval.** Stockpot drafts. The owner approves and sends.
 - **No model on crisis cards.** They're fixed text inside the app, so they also open with the wifi down.
-- **Documents are treated as data.** Text inside a photo, a call or an invoice can't give the model instructions.
+- **Documents are treated as data.** Text inside a photo, a call or an invoice can't give the model instructions. In Word, text and spreadsheet files, a line written to steer an AI is removed before the model sees it, and the owner is told. A PDF or photo goes to the model whole, so there the rule in the prompt and the checks above do the work.
 
 ## How it works
 
@@ -156,10 +162,12 @@ Everything in this repository was written during the event. Code was written wit
 - A second server process stands in for a second instance, so sign-in, the analyst, cron and live calls are tested across two. One test kills a server in the middle of a call and checks the recording against the original, byte for byte.
 - Storage is tested against a local stand-in for its REST API, not against Supabase.
 - `node scripts/check-await.cjs` uses the TypeScript compiler to find any promise nobody is waiting for. It needs the global `typescript` package.
-- Food cost and margins are checked against a hand calculation in `test/features.test.ts`.
+- Food cost and margins are checked against a hand calculation in `test/features.test.ts`. The cost calculator is checked against the Dashboard and a hand calculation in `test/ingest.test.ts`.
+- `test/ingest.test.ts` runs all 22 dataset files through the real routes, covering sales, recipes and price lists in CSV, Excel, PDF, Word, text and image, and compares each with the ground truth. It also covers wrong columns, missing prices, totals that don't match, units that can't be converted, duplicate imports, files that are too large, injected instructions, and staff never receiving money. The stand-in can't read a PDF or a photo, so it answers those from the ground truth. That tests everything after the read, not the reading.
+- **The recipe and file import features have not been run against real Meta.** This machine can't reach it. On a Mac with a key, double-click `test-ai-ingest.command`. It sends every dataset file through the real ingest code in a throwaway database, scores each against the ground truth, and writes `ingest-report.md`. Until that has been run, how well real Muse Spark reads these files is unknown.
 - The screens were measured in light and dark mode with the [ux-ui-agent-skills](https://github.com/plugin87/ux-ui-agent-skills) gates: axe, rendered contrast, keyboard, overflow, screen economy, mobile-first and reduced motion.
 - The sample site runs on real Vercel, including a sample call over a live WebSocket.
-- Muse Spark has run for real from a Mac. **Muse Voice Transcribe, SAM 3.1, WhatsApp, Twilio, Gmail and Supabase have only been tested against stand-ins.** Run `npm run check:meta` with a key. Real speakerphone audio, kitchen noise, handwriting and live delay are unmeasured.
+- All 13 real Meta checks passed from a Mac on 3 November 2026, covering Muse Spark, Muse Voice Transcribe and SAM 3.1 on the sample files. To repeat them, double-click `test-meta.command`, or run `npm run check:meta`. **WhatsApp, Twilio, Gmail and Supabase have only been tested against stand-ins.** Real speakerphone audio, kitchen noise, handwriting and live delay are unmeasured.
 
 ## Known limits
 
@@ -167,11 +175,16 @@ Everything in this repository was written during the event. Code was written wit
 - Passcode sign-in with two roles, not individual accounts.
 - The recording notice relies on the owner playing it and ticking the box. Recording law and the privacy notice need review before real use.
 - There's no labour figure, because there's no rota yet. The staff bar has no Rota or Me tab for the same reason.
-- Food cost uses saved recipes and the newest price paid. Waste, labour and other costs aren't included, so this isn't a full P&L.
+- Food cost uses saved recipes and the newest price paid. Waste, labour and other costs aren't included, so this isn't a full P&L. Prep and service time are shown but never turned into a cost, because there's no wage data.
+- The calculator's margin uses the menu price as typed, and the Dashboard uses net sales. If your menu prices include VAT, the calculator looks better than the Dashboard until you take VAT off.
+- A price list counts as a price paid from its date, so it feeds costs and the last-paid figure on calls, even if nothing was bought at that price.
+- File import takes `.xlsx`, not the older `.xls`. A workbook has only its biggest sheet read, and the preview says so. A file can be 15 MB and 5,000 rows, and a Word or text file 60,000 characters. The sample site with no Storage stops at 4.5 MB.
+- Import doesn't keep the file, so a recipe imported that way can't be read again. **Add a recipe** keeps it.
+- Injected instructions in a PDF or a photo can't be removed by code. A fooled model could still give a figure that's printed in the file, so the owner's check matters most there.
 - Temperature ranges and crisis cards are sample wording and need a qualified check before real use. Translations were machine-written and need a native speaker's review.
 - Muse Voice Transcribe isn't documented for 8 kHz phone audio, so Stockpot captures speakerphone sound through the device microphone instead of connecting to the phone line.
 - SAM reads MP4 and MOV, not WebM, so a clip it can't read is checked from its stills. Videos sent on WhatsApp aren't read yet, so proof there is a photo.
-- Sample voices are synthetic and all names and prices are fictional.
+- Sample voices are synthetic and all names and prices are fictional. The three months in `public/samples/datasets` are fictional too. `npm run datasets` builds them again, along with their ground truth.
 - On Supabase's free plan a file can be 50 MB at most. A recording fills that in about 17 minutes, so a longer call is still written up, but its recording stays in parts in Storage and can't be played in the app. A video over 50 MB won't upload either.
 - WebSockets on Vercel are in public beta. A socket is cut off at about 300 seconds with no warning, so the browser moves to a new one every 4 minutes. A word can be cut at the join, on the live screen only: the recording and the write-up have no gap.
 - If a call's connection drops and doesn't come back, it's written up after 45 seconds, or by the next cron pass if the instance has gone too.

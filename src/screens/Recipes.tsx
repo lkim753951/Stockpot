@@ -1,15 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CaretRight, CookingPot, MagnifyingGlass } from '@phosphor-icons/react'
-import { api } from '../api'
+import { api, portionAmount } from '../api'
 import { t } from '../i18n'
 import { Empty, ErrorNote, Loading, Screen } from '../ui'
-
-/** Saved in kilos and litres, read in grams and millilitres. */
-function amount(line: any) {
-  if (line.unit === 'each') return `${Number(line.quantity.toFixed(2))}`
-  if (line.quantity < 1) return `${Math.round(line.quantity * 1000)} ${line.unit === 'kg' ? 'g' : 'ml'}`
-  return `${Number(line.quantity.toFixed(2))} ${line.unit}`
-}
 
 function useRecipes() {
   const [recipes, setRecipes] = useState<any[] | null>(null)
@@ -57,16 +50,22 @@ export function StaffRecipe({ id }: { id: string }) {
   return (
     <Screen title={recipe.name} lead={t('For one portion.')}>
       {recipe.photo ? <img className="evidence" src={`/api/staff/recipe-photo/${recipe.photo}`} alt={recipe.name} /> : null}
+      {recipe.prepMinutes || recipe.serviceMinutes ? (
+        <ul className="list">
+          {recipe.prepMinutes ? <li><span>{t('Prep time')}{recipe.portions ? <span className="when"><br />{t('For the whole recipe, which makes {portions}', { portions: recipe.portions })}</span> : null}</span><strong className="num">{t('{minutes} min', { minutes: recipe.prepMinutes })}{recipe.prepPerPortion ? <span className="when"><br />{t('{minutes} min a portion', { minutes: recipe.prepPerPortion })}</span> : null}</strong></li> : null}
+          {recipe.serviceMinutes ? <li><span>{t('Service time')}</span><strong className="num">{t('{minutes} min a plate', { minutes: recipe.serviceMinutes })}</strong></li> : null}
+        </ul>
+      ) : null}
       {recipe.lines.length ? (
         <section className="stack">
           <h2>{t('Ingredients')}</h2>
           <ul className="list">
-            {recipe.lines.map((line: any) => <li key={line.name}><span>{line.name}</span><strong className="num">{amount(line)}</strong></li>)}
+            {recipe.lines.map((line: any) => <li key={line.name}><span>{line.name}</span><strong className="num">{portionAmount(line)}</strong></li>)}
           </ul>
         </section>
       ) : null}
-      {recipe.method ? <section className="stack"><h2>{t('How to make it')}</h2><p className="method">{recipe.method}</p></section> : null}
-      {!recipe.lines.length && !recipe.method ? <p className="muted">{t('The owner has not added this recipe yet.')}</p> : null}
+      {recipe.steps.length ? <section className="stack"><h2>{t('How to make it')}</h2><ol className="trail method-steps">{recipe.steps.map((step: string, index: number) => <li key={index}>{step}</li>)}</ol></section> : null}
+      {!recipe.lines.length && !recipe.steps.length ? <p className="muted">{t('The owner has not added this recipe yet.')}</p> : null}
       <a className="btn block" href="#/staff/recipes">{t('All recipes')}</a>
     </Screen>
   )

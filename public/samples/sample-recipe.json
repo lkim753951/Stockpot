@@ -1,0 +1,51 @@
+{
+ "recipes": [
+  {
+   "name": "Lamb kofta",
+   "portions": 10,
+   "ingredients": [
+    {
+     "name": "Lamb mince",
+     "quantity": 1.5,
+     "unit": "kg"
+    },
+    {
+     "name": "Brown onions",
+     "quantity": 300,
+     "unit": "g"
+    },
+    {
+     "name": "Flat-leaf parsley",
+     "quantity": 1,
+     "unit": "bunch"
+    },
+    {
+     "name": "Natural yoghurt",
+     "quantity": 500,
+     "unit": "g"
+    },
+    {
+     "name": "Flatbread",
+     "quantity": 10,
+     "unit": null
+    },
+    {
+     "name": "Rapeseed oil",
+     "quantity": 2,
+     "unit": "tbsp"
+    }
+   ],
+   "method_steps": [
+    "Grate the onion and squeeze out the water.",
+    "Mix with the lamb and parsley, then shape onto skewers.",
+    "Grill for 10 minutes, turning once.",
+    "Serve in a warm flatbread with the yoghurt."
+   ],
+   "prep_minutes": 40,
+   "prep_quote": "Prep time: 40 minutes",
+   "service_minutes": 6,
+   "service_quote": "Service: 6 minutes a plate"
+  }
+ ],
+ "unreadable": []
+}

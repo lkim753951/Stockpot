@@ -199,7 +199,20 @@ const LATER_COLUMNS: Array<[string, string, string]> = [
   ['crisis_cards', 'added_at', 'TEXT'],
   ['calls', 'connections', 'INTEGER NOT NULL DEFAULT 0'],
   ['calls', 'last_seen_at', 'TEXT'],
+  ['dishes', 'portions', 'INTEGER'],
+  ['dishes', 'prep_minutes', 'INTEGER'],
+  ['dishes', 'service_minutes', 'INTEGER'],
+  ['dishes', 'recipe_file', 'TEXT'],
+  ['dishes', 'recipe_file_name', 'TEXT'],
 ]
+
+/**
+ * The newest price paid on or before a date. If an item has no price that early, its first known price is used.
+ * The views and the owner's cost calculator both use this, so a dish costs the same on both screens.
+ */
+export const priceOn = (date: string, field = 'price_p') => `COALESCE(
+      (SELECT p.${field} FROM price_history p WHERE p.item_id = r.item_id AND p.date <= ${date} ORDER BY p.date DESC, p.id DESC LIMIT 1),
+      (SELECT p.${field} FROM price_history p WHERE p.item_id = r.item_id ORDER BY p.date ASC, p.id ASC LIMIT 1))`
 
 /** Postgres rounds a double half to even and SQLite rounds it away from zero, so money rounds through numeric there. */
 const views = (decimal: string) => `
@@ -231,9 +244,7 @@ CREATE VIEW v_dish_margin AS
 SELECT
   sa.date, sa.dish_id, d.name AS dish_name, d.target_margin, sa.qty, sa.net_p,
   sa.qty * (
-    SELECT SUM(r.qty_base * COALESCE(
-      (SELECT p.price_p FROM price_history p WHERE p.item_id = r.item_id AND p.date <= sa.date ORDER BY p.date DESC, p.id DESC LIMIT 1),
-      (SELECT p.price_p FROM price_history p WHERE p.item_id = r.item_id ORDER BY p.date ASC, p.id ASC LIMIT 1)))
+    SELECT SUM(r.qty_base * ${priceOn('sa.date')})
     FROM recipe_lines r WHERE r.dish_id = sa.dish_id
   ) AS cost_p
 FROM sales sa JOIN dishes d ON d.id = sa.dish_id;
@@ -248,7 +259,7 @@ const VIEWS = ['v_three_way', 'v_dish_margin', 'v_food_cost']
 const RELATIONS = new Set([...TABLES, ...VIEWS])
 
 /** Bump this when the schema changes. Postgres only runs its setup when this number moves. */
-const SCHEMA_VERSION = '1'
+const SCHEMA_VERSION = '2'
 
 /** Runs fn over the code in a statement, leaving strings, quoted names and comments alone. */
 function mapCode(sql: string, fn: (code: string) => string) {

@@ -1,0 +1,1626 @@
+{
+ "month": "2026-09",
+ "restaurant": "Sample Kitchen (fictional)",
+ "files": [
+  {
+   "file": "recipe-cards.pdf",
+   "format": "pdf",
+   "kind": "recipes",
+   "expected": {
+    "recipes": [
+     {
+      "name": "Chickpea curry",
+      "menuPricePence": 900,
+      "targetMargin": 78,
+      "portions": 12,
+      "prepMinutes": 25,
+      "serviceMinutes": null,
+      "steps": 3,
+      "ingredients": [
+       {
+        "name": "Chickpeas",
+        "flagged": false,
+        "perPortion": 0.15,
+        "unit": "kg"
+       },
+       {
+        "name": "Coconut milk",
+        "flagged": false,
+        "perPortion": 0.1,
+        "unit": "l"
+       },
+       {
+        "name": "Tomatoes",
+        "flagged": false,
+        "perPortion": 0.083333,
+        "unit": "kg"
+       },
+       {
+        "name": "Brown onions",
+        "flagged": false,
+        "perPortion": 0.05,
+        "unit": "kg"
+       },
+       {
+        "name": "Rapeseed oil",
+        "flagged": false,
+        "perPortion": 0.008333,
+        "unit": "l"
+       },
+       {
+        "name": "Ginger",
+        "flagged": false,
+        "perPortion": 0.005,
+        "unit": "kg"
+       }
+      ]
+     },
+     {
+      "name": "Lentil dal",
+      "menuPricePence": 800,
+      "targetMargin": 80,
+      "portions": 10,
+      "prepMinutes": 15,
+      "serviceMinutes": 4,
+      "steps": 3,
+      "ingredients": [
+       {
+        "name": "Red lentils",
+        "flagged": false,
+        "perPortion": 0.1,
+        "unit": "kg"
+       },
+       {
+        "name": "Brown onions",
+        "flagged": false,
+        "perPortion": 0.04,
+        "unit": "kg"
+       },
+       {
+        "name": "Tomatoes",
+        "flagged": false,
+        "perPortion": 0.05,
+        "unit": "kg"
+       },
+       {
+        "name": "Rapeseed oil",
+        "flagged": false,
+        "perPortion": 0.008,
+        "unit": "l"
+       },
+       {
+        "name": "Ginger",
+        "flagged": false,
+        "perPortion": 0.004,
+        "unit": "kg"
+       }
+      ]
+     }
+    ]
+   },
+   "read": {
+    "recipes": [
+     {
+      "name": "Chickpea curry",
+      "portions": 12,
+      "ingredients": [
+       {
+        "name": "Chickpeas",
+        "quantity": 1.8,
+        "unit": "kg"
+       },
+       {
+        "name": "Coconut milk",
+        "quantity": 1.2,
+        "unit": "l"
+       },
+       {
+        "name": "Tomatoes",
+        "quantity": 1,
+        "unit": "kg"
+       },
+       {
+        "name": "Brown onions",
+        "quantity": 600,
+        "unit": "g"
+       },
+       {
+        "name": "Rapeseed oil",
+        "quantity": 100,
+        "unit": "ml"
+       },
+       {
+        "name": "Ginger",
+        "quantity": 60,
+        "unit": "g"
+       }
+      ],
+      "method_steps": [
+       "Fry the onions and ginger.",
+       "Add the tomatoes, chickpeas and coconut milk.",
+       "Simmer for 35 minutes."
+      ],
+      "prep_minutes": 25,
+      "prep_quote": "Prep time: 25 minutes",
+      "service_minutes": null,
+      "service_quote": null
+     },
+     {
+      "name": "Lentil dal",
+      "portions": 10,
+      "ingredients": [
+       {
+        "name": "Red lentils",
+        "quantity": 1,
+        "unit": "kg"
+       },
+       {
+        "name": "Brown onions",
+        "quantity": 400,
+        "unit": "g"
+       },
+       {
+        "name": "Tomatoes",
+        "quantity": 500,
+        "unit": "g"
+       },
+       {
+        "name": "Rapeseed oil",
+        "quantity": 80,
+        "unit": "ml"
+       },
+       {
+        "name": "Ginger",
+        "quantity": 40,
+        "unit": "g"
+       }
+      ],
+      "method_steps": [
+       "Rinse the lentils.",
+       "Simmer with the tomatoes until soft.",
+       "Fry the onions and ginger, then stir through."
+      ],
+      "prep_minutes": 15,
+      "prep_quote": "Prep: 15 minutes",
+      "service_minutes": 4,
+      "service_quote": "Service: 4 minutes"
+     }
+    ],
+    "unreadable": []
+   }
+  },
+  {
+   "file": "recipes-sheet.csv",
+   "format": "csv",
+   "kind": "recipes",
+   "expected": {
+    "recipes": [
+     {
+      "name": "Rice pudding",
+      "menuPricePence": 550,
+      "targetMargin": 78,
+      "portions": 8,
+      "prepMinutes": 10,
+      "serviceMinutes": 2,
+      "steps": 3,
+      "ingredients": [
+       {
+        "name": "Pudding rice",
+        "flagged": false,
+        "perPortion": 0.05,
+        "unit": "kg"
+       },
+       {
+        "name": "Whole milk",
+        "flagged": false,
+        "perPortion": 0.25,
+        "unit": "l"
+       },
+       {
+        "name": "Double cream",
+        "flagged": false,
+        "perPortion": 0.025,
+        "unit": "l"
+       },
+       {
+        "name": "Caster sugar",
+        "flagged": false,
+        "perPortion": 0.02,
+        "unit": "kg"
+       }
+      ]
+     },
+     {
+      "name": "Garlic flatbread",
+      "menuPricePence": 350,
+      "targetMargin": 80,
+      "portions": 12,
+      "prepMinutes": 10,
+      "serviceMinutes": 3,
+      "steps": 2,
+      "ingredients": [
+       {
+        "name": "Flatbread",
+        "flagged": false,
+        "perPortion": 1.0,
+        "unit": "each"
+       },
+       {
+        "name": "Butter",
+        "flagged": false,
+        "perPortion": 0.01,
+        "unit": "kg"
+       },
+       {
+        "name": "Garlic",
+        "flagged": false,
+        "perPortion": 0.0025,
+        "unit": "kg"
+       }
+      ]
+     }
+    ]
+   },
+   "read": null
+  },
+  {
+   "file": "harrow-lane-prices.xlsx",
+   "format": "xlsx",
+   "kind": "ingredients",
+   "expected": {
+    "rows": 4,
+    "supplier": "Harrow Lane Foods",
+    "date": "2026-09-01",
+    "ownerDate": null,
+    "newSupplier": false,
+    "lines": [
+     {
+      "name": "Chicken thighs",
+      "unit": "kg",
+      "basePricePence": 590.0,
+      "flagged": false
+     },
+     {
+      "name": "Brown onions",
+      "unit": "kg",
+      "basePricePence": 85.0,
+      "flagged": false
+     },
+     {
+      "name": "Tomatoes",
+      "unit": "kg",
+      "basePricePence": 225.0,
+      "flagged": false
+     },
+     {
+      "name": "Flatbread",
+      "unit": "each",
+      "basePricePence": 31.0,
+      "flagged": false
+     }
+    ]
+   },
+   "read": {
+    "supplier_name": "Harrow Lane Foods",
+    "list_date": "2026-09-01"
+   }
+  },
+  {
+   "file": "northgate-prices.txt",
+   "format": "txt",
+   "kind": "ingredients",
+   "expected": {
+    "rows": 8,
+    "supplier": "Northgate Wholesale",
+    "date": "2026-09-01",
+    "ownerDate": null,
+    "newSupplier": false,
+    "lines": [
+     {
+      "name": "Basmati rice",
+      "unit": "kg",
+      "basePricePence": 195.0,
+      "flagged": false
+     },
+     {
+      "name": "Rapeseed oil",
+      "unit": "l",
+      "basePricePence": 165.0,
+      "flagged": false
+     },
+     {
+      "name": "Chickpeas",
+      "unit": "kg",
+      "basePricePence": 250.0,
+      "flagged": false
+     },
+     {
+      "name": "Coconut milk",
+      "unit": "l",
+      "basePricePence": 290.0,
+      "flagged": false
+     },
+     {
+      "name": "Vegetable stock",
+      "unit": "l",
+      "basePricePence": 200.0,
+      "flagged": false
+     },
+     {
+      "name": "Red lentils",
+      "unit": "kg",
+      "basePricePence": 230.0,
+      "flagged": false
+     },
+     {
+      "name": "Pudding rice",
+      "unit": "kg",
+      "basePricePence": 180.0,
+      "flagged": false
+     },
+     {
+      "name": "Caster sugar",
+      "unit": "kg",
+      "basePricePence": 130.0,
+      "flagged": false
+     }
+    ]
+   },
+   "read": {
+    "supplier_name": "Northgate Wholesale",
+    "list_date": "2026-09-01",
+    "lines": [
+     {
+      "item": "Basmati rice",
+      "pack": "20 kg sack",
+      "price_pence": 3900,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Rapeseed oil",
+      "pack": "20 l drum",
+      "price_pence": 3300,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Chickpeas",
+      "pack": "6 x 2.5 kg tins",
+      "price_pence": 3750,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Coconut milk",
+      "pack": "12 x 400 ml",
+      "price_pence": 1392,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Vegetable stock",
+      "pack": "6 x 1 l",
+      "price_pence": 1200,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Red lentils",
+      "pack": "5 kg bag",
+      "price_pence": 1150,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Pudding rice",
+      "pack": "5 kg bag",
+      "price_pence": 900,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Caster sugar",
+      "pack": "5 kg bag",
+      "price_pence": 650,
+      "price_is": "per_pack"
+     }
+    ],
+    "unreadable": []
+   }
+  },
+  {
+   "file": "oakfield-prices-fax.png",
+   "format": "png",
+   "kind": "ingredients",
+   "expected": {
+    "rows": 4,
+    "supplier": "Oakfield Dairy",
+    "date": null,
+    "ownerDate": "2026-09-01",
+    "newSupplier": false,
+    "lines": [
+     {
+      "name": "Double cream",
+      "unit": "l",
+      "basePricePence": 320.0,
+      "flagged": false
+     },
+     {
+      "name": "Whole milk",
+      "unit": "l",
+      "basePricePence": 124.0,
+      "flagged": false
+     },
+     {
+      "name": "Butter",
+      "unit": "kg",
+      "basePricePence": 520.0,
+      "flagged": false
+     },
+     {
+      "name": "Natural yoghurt",
+      "unit": "kg",
+      "basePricePence": 260.0,
+      "flagged": false
+     }
+    ]
+   },
+   "read": {
+    "supplier_name": "Oakfield Dairy",
+    "list_date": null,
+    "lines": [
+     {
+      "item": "Double cream",
+      "pack": "1 l",
+      "price_pence": 320,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Whole milk",
+      "pack": "2 l",
+      "price_pence": 248,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Butter",
+      "pack": "250 g",
+      "price_pence": 130,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Natural yoghurt",
+      "pack": "1 kg tub",
+      "price_pence": 260,
+      "price_is": "per_pack"
+     }
+    ],
+    "unreadable": []
+   }
+  },
+  {
+   "file": "sales-report.pdf",
+   "format": "pdf",
+   "kind": "sales",
+   "expected": {
+    "rows": 90,
+    "quantity": 1320,
+    "netPence": 1101250,
+    "problems": 0,
+    "printedNetPence": 1103250,
+    "printedQuantity": 1320,
+    "totalsDiffer": true,
+    "unknownDishes": []
+   },
+   "read": {
+    "rows": [
+     {
+      "date": "2026-09-01",
+      "dish": "Chicken curry",
+      "quantity": 26,
+      "net_sales_pence": 24700
+     },
+     {
+      "date": "2026-09-01",
+      "dish": "Grilled chicken wrap",
+      "quantity": 15,
+      "net_sales_pence": 12750
+     },
+     {
+      "date": "2026-09-01",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-01",
+      "dish": "Chickpea curry",
+      "quantity": 9,
+      "net_sales_pence": 8100
+     },
+     {
+      "date": "2026-09-01",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-01",
+      "dish": "Rice pudding",
+      "quantity": 6,
+      "net_sales_pence": 3300
+     },
+     {
+      "date": "2026-09-02",
+      "dish": "Chicken curry",
+      "quantity": 26,
+      "net_sales_pence": 24700
+     },
+     {
+      "date": "2026-09-02",
+      "dish": "Grilled chicken wrap",
+      "quantity": 19,
+      "net_sales_pence": 16150
+     },
+     {
+      "date": "2026-09-02",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-02",
+      "dish": "Chickpea curry",
+      "quantity": 10,
+      "net_sales_pence": 9000
+     },
+     {
+      "date": "2026-09-02",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-02",
+      "dish": "Rice pudding",
+      "quantity": 6,
+      "net_sales_pence": 3300
+     },
+     {
+      "date": "2026-09-03",
+      "dish": "Chicken curry",
+      "quantity": 25,
+      "net_sales_pence": 23750
+     },
+     {
+      "date": "2026-09-03",
+      "dish": "Grilled chicken wrap",
+      "quantity": 19,
+      "net_sales_pence": 16150
+     },
+     {
+      "date": "2026-09-03",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-03",
+      "dish": "Chickpea curry",
+      "quantity": 10,
+      "net_sales_pence": 9000
+     },
+     {
+      "date": "2026-09-03",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-03",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     },
+     {
+      "date": "2026-09-04",
+      "dish": "Chicken curry",
+      "quantity": 33,
+      "net_sales_pence": 31350
+     },
+     {
+      "date": "2026-09-04",
+      "dish": "Grilled chicken wrap",
+      "quantity": 24,
+      "net_sales_pence": 20400
+     },
+     {
+      "date": "2026-09-04",
+      "dish": "Tomato soup",
+      "quantity": 12,
+      "net_sales_pence": 7800
+     },
+     {
+      "date": "2026-09-04",
+      "dish": "Chickpea curry",
+      "quantity": 13,
+      "net_sales_pence": 11700
+     },
+     {
+      "date": "2026-09-04",
+      "dish": "Lentil dal",
+      "quantity": 10,
+      "net_sales_pence": 8000
+     },
+     {
+      "date": "2026-09-04",
+      "dish": "Rice pudding",
+      "quantity": 10,
+      "net_sales_pence": 5500
+     },
+     {
+      "date": "2026-09-05",
+      "dish": "Chicken curry",
+      "quantity": 38,
+      "net_sales_pence": 36100
+     },
+     {
+      "date": "2026-09-05",
+      "dish": "Grilled chicken wrap",
+      "quantity": 30,
+      "net_sales_pence": 25500
+     },
+     {
+      "date": "2026-09-05",
+      "dish": "Tomato soup",
+      "quantity": 13,
+      "net_sales_pence": 8450
+     },
+     {
+      "date": "2026-09-05",
+      "dish": "Chickpea curry",
+      "quantity": 15,
+      "net_sales_pence": 13500
+     },
+     {
+      "date": "2026-09-05",
+      "dish": "Lentil dal",
+      "quantity": 13,
+      "net_sales_pence": 10400
+     },
+     {
+      "date": "2026-09-05",
+      "dish": "Rice pudding",
+      "quantity": 11,
+      "net_sales_pence": 6050
+     },
+     {
+      "date": "2026-09-06",
+      "dish": "Chicken curry",
+      "quantity": 29,
+      "net_sales_pence": 27550
+     },
+     {
+      "date": "2026-09-06",
+      "dish": "Grilled chicken wrap",
+      "quantity": 23,
+      "net_sales_pence": 19550
+     },
+     {
+      "date": "2026-09-06",
+      "dish": "Tomato soup",
+      "quantity": 10,
+      "net_sales_pence": 6500
+     },
+     {
+      "date": "2026-09-06",
+      "dish": "Chickpea curry",
+      "quantity": 12,
+      "net_sales_pence": 10800
+     },
+     {
+      "date": "2026-09-06",
+      "dish": "Lentil dal",
+      "quantity": 10,
+      "net_sales_pence": 8000
+     },
+     {
+      "date": "2026-09-06",
+      "dish": "Rice pudding",
+      "quantity": 9,
+      "net_sales_pence": 4950
+     },
+     {
+      "date": "2026-09-07",
+      "dish": "Chicken curry",
+      "quantity": 26,
+      "net_sales_pence": 24700
+     },
+     {
+      "date": "2026-09-07",
+      "dish": "Grilled chicken wrap",
+      "quantity": 19,
+      "net_sales_pence": 16150
+     },
+     {
+      "date": "2026-09-07",
+      "dish": "Tomato soup",
+      "quantity": 10,
+      "net_sales_pence": 6500
+     },
+     {
+      "date": "2026-09-07",
+      "dish": "Chickpea curry",
+      "quantity": 10,
+      "net_sales_pence": 9000
+     },
+     {
+      "date": "2026-09-07",
+      "dish": "Lentil dal",
+      "quantity": 9,
+      "net_sales_pence": 7200
+     },
+     {
+      "date": "2026-09-07",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     },
+     {
+      "date": "2026-09-08",
+      "dish": "Chicken curry",
+      "quantity": 24,
+      "net_sales_pence": 22800
+     },
+     {
+      "date": "2026-09-08",
+      "dish": "Grilled chicken wrap",
+      "quantity": 15,
+      "net_sales_pence": 12750
+     },
+     {
+      "date": "2026-09-08",
+      "dish": "Tomato soup",
+      "quantity": 8,
+      "net_sales_pence": 5200
+     },
+     {
+      "date": "2026-09-08",
+      "dish": "Chickpea curry",
+      "quantity": 9,
+      "net_sales_pence": 8100
+     },
+     {
+      "date": "2026-09-08",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-08",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     },
+     {
+      "date": "2026-09-09",
+      "dish": "Chicken curry",
+      "quantity": 26,
+      "net_sales_pence": 24700
+     },
+     {
+      "date": "2026-09-09",
+      "dish": "Grilled chicken wrap",
+      "quantity": 18,
+      "net_sales_pence": 15300
+     },
+     {
+      "date": "2026-09-09",
+      "dish": "Tomato soup",
+      "quantity": 8,
+      "net_sales_pence": 5200
+     },
+     {
+      "date": "2026-09-09",
+      "dish": "Chickpea curry",
+      "quantity": 9,
+      "net_sales_pence": 8100
+     },
+     {
+      "date": "2026-09-09",
+      "dish": "Lentil dal",
+      "quantity": 7,
+      "net_sales_pence": 5600
+     },
+     {
+      "date": "2026-09-09",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     },
+     {
+      "date": "2026-09-10",
+      "dish": "Chicken curry",
+      "quantity": 29,
+      "net_sales_pence": 27550
+     },
+     {
+      "date": "2026-09-10",
+      "dish": "Grilled chicken wrap",
+      "quantity": 20,
+      "net_sales_pence": 17000
+     },
+     {
+      "date": "2026-09-10",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-10",
+      "dish": "Chickpea curry",
+      "quantity": 11,
+      "net_sales_pence": 9900
+     },
+     {
+      "date": "2026-09-10",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-10",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     },
+     {
+      "date": "2026-09-11",
+      "dish": "Chicken curry",
+      "quantity": 33,
+      "net_sales_pence": 31350
+     },
+     {
+      "date": "2026-09-11",
+      "dish": "Grilled chicken wrap",
+      "quantity": 24,
+      "net_sales_pence": 20400
+     },
+     {
+      "date": "2026-09-11",
+      "dish": "Tomato soup",
+      "quantity": 12,
+      "net_sales_pence": 7800
+     },
+     {
+      "date": "2026-09-11",
+      "dish": "Chickpea curry",
+      "quantity": 12,
+      "net_sales_pence": 10800
+     },
+     {
+      "date": "2026-09-11",
+      "dish": "Lentil dal",
+      "quantity": 11,
+      "net_sales_pence": 8800
+     },
+     {
+      "date": "2026-09-11",
+      "dish": "Rice pudding",
+      "quantity": 9,
+      "net_sales_pence": 4950
+     },
+     {
+      "date": "2026-09-12",
+      "dish": "Chicken curry",
+      "quantity": 40,
+      "net_sales_pence": 38000
+     },
+     {
+      "date": "2026-09-12",
+      "dish": "Grilled chicken wrap",
+      "quantity": 30,
+      "net_sales_pence": 25500
+     },
+     {
+      "date": "2026-09-12",
+      "dish": "Tomato soup",
+      "quantity": 14,
+      "net_sales_pence": 9100
+     },
+     {
+      "date": "2026-09-12",
+      "dish": "Chickpea curry",
+      "quantity": 16,
+      "net_sales_pence": 14400
+     },
+     {
+      "date": "2026-09-12",
+      "dish": "Lentil dal",
+      "quantity": 14,
+      "net_sales_pence": 11200
+     },
+     {
+      "date": "2026-09-12",
+      "dish": "Rice pudding",
+      "quantity": 10,
+      "net_sales_pence": 5500
+     },
+     {
+      "date": "2026-09-13",
+      "dish": "Chicken curry",
+      "quantity": 31,
+      "net_sales_pence": 29450
+     },
+     {
+      "date": "2026-09-13",
+      "dish": "Grilled chicken wrap",
+      "quantity": 20,
+      "net_sales_pence": 17000
+     },
+     {
+      "date": "2026-09-13",
+      "dish": "Tomato soup",
+      "quantity": 11,
+      "net_sales_pence": 7150
+     },
+     {
+      "date": "2026-09-13",
+      "dish": "Chickpea curry",
+      "quantity": 12,
+      "net_sales_pence": 10800
+     },
+     {
+      "date": "2026-09-13",
+      "dish": "Lentil dal",
+      "quantity": 9,
+      "net_sales_pence": 7200
+     },
+     {
+      "date": "2026-09-13",
+      "dish": "Rice pudding",
+      "quantity": 9,
+      "net_sales_pence": 4950
+     },
+     {
+      "date": "2026-09-14",
+      "dish": "Chicken curry",
+      "quantity": 28,
+      "net_sales_pence": 26600
+     },
+     {
+      "date": "2026-09-14",
+      "dish": "Grilled chicken wrap",
+      "quantity": 17,
+      "net_sales_pence": 14450
+     },
+     {
+      "date": "2026-09-14",
+      "dish": "Tomato soup",
+      "quantity": 8,
+      "net_sales_pence": 5200
+     },
+     {
+      "date": "2026-09-14",
+      "dish": "Chickpea curry",
+      "quantity": 9,
+      "net_sales_pence": 8100
+     },
+     {
+      "date": "2026-09-14",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-14",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     },
+     {
+      "date": "2026-09-15",
+      "dish": "Chicken curry",
+      "quantity": 24,
+      "net_sales_pence": 22800
+     },
+     {
+      "date": "2026-09-15",
+      "dish": "Grilled chicken wrap",
+      "quantity": 16,
+      "net_sales_pence": 13600
+     },
+     {
+      "date": "2026-09-15",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-15",
+      "dish": "Chickpea curry",
+      "quantity": 8,
+      "net_sales_pence": 7200
+     },
+     {
+      "date": "2026-09-15",
+      "dish": "Lentil dal",
+      "quantity": 7,
+      "net_sales_pence": 5600
+     },
+     {
+      "date": "2026-09-15",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     }
+    ],
+    "printed_total_quantity": 1320,
+    "printed_total_net_pence": 1103250,
+    "unreadable": []
+   }
+  },
+  {
+   "file": "sales-takings.txt",
+   "format": "txt",
+   "kind": "sales",
+   "expected": {
+    "rows": 90,
+    "quantity": 1322,
+    "netPence": 1102650,
+    "problems": 0,
+    "printedNetPence": 1102650,
+    "printedQuantity": 1322,
+    "totalsDiffer": false,
+    "unknownDishes": []
+   },
+   "read": {
+    "rows": [
+     {
+      "date": "2026-09-16",
+      "dish": "Chicken curry",
+      "quantity": 25,
+      "net_sales_pence": 23750
+     },
+     {
+      "date": "2026-09-16",
+      "dish": "Grilled chicken wrap",
+      "quantity": 16,
+      "net_sales_pence": 13600
+     },
+     {
+      "date": "2026-09-16",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-16",
+      "dish": "Chickpea curry",
+      "quantity": 10,
+      "net_sales_pence": 9000
+     },
+     {
+      "date": "2026-09-16",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-16",
+      "dish": "Rice pudding",
+      "quantity": 6,
+      "net_sales_pence": 3300
+     },
+     {
+      "date": "2026-09-17",
+      "dish": "Chicken curry",
+      "quantity": 28,
+      "net_sales_pence": 26600
+     },
+     {
+      "date": "2026-09-17",
+      "dish": "Grilled chicken wrap",
+      "quantity": 20,
+      "net_sales_pence": 17000
+     },
+     {
+      "date": "2026-09-17",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-17",
+      "dish": "Chickpea curry",
+      "quantity": 9,
+      "net_sales_pence": 8100
+     },
+     {
+      "date": "2026-09-17",
+      "dish": "Lentil dal",
+      "quantity": 9,
+      "net_sales_pence": 7200
+     },
+     {
+      "date": "2026-09-17",
+      "dish": "Rice pudding",
+      "quantity": 8,
+      "net_sales_pence": 4400
+     },
+     {
+      "date": "2026-09-18",
+      "dish": "Chicken curry",
+      "quantity": 35,
+      "net_sales_pence": 33250
+     },
+     {
+      "date": "2026-09-18",
+      "dish": "Grilled chicken wrap",
+      "quantity": 24,
+      "net_sales_pence": 20400
+     },
+     {
+      "date": "2026-09-18",
+      "dish": "Tomato soup",
+      "quantity": 12,
+      "net_sales_pence": 7800
+     },
+     {
+      "date": "2026-09-18",
+      "dish": "Chickpea curry",
+      "quantity": 14,
+      "net_sales_pence": 12600
+     },
+     {
+      "date": "2026-09-18",
+      "dish": "Lentil dal",
+      "quantity": 10,
+      "net_sales_pence": 8000
+     },
+     {
+      "date": "2026-09-18",
+      "dish": "Rice pudding",
+      "quantity": 10,
+      "net_sales_pence": 5500
+     },
+     {
+      "date": "2026-09-19",
+      "dish": "Chicken curry",
+      "quantity": 38,
+      "net_sales_pence": 36100
+     },
+     {
+      "date": "2026-09-19",
+      "dish": "Grilled chicken wrap",
+      "quantity": 28,
+      "net_sales_pence": 23800
+     },
+     {
+      "date": "2026-09-19",
+      "dish": "Tomato soup",
+      "quantity": 14,
+      "net_sales_pence": 9100
+     },
+     {
+      "date": "2026-09-19",
+      "dish": "Chickpea curry",
+      "quantity": 17,
+      "net_sales_pence": 15300
+     },
+     {
+      "date": "2026-09-19",
+      "dish": "Lentil dal",
+      "quantity": 12,
+      "net_sales_pence": 9600
+     },
+     {
+      "date": "2026-09-19",
+      "dish": "Rice pudding",
+      "quantity": 11,
+      "net_sales_pence": 6050
+     },
+     {
+      "date": "2026-09-20",
+      "dish": "Chicken curry",
+      "quantity": 28,
+      "net_sales_pence": 26600
+     },
+     {
+      "date": "2026-09-20",
+      "dish": "Grilled chicken wrap",
+      "quantity": 22,
+      "net_sales_pence": 18700
+     },
+     {
+      "date": "2026-09-20",
+      "dish": "Tomato soup",
+      "quantity": 10,
+      "net_sales_pence": 6500
+     },
+     {
+      "date": "2026-09-20",
+      "dish": "Chickpea curry",
+      "quantity": 12,
+      "net_sales_pence": 10800
+     },
+     {
+      "date": "2026-09-20",
+      "dish": "Lentil dal",
+      "quantity": 10,
+      "net_sales_pence": 8000
+     },
+     {
+      "date": "2026-09-20",
+      "dish": "Rice pudding",
+      "quantity": 9,
+      "net_sales_pence": 4950
+     },
+     {
+      "date": "2026-09-21",
+      "dish": "Chicken curry",
+      "quantity": 26,
+      "net_sales_pence": 24700
+     },
+     {
+      "date": "2026-09-21",
+      "dish": "Grilled chicken wrap",
+      "quantity": 17,
+      "net_sales_pence": 14450
+     },
+     {
+      "date": "2026-09-21",
+      "dish": "Tomato soup",
+      "quantity": 8,
+      "net_sales_pence": 5200
+     },
+     {
+      "date": "2026-09-21",
+      "dish": "Chickpea curry",
+      "quantity": 9,
+      "net_sales_pence": 8100
+     },
+     {
+      "date": "2026-09-21",
+      "dish": "Lentil dal",
+      "quantity": 7,
+      "net_sales_pence": 5600
+     },
+     {
+      "date": "2026-09-21",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     },
+     {
+      "date": "2026-09-22",
+      "dish": "Chicken curry",
+      "quantity": 25,
+      "net_sales_pence": 23750
+     },
+     {
+      "date": "2026-09-22",
+      "dish": "Grilled chicken wrap",
+      "quantity": 16,
+      "net_sales_pence": 13600
+     },
+     {
+      "date": "2026-09-22",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-22",
+      "dish": "Chickpea curry",
+      "quantity": 9,
+      "net_sales_pence": 8100
+     },
+     {
+      "date": "2026-09-22",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-22",
+      "dish": "Rice pudding",
+      "quantity": 6,
+      "net_sales_pence": 3300
+     },
+     {
+      "date": "2026-09-23",
+      "dish": "Chicken curry",
+      "quantity": 23,
+      "net_sales_pence": 21850
+     },
+     {
+      "date": "2026-09-23",
+      "dish": "Grilled chicken wrap",
+      "quantity": 17,
+      "net_sales_pence": 14450
+     },
+     {
+      "date": "2026-09-23",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-23",
+      "dish": "Chickpea curry",
+      "quantity": 10,
+      "net_sales_pence": 9000
+     },
+     {
+      "date": "2026-09-23",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-23",
+      "dish": "Rice pudding",
+      "quantity": 6,
+      "net_sales_pence": 3300
+     },
+     {
+      "date": "2026-09-24",
+      "dish": "Chicken curry",
+      "quantity": 28,
+      "net_sales_pence": 26600
+     },
+     {
+      "date": "2026-09-24",
+      "dish": "Grilled chicken wrap",
+      "quantity": 17,
+      "net_sales_pence": 14450
+     },
+     {
+      "date": "2026-09-24",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-24",
+      "dish": "Chickpea curry",
+      "quantity": 11,
+      "net_sales_pence": 9900
+     },
+     {
+      "date": "2026-09-24",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-24",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     },
+     {
+      "date": "2026-09-25",
+      "dish": "Chicken curry",
+      "quantity": 33,
+      "net_sales_pence": 31350
+     },
+     {
+      "date": "2026-09-25",
+      "dish": "Grilled chicken wrap",
+      "quantity": 23,
+      "net_sales_pence": 19550
+     },
+     {
+      "date": "2026-09-25",
+      "dish": "Tomato soup",
+      "quantity": 12,
+      "net_sales_pence": 7800
+     },
+     {
+      "date": "2026-09-25",
+      "dish": "Chickpea curry",
+      "quantity": 13,
+      "net_sales_pence": 11700
+     },
+     {
+      "date": "2026-09-25",
+      "dish": "Lentil dal",
+      "quantity": 11,
+      "net_sales_pence": 8800
+     },
+     {
+      "date": "2026-09-25",
+      "dish": "Rice pudding",
+      "quantity": 9,
+      "net_sales_pence": 4950
+     },
+     {
+      "date": "2026-09-26",
+      "dish": "Chicken curry",
+      "quantity": 43,
+      "net_sales_pence": 40850
+     },
+     {
+      "date": "2026-09-26",
+      "dish": "Grilled chicken wrap",
+      "quantity": 27,
+      "net_sales_pence": 22950
+     },
+     {
+      "date": "2026-09-26",
+      "dish": "Tomato soup",
+      "quantity": 13,
+      "net_sales_pence": 8450
+     },
+     {
+      "date": "2026-09-26",
+      "dish": "Chickpea curry",
+      "quantity": 18,
+      "net_sales_pence": 16200
+     },
+     {
+      "date": "2026-09-26",
+      "dish": "Lentil dal",
+      "quantity": 14,
+      "net_sales_pence": 11200
+     },
+     {
+      "date": "2026-09-26",
+      "dish": "Rice pudding",
+      "quantity": 12,
+      "net_sales_pence": 6600
+     },
+     {
+      "date": "2026-09-27",
+      "dish": "Chicken curry",
+      "quantity": 32,
+      "net_sales_pence": 30400
+     },
+     {
+      "date": "2026-09-27",
+      "dish": "Grilled chicken wrap",
+      "quantity": 21,
+      "net_sales_pence": 17850
+     },
+     {
+      "date": "2026-09-27",
+      "dish": "Tomato soup",
+      "quantity": 11,
+      "net_sales_pence": 7150
+     },
+     {
+      "date": "2026-09-27",
+      "dish": "Chickpea curry",
+      "quantity": 12,
+      "net_sales_pence": 10800
+     },
+     {
+      "date": "2026-09-27",
+      "dish": "Lentil dal",
+      "quantity": 9,
+      "net_sales_pence": 7200
+     },
+     {
+      "date": "2026-09-27",
+      "dish": "Rice pudding",
+      "quantity": 9,
+      "net_sales_pence": 4950
+     },
+     {
+      "date": "2026-09-28",
+      "dish": "Chicken curry",
+      "quantity": 26,
+      "net_sales_pence": 24700
+     },
+     {
+      "date": "2026-09-28",
+      "dish": "Grilled chicken wrap",
+      "quantity": 18,
+      "net_sales_pence": 15300
+     },
+     {
+      "date": "2026-09-28",
+      "dish": "Tomato soup",
+      "quantity": 10,
+      "net_sales_pence": 6500
+     },
+     {
+      "date": "2026-09-28",
+      "dish": "Chickpea curry",
+      "quantity": 10,
+      "net_sales_pence": 9000
+     },
+     {
+      "date": "2026-09-28",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-28",
+      "dish": "Rice pudding",
+      "quantity": 8,
+      "net_sales_pence": 4400
+     },
+     {
+      "date": "2026-09-29",
+      "dish": "Chicken curry",
+      "quantity": 25,
+      "net_sales_pence": 23750
+     },
+     {
+      "date": "2026-09-29",
+      "dish": "Grilled chicken wrap",
+      "quantity": 17,
+      "net_sales_pence": 14450
+     },
+     {
+      "date": "2026-09-29",
+      "dish": "Tomato soup",
+      "quantity": 8,
+      "net_sales_pence": 5200
+     },
+     {
+      "date": "2026-09-29",
+      "dish": "Chickpea curry",
+      "quantity": 8,
+      "net_sales_pence": 7200
+     },
+     {
+      "date": "2026-09-29",
+      "dish": "Lentil dal",
+      "quantity": 7,
+      "net_sales_pence": 5600
+     },
+     {
+      "date": "2026-09-29",
+      "dish": "Rice pudding",
+      "quantity": 6,
+      "net_sales_pence": 3300
+     },
+     {
+      "date": "2026-09-30",
+      "dish": "Chicken curry",
+      "quantity": 24,
+      "net_sales_pence": 22800
+     },
+     {
+      "date": "2026-09-30",
+      "dish": "Grilled chicken wrap",
+      "quantity": 18,
+      "net_sales_pence": 15300
+     },
+     {
+      "date": "2026-09-30",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-09-30",
+      "dish": "Chickpea curry",
+      "quantity": 10,
+      "net_sales_pence": 9000
+     },
+     {
+      "date": "2026-09-30",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-09-30",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     }
+    ],
+    "printed_total_quantity": 1322,
+    "printed_total_net_pence": 1102650,
+    "unreadable": []
+   }
+  }
+ ],
+ "month_totals": {
+  "soldRows": 180,
+  "quantity": 2642,
+  "netPence": 2203900,
+  "foodCostPence": 325822,
+  "foodCostPercent": 14.8
+ }
+}

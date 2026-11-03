@@ -125,7 +125,7 @@ export function Dashboard() {
                 <tbody>
                   {facts.dishes.map((dish: any) => (
                     <tr key={dish.dish}>
-                      <td>{dish.dish}<span className="when"><br />{t('{sold} sold', { sold: dish.sold })}</span></td>
+                      <td>{dish.dish}<span className="when"><br />{dish.cost_incomplete ? t('{sold} sold, cost incomplete', { sold: dish.sold }) : t('{sold} sold', { sold: dish.sold })}</span></td>
                       <td className={dish.margin_percent < dish.target_margin_percent ? 'bad' : undefined}>{dish.margin_percent}%</td>
                       <td>{dish.previous_margin_percent === null ? t('None') : `${dish.previous_margin_percent}%`}</td>
                       <td>{dish.target_margin_percent}%</td>

@@ -39,6 +39,7 @@ export async function api<T = any>(url: string, options: { method?: string; body
     body: form ?? (options.body ? JSON.stringify(options.body) : undefined),
   })
   const payload = await response.json().catch(() => null)
+  if (response.status === 413) throw new ApiError(t('That file is too large.'), response.status)
   if (!response.ok) throw new ApiError(t(payload?.error ?? "That didn't work. Try again."), response.status)
   return payload as T
 }
@@ -54,6 +55,13 @@ export const niceDate = (iso: string | null | undefined) => {
   return new Date(`${iso.slice(0, 10)}T12:00:00Z`)
     .toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
     .replace(',', '')
+}
+
+/** Saved in kilos and litres, read in grams and millilitres. */
+export function portionAmount(line: { quantity: number; unit: string }) {
+  if (line.unit === 'each') return `${Number(line.quantity.toFixed(2))}`
+  if (line.quantity < 1) return `${Number((line.quantity * 1000).toFixed(1))} ${line.unit === 'kg' ? 'g' : 'ml'}`
+  return `${Number(line.quantity.toFixed(2))} ${line.unit}`
 }
 
 export const qty = (value: number | null | undefined, unit: string) =>

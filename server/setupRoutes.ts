@@ -15,6 +15,8 @@ import { runView } from './checklists.ts'
 import { checkProof } from './proof.ts'
 import { countInVideo, phraseFor } from './countVideo.ts'
 import { checkInbox, disconnectGmail, finishGmailLogin, gmailConfigured, gmailConnected, gmailLoginUrl, GmailError, sendMail } from './gmail.ts'
+import { imageAllowed, ingestAllowed, MAX_FILE_BYTES, readIngest, readRecipeFile, recipeAllowed, saveIngest } from './ingest.ts'
+import type { IngestKind } from './prompts.ts'
 import { deleteDish, deleteSupplier, hasSampleData, listChecklists, listDishes, listSuppliers, readMenu, restaurantName, retireChecklist, saveChecklist, saveDish, saveRestaurant, saveSupplier, SetupError } from './setup.ts'
 import { changeStaff, whatsappReady } from './whatsapp.ts'
 import { crisisCard, crisisCards, isCrisisPhoto, resetCrisisCard, saveCrisisCard } from './crisisCards.ts'
@@ -39,6 +41,18 @@ const evidence = multer({
   fileFilter: (_request, file, done) => done(null, evidenceAllowed(file.fieldname, file.originalname)),
 })
 
+/** What the import screen and the recipe form take. Each keeps the extension, because that's how a file is read. */
+const stored = (allowed: (field: string, name: string) => boolean, files: number) => multer({
+  storage: multer.diskStorage({ destination: (_request, _file, done) => done(null, uploadDir()), filename: fileName }),
+  limits: { fileSize: MAX_FILE_BYTES, files },
+  fileFilter: (_request, file, done) => done(null, allowed(file.fieldname, file.originalname)),
+})
+
+const recipeField = (field: string, name: string) => (field === 'photo' ? imageAllowed(name) : recipeAllowed(name))
+const takeIngest = takeFile(stored((_field, name) => ingestAllowed(name), 1), 'file', { maxBytes: MAX_FILE_BYTES, allowed: (_field, name) => ingestAllowed(name) })
+const takeRecipe = takeFile(stored((_field, name) => recipeAllowed(name), 1), 'file', { maxBytes: MAX_FILE_BYTES, allowed: (_field, name) => recipeAllowed(name) })
+const takeDishFiles = takeFields(stored(recipeField, 2), [{ name: 'recipe', maxCount: 1 }, { name: 'photo', maxCount: 1 }], { maxBytes: MAX_FILE_BYTES, allowed: recipeField })
+
 const evidenceAllowed = (field: string, name: string) => (field === 'video' ? VIDEO_EXTENSIONS.has(path.extname(name).toLowerCase()) : allowedExtension(name))
 const EVIDENCE_FIELDS = [{ name: 'frames', maxCount: 4 }, { name: 'video', maxCount: 1 }]
 const takeDocument = takeFile(documents, 'file', { maxBytes: 15 * 1024 * 1024, allowed: (_field, name) => allowedExtension(name) })
@@ -51,6 +65,11 @@ const guarded = (work: (request: Request, response: Response) => unknown) => asy
     if (error instanceof SetupError || error instanceof GmailError) return void response.status(400).json({ error: error.message })
     next(error)
   }
+}
+
+/** An upload that's only being read is gone before the owner hears back. */
+async function droppingAfter<T>(file: Express.Multer.File, work: () => Promise<T>) {
+  try { return await work() } finally { await dropFile(file) }
 }
 
 const id = (request: Request) => Number(request.params.id)
@@ -98,11 +117,44 @@ export function setupRoutes(app: Express) {
     try { response.json(await readMenu(file.filename, file.originalname)) } finally { await dropFile(file) }
   }))
 
-  app.post('/api/setup/dishes/:id/photo', requireOwner, takeDocument, guarded(async (request, response) => {
-    if (!request.file) throw new SetupError('Add a JPG, PNG or WEBP.')
-    await run('UPDATE dishes SET photo_file = ? WHERE id = ?', request.file.filename, id(request))
-    response.json({ photo: request.file.filename })
+  /** Reads a recipe and saves nothing. The browser holds on to the files until the owner confirms, so a change of mind leaves no trace. */
+  app.post('/api/setup/recipes/read', requireOwner, takeRecipe, guarded(async (request, response) => {
+    const file = request.file
+    if (!file) throw new SetupError('Add a PDF, a photo or a Word file.')
+    const dishId = Number(request.body?.dishId) || undefined
+    response.json(await droppingAfter(file, () => readRecipeFile(file.filename, file.originalname, dishId)))
   }))
+
+  /** Reads a saved dish's own file again. The answer is a set of changes to look at, not a change. */
+  app.post('/api/setup/dishes/:id/read-again', requireOwner, guarded(async (request, response) => {
+    const dish = await get('SELECT recipe_file, recipe_file_name FROM dishes WHERE id = ?', id(request))
+    if (!dish?.recipe_file) throw new SetupError('Add a recipe file first.')
+    response.json(await readRecipeFile(String(dish.recipe_file), String(dish.recipe_file_name ?? dish.recipe_file), id(request)))
+  }))
+
+  /** Runs once the owner has confirmed. The recipe file stays for the owner alone. Staff are served the photo, so that can only be a picture. */
+  app.post('/api/setup/dishes/:id/files', requireOwner, takeDishFiles, guarded(async (request, response) => {
+    const files = (request.files ?? {}) as Record<string, Express.Multer.File[]>
+    const [recipe, photo] = [files.recipe?.[0], files.photo?.[0]]
+    if (!await get('SELECT id FROM dishes WHERE id = ?', id(request))) { await Promise.all([dropFile(recipe), dropFile(photo)]); throw new SetupError('That dish has gone.') }
+    if (!recipe && !photo) throw new SetupError('Add a recipe file or a photo.')
+    if (recipe) await run('UPDATE dishes SET recipe_file = ?, recipe_file_name = ? WHERE id = ?', recipe.filename, recipe.originalname.slice(0, 200), id(request))
+    if (photo) await run('UPDATE dishes SET photo_file = ? WHERE id = ?', photo.filename, id(request))
+    response.json({ recipeFile: recipe?.filename ?? null, photo: photo?.filename ?? null })
+  }))
+
+  /** Reads one file into a preview. Nothing is saved, and the upload is thrown away afterwards. */
+  app.post('/api/ingest/read', requireOwner, takeIngest, guarded(async (request, response) => {
+    const file = request.file
+    if (!file) throw new SetupError('Add a CSV, XLSX, PDF, Word, text or photo file.')
+    const kind = String(request.body?.kind) as IngestKind
+    const preview = await droppingAfter(file, async () => {
+      if (!['sales', 'recipes', 'ingredients'].includes(kind)) throw new SetupError('Choose what this file holds.')
+      return readIngest(kind, file.filename, file.originalname)
+    })
+    response.json({ file: file.originalname, ...preview })
+  }))
+  app.post('/api/ingest/save', requireOwner, guarded(async (request, response) => response.json(await saveIngest(request.body ?? {}))))
 
   // Open without a sign-in, like the cards themselves: the wrong moment to ask for a passcode.
   app.get('/api/crisis', async (_request, response) => response.json(await crisisCards()))

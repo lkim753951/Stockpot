@@ -51,7 +51,54 @@ function itemIdFrom(system: string, name: string) {
   return match ? Number(match[1]) : null
 }
 
+/** What a careful reader would answer for each sample file. The stand-in can't read a PDF or a photo, so it looks the answer up by file name. */
+function sampleReads() {
+  const reads = new Map<string, any>([['sample-recipe.pdf', JSON.parse(fs.readFileSync(path.join(samples, 'sample-recipe.json'), 'utf8'))]])
+  const folder = path.join(samples, 'datasets')
+  for (const month of fs.existsSync(folder) ? fs.readdirSync(folder) : []) {
+    const truth = path.join(folder, month, 'ground-truth.json')
+    if (fs.existsSync(truth)) for (const entry of JSON.parse(fs.readFileSync(truth, 'utf8')).files) reads.set(entry.file, entry.read)
+  }
+  return reads
+}
+const sampleRead = (text: string) => sampleReads().get(text.match(/^File name: (.+)$/m)?.[1]?.trim() ?? '') ?? null
+
+const COLUMN_WORDS: Record<string, Array<[string, RegExp]>> = {
+  sales: [['date', /date|^day/i], ['dish', /dish|menu item|^item|^product/i], ['quantity', /qty|quantity|sold|portions/i], ['net_sales', /\bnet\b|ex vat|^sales$|revenue/i]],
+  ingredients: [['item', /product|description|^item/i], ['pack', /pack|size/i], ['unit', /^unit$|uom/i], ['price', /price|£|gbp/i]],
+  recipes: [['dish', /recipe|dish/i], ['portions', /serves|portions/i], ['ingredient', /ingredient/i], ['quantity', /qty|quantity|amount/i], ['unit', /uom|unit/i], ['prep', /prep/i], ['service', /service/i], ['method', /method/i]],
+}
+
+/** Matches column names by their words, so any sensible sheet works in the sample. It sees what Muse Spark would: the top of the file. */
+function columnReply(kind: string, text: string) {
+  const words = COLUMN_WORDS[kind]
+  const rows = [...text.matchAll(/^Row (\d+): (.*)$/gm)].map((match) => ({ index: Number(match[1]), cells: match[2].split(' | ').map((cell) => cell.replace(/^\[\d+\] ?/, '')) }))
+  const pick = (cells: string[]) => {
+    const columns: Record<string, number | null> = Object.fromEntries(words.map(([key]) => [key, null]))
+    cells.forEach((cell, index) => {
+      const hit = words.find(([key, pattern]) => columns[key] === null && pattern.test(cell))
+      if (hit) columns[hit[0]] = index
+    })
+    return columns
+  }
+  const header = rows.find(({ cells }) => Object.values(pick(cells)).filter((column) => column !== null).length >= 2)
+  const columns = header ? pick(header.cells) : Object.fromEntries(words.map(([key]) => [key, null]))
+  const price = kind === 'ingredients' && header && columns.price !== null ? header.cells[columns.price!] : ''
+  const known = sampleRead(text)
+  return {
+    header_row: header?.index ?? null, columns, money_in: /pence/i.test(header?.cells.join(' ') ?? '') ? 'pence' : 'pounds',
+    price_is: /per unit|per kg|\/kg/i.test(price) ? 'per_unit' : /case|pack/i.test(price) ? 'per_pack' : null,
+    date_order: null, supplier_name: known?.supplier_name ?? null, list_date: known?.list_date ?? null,
+  }
+}
+
 function replyFor(name: string, system: string, text: string) {
+  if (name.startsWith('ingest_columns_')) return columnReply(name.replace('ingest_columns_', ''), text)
+  if (['ingest_sales', 'ingest_prices', 'ingest_recipes'].includes(name)) {
+    const known = sampleRead(text)
+    if (!known) throw new Error('The sample has no answer for this file.')
+    return known
+  }
   if (name === 'proof_target') return { target: 'fryer' }
   if (name === 'call_script_words') return { opening: `Hi ${text.match(/Contact: ([^.]+)\./)?.[1] ?? 'there'}, it's about our last delivery. Have you got a minute?`, ask: 'Could you send the rest over, or put a credit note through, please?', pushback: 'No problem, I can send you the photos and the invoice now.' }
   if (name === 'menu') {
@@ -242,7 +289,7 @@ export interface MockOptions {
 export async function startMockMeta(options: MockOptions = {}) {
   const state = {
     script: options.script ?? sampleScript(), realtimeStarts: [] as number[], videoUrls: [] as string[], requests: [] as string[], handshakes: [] as any[], failSpark: options.failSpark ?? false,
-    calls: [] as any[], samBoxes: null as any[] | null, callError: null as any, samVideoFrames: null as number[] | null, samPhrases: [] as string[], proofVerdict: 'ok' as 'ok' | 'recheck', whatsapp: [] as any[], failWhatsapp: false, whatsappError: null as number | null, thermometerAlways: false, selfBase: '', media: null as Buffer | null, mediaType: 'image/png', clipSettings: [] as any[], clipWords: null as string | null, toolReplies: null as any[] | null, summaryOverride: null as any,
+    calls: [] as any[], samBoxes: null as any[] | null, callError: null as any, samVideoFrames: null as number[] | null, samPhrases: [] as string[], proofVerdict: 'ok' as 'ok' | 'recheck', whatsapp: [] as any[], failWhatsapp: false, whatsappError: null as number | null, thermometerAlways: false, selfBase: '', media: null as Buffer | null, mediaType: 'image/png', clipSettings: [] as any[], clipWords: null as string | null, toolReplies: null as any[] | null, summaryOverride: null as any, ingestReply: null as any, ingestTexts: [] as string[],
   }
 
   const server = http.createServer((request, response) => {
@@ -269,6 +316,10 @@ export async function startMockMeta(options: MockOptions = {}) {
         if (name === 'weekly_summary' && state.summaryOverride) return send(200, jsonReply(state.summaryOverride))
         const system = payload.messages[0].content
         const text = payload.messages[1].content.filter((part: any) => part.type === 'text').map((part: any) => part.text).join('\n')
+        if (/^ingest_/.test(name)) {
+          state.ingestTexts.push(text)
+          if (state.ingestReply) return send(200, jsonReply(state.ingestReply))
+        }
         if (name === 'proof_check') return send(200, jsonReply({ verdict: state.proofVerdict, reason: state.proofVerdict === 'ok' ? 'The picture shows what the check asks for.' : 'The picture is too dark to be sure.', reading: /temperature|Fridge|Freezer|water/i.test(text) ? 4 : null }))
         if (name === 'thermometer_reading' && state.thermometerAlways) return send(200, jsonReply({ reading: 9, unit: 'C', unclear: false }))
         // The script is written for the sample week. Anything else gets an error, and the app's plain version takes over.

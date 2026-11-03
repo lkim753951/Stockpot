@@ -19,7 +19,7 @@ const LARGEST_UPLOAD = 120 * 1024 * 1024
 /** The app's own limit. Supabase fixes its signed links at two hours, so this ticket is what really runs out. */
 const TICKET_LIFE_MS = 15 * 60 * 1000
 
-const uploadable = (name: string) => allowedExtension(name) || VIDEO_EXTENSIONS.has(path.extname(name).toLowerCase()) || ['.wav', '.csv'].includes(path.extname(name).toLowerCase())
+const uploadable = (name: string) => allowedExtension(name) || VIDEO_EXTENSIONS.has(path.extname(name).toLowerCase()) || ['.wav', '.csv', '.xlsx', '.docx', '.txt'].includes(path.extname(name).toLowerCase())
 
 /** One route: the browser asks where to put a big file, and gets a link to that one new file. */
 export function uploadRoutes(app: App) {

@@ -27,7 +27,7 @@ if [ -n "$running" ]; then
 fi
 
 echo "Installing and building Stockpot. This takes a few minutes after an update."
-if [ ! -d node_modules/ogg-opus-decoder ] || [ ! -f node_modules/.package-lock.json ] || [ package-lock.json -nt node_modules/.package-lock.json ]; then
+if [ ! -d node_modules/mammoth ] || [ ! -d node_modules/ogg-opus-decoder ] || [ ! -f node_modules/.package-lock.json ] || [ package-lock.json -nt node_modules/.package-lock.json ]; then
   npm ci --legacy-peer-deps || { echo "Install failed."; read -k 1; exit 1; }
 fi
 npm run build || { echo "Build failed."; read -k 1; exit 1; }

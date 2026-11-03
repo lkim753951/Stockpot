@@ -1,0 +1,601 @@
+{
+ "month": "2026-10",
+ "restaurant": "Sample Kitchen (fictional)",
+ "files": [
+  {
+   "file": "recipe-biryani.txt",
+   "format": "txt",
+   "kind": "recipes",
+   "expected": {
+    "recipes": [
+     {
+      "name": "Chicken biryani",
+      "menuPricePence": 1150,
+      "targetMargin": 78,
+      "portions": 10,
+      "prepMinutes": 75,
+      "serviceMinutes": 5,
+      "steps": 3,
+      "ingredients": [
+       {
+        "name": "Chicken thighs",
+        "flagged": false,
+        "perPortion": 0.18,
+        "unit": "kg"
+       },
+       {
+        "name": "Basmati rice",
+        "flagged": false,
+        "perPortion": 0.12,
+        "unit": "kg"
+       },
+       {
+        "name": "Brown onions",
+        "flagged": false,
+        "perPortion": 0.08,
+        "unit": "kg"
+       },
+       {
+        "name": "Natural yoghurt",
+        "flagged": false,
+        "perPortion": 0.04,
+        "unit": "kg"
+       },
+       {
+        "name": "Rapeseed oil",
+        "flagged": false,
+        "perPortion": 0.012,
+        "unit": "l"
+       },
+       {
+        "name": "Ginger",
+        "flagged": false,
+        "perPortion": 0.005,
+        "unit": "kg"
+       }
+      ]
+     }
+    ]
+   },
+   "read": {
+    "recipes": [
+     {
+      "name": "Chicken biryani",
+      "portions": 10,
+      "ingredients": [
+       {
+        "name": "Chicken thighs",
+        "quantity": 1.8,
+        "unit": "kg"
+       },
+       {
+        "name": "Basmati rice",
+        "quantity": 1.2,
+        "unit": "kg"
+       },
+       {
+        "name": "Brown onions",
+        "quantity": 800,
+        "unit": "g"
+       },
+       {
+        "name": "Natural yoghurt",
+        "quantity": 400,
+        "unit": "g"
+       },
+       {
+        "name": "Rapeseed oil",
+        "quantity": 120,
+        "unit": "ml"
+       },
+       {
+        "name": "Ginger",
+        "quantity": 50,
+        "unit": "g"
+       }
+      ],
+      "method_steps": [
+       "Marinate the chicken in the yoghurt and ginger.",
+       "Fry the onions until dark.",
+       "Layer with the rice and steam for 40 minutes."
+      ],
+      "prep_minutes": 75,
+      "prep_quote": "Prep: 1 hour 15 minutes",
+      "service_minutes": 5,
+      "service_quote": "Service: 5 minutes"
+     }
+    ],
+    "unreadable": []
+   }
+  },
+  {
+   "file": "recipes-sheet.xlsx",
+   "format": "xlsx",
+   "kind": "recipes",
+   "expected": {
+    "recipes": [
+     {
+      "name": "Vegetable pilau",
+      "menuPricePence": 750,
+      "targetMargin": 80,
+      "portions": 10,
+      "prepMinutes": 20,
+      "serviceMinutes": null,
+      "steps": 3,
+      "ingredients": [
+       {
+        "name": "Basmati rice",
+        "flagged": false,
+        "perPortion": 0.1,
+        "unit": "kg"
+       },
+       {
+        "name": "Brown onions",
+        "flagged": false,
+        "perPortion": 0.05,
+        "unit": "kg"
+       },
+       {
+        "name": "Tomatoes",
+        "flagged": false,
+        "perPortion": 0.03,
+        "unit": "kg"
+       },
+       {
+        "name": "Vegetable stock",
+        "flagged": false,
+        "perPortion": 0.15,
+        "unit": "l"
+       },
+       {
+        "name": "Rapeseed oil",
+        "flagged": false,
+        "perPortion": 0.01,
+        "unit": "l"
+       }
+      ]
+     }
+    ]
+   },
+   "read": null
+  },
+  {
+   "file": "harrow-lane-prices.docx",
+   "format": "docx",
+   "kind": "ingredients",
+   "expected": {
+    "rows": 4,
+    "supplier": "Harrow Lane Foods",
+    "date": "2026-10-01",
+    "ownerDate": null,
+    "newSupplier": false,
+    "lines": [
+     {
+      "name": "Chicken thighs",
+      "unit": "kg",
+      "basePricePence": 640.0,
+      "flagged": false
+     },
+     {
+      "name": "Brown onions",
+      "unit": "kg",
+      "basePricePence": 92.0,
+      "flagged": false
+     },
+     {
+      "name": "Tomatoes",
+      "unit": "kg",
+      "basePricePence": 240.0,
+      "flagged": false
+     },
+     {
+      "name": "Flatbread",
+      "unit": "each",
+      "basePricePence": 32.0,
+      "flagged": false
+     }
+    ]
+   },
+   "read": {
+    "supplier_name": "Harrow Lane Foods",
+    "list_date": "2026-10-01",
+    "lines": [
+     {
+      "item": "Chicken thighs",
+      "pack": "10 kg case",
+      "price_pence": 6400,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Brown onions",
+      "pack": "25 kg sack",
+      "price_pence": 2300,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Tomatoes",
+      "pack": "6 kg box",
+      "price_pence": 1440,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Flatbread",
+      "pack": "case of 48",
+      "price_pence": 1536,
+      "price_is": "per_pack"
+     }
+    ],
+    "unreadable": []
+   }
+  },
+  {
+   "file": "northgate-prices.csv",
+   "format": "csv",
+   "kind": "ingredients",
+   "expected": {
+    "rows": 8,
+    "supplier": "Northgate Wholesale",
+    "date": "2026-10-01",
+    "ownerDate": null,
+    "newSupplier": false,
+    "lines": [
+     {
+      "name": "Basmati rice",
+      "unit": "kg",
+      "basePricePence": 205.0,
+      "flagged": false
+     },
+     {
+      "name": "Rapeseed oil",
+      "unit": "l",
+      "basePricePence": 170.0,
+      "flagged": false
+     },
+     {
+      "name": "Chickpeas",
+      "unit": "kg",
+      "basePricePence": 260.0,
+      "flagged": false
+     },
+     {
+      "name": "Coconut milk",
+      "unit": "l",
+      "basePricePence": 310.0,
+      "flagged": false
+     },
+     {
+      "name": "Vegetable stock",
+      "unit": "l",
+      "basePricePence": 210.0,
+      "flagged": false
+     },
+     {
+      "name": "Red lentils",
+      "unit": "kg",
+      "basePricePence": 240.0,
+      "flagged": false
+     },
+     {
+      "name": "Pudding rice",
+      "unit": "kg",
+      "basePricePence": 190.0,
+      "flagged": false
+     },
+     {
+      "name": "Caster sugar",
+      "unit": "kg",
+      "basePricePence": 135.0,
+      "flagged": false
+     }
+    ]
+   },
+   "read": {
+    "supplier_name": "Northgate Wholesale",
+    "list_date": "2026-10-01"
+   }
+  },
+  {
+   "file": "oakfield-prices.pdf",
+   "format": "pdf",
+   "kind": "ingredients",
+   "expected": {
+    "rows": 4,
+    "supplier": "Oakfield Dairy",
+    "date": "2026-10-01",
+    "ownerDate": null,
+    "newSupplier": false,
+    "lines": [
+     {
+      "name": "Double cream",
+      "unit": "l",
+      "basePricePence": 320.0,
+      "flagged": false
+     },
+     {
+      "name": "Whole milk",
+      "unit": "l",
+      "basePricePence": 128.0,
+      "flagged": false
+     },
+     {
+      "name": "Butter",
+      "unit": "kg",
+      "basePricePence": 540.0,
+      "flagged": false
+     },
+     {
+      "name": "Natural yoghurt",
+      "unit": "kg",
+      "basePricePence": 270.0,
+      "flagged": false
+     }
+    ]
+   },
+   "read": {
+    "supplier_name": "Oakfield Dairy",
+    "list_date": "2026-10-01",
+    "lines": [
+     {
+      "item": "Double cream",
+      "pack": "1 l",
+      "price_pence": 320,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Whole milk",
+      "pack": "2 l",
+      "price_pence": 256,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Butter",
+      "pack": "250 g",
+      "price_pence": 135,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Natural yoghurt",
+      "pack": "1 kg tub",
+      "price_pence": 270,
+      "price_is": "per_pack"
+     }
+    ],
+    "unreadable": []
+   }
+  },
+  {
+   "file": "riverside-prices.txt",
+   "format": "txt",
+   "kind": "ingredients",
+   "expected": {
+    "rows": 2,
+    "supplier": "Riverside Spice Co",
+    "date": "2026-10-01",
+    "ownerDate": null,
+    "newSupplier": true,
+    "lines": [
+     {
+      "name": "Garlic",
+      "unit": "kg",
+      "basePricePence": 420.0,
+      "flagged": false
+     },
+     {
+      "name": "Ginger",
+      "unit": "kg",
+      "basePricePence": 480.0,
+      "flagged": false
+     }
+    ]
+   },
+   "read": {
+    "supplier_name": "Riverside Spice Co",
+    "list_date": "2026-10-01",
+    "lines": [
+     {
+      "item": "Garlic",
+      "pack": "1 kg bag",
+      "price_pence": 420,
+      "price_is": "per_pack"
+     },
+     {
+      "item": "Ginger",
+      "pack": "1 kg bag",
+      "price_pence": 480,
+      "price_is": "per_pack"
+     }
+    ],
+    "unreadable": []
+   }
+  },
+  {
+   "file": "sales-workbook.xlsx",
+   "format": "xlsx",
+   "kind": "sales",
+   "expected": {
+    "rows": 162,
+    "quantity": 2435,
+    "netPence": 2030500,
+    "problems": 0,
+    "printedNetPence": 2030500,
+    "printedQuantity": 2435,
+    "totalsDiffer": false,
+    "unknownDishes": []
+   },
+   "read": null
+  },
+  {
+   "file": "sales-closing-sheet-scan.png",
+   "format": "png",
+   "kind": "sales",
+   "expected": {
+    "rows": 24,
+    "quantity": 371,
+    "netPence": 309750,
+    "problems": 0,
+    "printedNetPence": 309750,
+    "printedQuantity": 371,
+    "totalsDiffer": false,
+    "unknownDishes": []
+   },
+   "read": {
+    "rows": [
+     {
+      "date": "2026-10-28",
+      "dish": "Chicken curry",
+      "quantity": 24,
+      "net_sales_pence": 22800
+     },
+     {
+      "date": "2026-10-28",
+      "dish": "Grilled chicken wrap",
+      "quantity": 16,
+      "net_sales_pence": 13600
+     },
+     {
+      "date": "2026-10-28",
+      "dish": "Tomato soup",
+      "quantity": 8,
+      "net_sales_pence": 5200
+     },
+     {
+      "date": "2026-10-28",
+      "dish": "Chickpea curry",
+      "quantity": 9,
+      "net_sales_pence": 8100
+     },
+     {
+      "date": "2026-10-28",
+      "dish": "Lentil dal",
+      "quantity": 7,
+      "net_sales_pence": 5600
+     },
+     {
+      "date": "2026-10-28",
+      "dish": "Rice pudding",
+      "quantity": 6,
+      "net_sales_pence": 3300
+     },
+     {
+      "date": "2026-10-29",
+      "dish": "Chicken curry",
+      "quantity": 26,
+      "net_sales_pence": 24700
+     },
+     {
+      "date": "2026-10-29",
+      "dish": "Grilled chicken wrap",
+      "quantity": 17,
+      "net_sales_pence": 14450
+     },
+     {
+      "date": "2026-10-29",
+      "dish": "Tomato soup",
+      "quantity": 9,
+      "net_sales_pence": 5850
+     },
+     {
+      "date": "2026-10-29",
+      "dish": "Chickpea curry",
+      "quantity": 10,
+      "net_sales_pence": 9000
+     },
+     {
+      "date": "2026-10-29",
+      "dish": "Lentil dal",
+      "quantity": 8,
+      "net_sales_pence": 6400
+     },
+     {
+      "date": "2026-10-29",
+      "dish": "Rice pudding",
+      "quantity": 7,
+      "net_sales_pence": 3850
+     },
+     {
+      "date": "2026-10-30",
+      "dish": "Chicken curry",
+      "quantity": 37,
+      "net_sales_pence": 35150
+     },
+     {
+      "date": "2026-10-30",
+      "dish": "Grilled chicken wrap",
+      "quantity": 22,
+      "net_sales_pence": 18700
+     },
+     {
+      "date": "2026-10-30",
+      "dish": "Tomato soup",
+      "quantity": 11,
+      "net_sales_pence": 7150
+     },
+     {
+      "date": "2026-10-30",
+      "dish": "Chickpea curry",
+      "quantity": 13,
+      "net_sales_pence": 11700
+     },
+     {
+      "date": "2026-10-30",
+      "dish": "Lentil dal",
+      "quantity": 10,
+      "net_sales_pence": 8000
+     },
+     {
+      "date": "2026-10-30",
+      "dish": "Rice pudding",
+      "quantity": 10,
+      "net_sales_pence": 5500
+     },
+     {
+      "date": "2026-10-31",
+      "dish": "Chicken curry",
+      "quantity": 41,
+      "net_sales_pence": 38950
+     },
+     {
+      "date": "2026-10-31",
+      "dish": "Grilled chicken wrap",
+      "quantity": 27,
+      "net_sales_pence": 22950
+     },
+     {
+      "date": "2026-10-31",
+      "dish": "Tomato soup",
+      "quantity": 14,
+      "net_sales_pence": 9100
+     },
+     {
+      "date": "2026-10-31",
+      "dish": "Chickpea curry",
+      "quantity": 15,
+      "net_sales_pence": 13500
+     },
+     {
+      "date": "2026-10-31",
+      "dish": "Lentil dal",
+      "quantity": 12,
+      "net_sales_pence": 9600
+     },
+     {
+      "date": "2026-10-31",
+      "dish": "Rice pudding",
+      "quantity": 12,
+      "net_sales_pence": 6600
+     }
+    ],
+    "printed_total_quantity": 371,
+    "printed_total_net_pence": 309750,
+    "unreadable": []
+   }
+  }
+ ],
+ "month_totals": {
+  "soldRows": 186,
+  "quantity": 2806,
+  "netPence": 2340250,
+  "foodCostPence": 369164,
+  "foodCostPercent": 15.8
+ }
+}

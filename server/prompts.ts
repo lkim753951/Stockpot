@@ -567,3 +567,187 @@ Decide if they clearly show the check was done. Answer ok only if you can see it
 Give the reason in one short plain sentence about what you can or can't see. You only suggest: a person makes the decision.
 If the check needs a number and a thermometer, display or count shows it, put that number in reading. Otherwise set reading to null.
 ${SAFETY}`
+
+export type IngestKind = 'sales' | 'recipes' | 'ingredients'
+
+const COLUMNS: Record<IngestKind, string[]> = {
+  sales: ['date', 'dish', 'quantity', 'net_sales'],
+  ingredients: ['item', 'pack', 'unit', 'price'],
+  recipes: ['dish', 'portions', 'ingredient', 'quantity', 'unit', 'prep', 'service', 'method'],
+}
+
+/** Column numbers only. Muse Spark sees the header and a few rows, and code reads every row after that. */
+const columnSchema = (names: string[]) => ({
+  type: 'object', additionalProperties: false,
+  required: ['header_row', 'columns', 'money_in', 'price_is', 'date_order', 'supplier_name', 'list_date'],
+  properties: {
+    header_row: nullable('integer'),
+    columns: { type: 'object', additionalProperties: false, required: names, properties: Object.fromEntries(names.map((name) => [name, nullable('integer')])) },
+    money_in: { type: 'string', enum: ['pounds', 'pence'] },
+    price_is: nullable('string', { enum: ['per_pack', 'per_unit', null] }),
+    date_order: nullable('string', { enum: ['day_first', 'month_first', null] }),
+    supplier_name: nullable('string'),
+    list_date: nullable('string'),
+  },
+})
+
+export const columnSchemas: Record<IngestKind, Record<string, unknown>> = { sales: columnSchema(COLUMNS.sales), ingredients: columnSchema(COLUMNS.ingredients), recipes: columnSchema(COLUMNS.recipes) }
+
+export interface ExtractedColumns {
+  header_row: number | null
+  columns: Record<string, number | null>
+  money_in: 'pounds' | 'pence'
+  price_is: 'per_pack' | 'per_unit' | null
+  date_order: 'day_first' | 'month_first' | null
+  supplier_name: string | null
+  list_date: string | null
+}
+
+const COLUMN_HELP: Record<IngestKind, string> = {
+  sales: `This is a restaurant's sales file. Find these columns:
+- date: the day of the sale.
+- dish: the menu item.
+- quantity: how many were sold.
+- net_sales: money excluding VAT. A column just called sales or revenue counts. A column that says gross, or that it includes VAT, does not.`,
+  ingredients: `This is a supplier's price list. Find these columns:
+- item: the product name.
+- pack: the size the price buys, such as 10 kg, 6 x 1 l or case of 12.
+- unit: a separate unit column, such as kg, l or each.
+- price: the price. If there are two price columns, choose the one for the whole pack.
+Set price_is to per_pack if the price is for the whole pack, per_unit if it is per kilo, per litre, or each for a pack that counts items, and null if you can't tell.
+Set supplier_name and list_date if the title rows or file name state them. Give list_date as YYYY-MM-DD.`,
+  recipes: `This is a restaurant's recipe sheet, with one row for each ingredient. Find these columns:
+- dish, portions (how many portions the recipe makes), ingredient, quantity, unit (a separate unit column).
+- prep (preparation time), service (time to plate or serve), method (the cooking steps).`,
+}
+
+export const columnsPrompt = (kind: IngestKind) => `You look at the first rows of a spreadsheet and say which column holds what. Plain code then reads every row, so never copy or work out a figure from a row.
+Rows and columns are numbered from 0, as shown. header_row is the row with the column names, which may sit below title rows. Use null if there is no header.
+Use null for any column the file doesn't have. Never guess a column. A wrong column is worse than none.
+money_in is pence if the header says pence, and pounds otherwise.
+date_order says if dates are written day first or month first. Use null if you can't tell from these rows.
+Leave supplier_name, list_date and price_is null unless this kind of file asks for them.
+
+${COLUMN_HELP[kind]}
+
+${SAFETY}`
+
+export const salesFileSchema = {
+  type: 'object', additionalProperties: false, required: ['rows', 'printed_total_quantity', 'printed_total_net_pence', 'unreadable'],
+  properties: {
+    rows: {
+      type: 'array', items: {
+        type: 'object', additionalProperties: false, required: ['date', 'dish', 'quantity', 'net_sales_pence'],
+        properties: { date: nullable('string'), dish: { type: 'string' }, quantity: nullable('number'), net_sales_pence: nullable('number') },
+      },
+    },
+    printed_total_quantity: nullable('number'),
+    printed_total_net_pence: nullable('number'),
+    unreadable: { type: 'array', items: { type: 'string' } },
+  },
+}
+
+export interface ExtractedSales {
+  rows: Array<{ date: string | null; dish: string; quantity: number | null; net_sales_pence: number | null }>
+  printed_total_quantity: number | null
+  printed_total_net_pence: number | null
+  unreadable: string[]
+}
+
+export const salesFilePrompt = `Read this restaurant sales report. Copy each row exactly as printed.
+- date: YYYY-MM-DD. If a date is a heading over several rows, use it for each of them. Dates are UK style, day first, unless the file shows otherwise.
+- dish: the name as printed.
+- quantity: how many were sold.
+- net_sales_pence: net sales excluding VAT, in pence.
+Use null for anything not printed on that row.
+Don't list total or subtotal rows. Put a printed grand total in printed_total_quantity and printed_total_net_pence, or null if the file doesn't print one. Never add anything up.
+List anything you can't read in unreadable.
+
+${SAFETY}`
+
+export const priceFileSchema = {
+  type: 'object', additionalProperties: false, required: ['supplier_name', 'list_date', 'lines', 'unreadable'],
+  properties: {
+    supplier_name: nullable('string'),
+    list_date: nullable('string'),
+    lines: {
+      type: 'array', items: {
+        type: 'object', additionalProperties: false, required: ['item', 'pack', 'price_pence', 'price_is'],
+        properties: { item: { type: 'string' }, pack: nullable('string'), price_pence: nullable('number'), price_is: nullable('string', { enum: ['per_pack', 'per_unit', null] }) },
+      },
+    },
+    unreadable: { type: 'array', items: { type: 'string' } },
+  },
+}
+
+export interface ExtractedPrices {
+  supplier_name: string | null
+  list_date: string | null
+  lines: Array<{ item: string; pack: string | null; price_pence: number | null; price_is: 'per_pack' | 'per_unit' | null }>
+  unreadable: string[]
+}
+
+export const priceFilePrompt = `Read this supplier price list. Copy each product exactly as printed.
+- supplier_name: the supplier, as printed. Null if it isn't printed.
+- list_date: the date the prices start, as YYYY-MM-DD. Null if no date is printed.
+- item: the product name.
+- pack: the printed size or unit, such as "10 kg case", "6 x 1 l" or "per kg". Null if none is printed.
+- price_pence: the printed price in pence. Null if there is none, such as POA or a blank.
+- price_is: per_pack if the price is for the whole pack, per_unit if it is per kilo, per litre, or each for a pack that counts items, null if you can't tell.
+Never work out a price. List anything you can't read in unreadable.
+
+${SAFETY}`
+
+export const recipeFileSchema = {
+  type: 'object', additionalProperties: false, required: ['recipes', 'unreadable'],
+  properties: {
+    recipes: {
+      type: 'array', items: {
+        type: 'object', additionalProperties: false,
+        required: ['name', 'portions', 'ingredients', 'method_steps', 'prep_minutes', 'prep_quote', 'service_minutes', 'service_quote'],
+        properties: {
+          name: { type: 'string' },
+          portions: nullable('number'),
+          ingredients: {
+            type: 'array', items: {
+              type: 'object', additionalProperties: false, required: ['name', 'quantity', 'unit'],
+              properties: { name: { type: 'string' }, quantity: nullable('number'), unit: nullable('string') },
+            },
+          },
+          method_steps: { type: 'array', items: { type: 'string' } },
+          prep_minutes: nullable('number'),
+          prep_quote: nullable('string'),
+          service_minutes: nullable('number'),
+          service_quote: nullable('string'),
+        },
+      },
+    },
+    unreadable: { type: 'array', items: { type: 'string' } },
+  },
+}
+
+export interface ExtractedRecipe {
+  name: string
+  portions: number | null
+  ingredients: Array<{ name: string; quantity: number | null; unit: string | null }>
+  method_steps: string[]
+  prep_minutes: number | null
+  prep_quote: string | null
+  service_minutes: number | null
+  service_quote: string | null
+}
+
+export interface ExtractedRecipes { recipes: ExtractedRecipe[]; unreadable: string[] }
+
+export const recipeFilePrompt = `Read this restaurant recipe file. List each recipe exactly as printed.
+- name: the dish.
+- portions: how many portions the recipe says it makes. Null if it doesn't say.
+- ingredients: each ingredient with the quantity and unit printed for the whole recipe. Don't convert, scale or add anything up. unit is the printed word, such as g, tbsp or bunch. Use null for a plain count, like 2 eggs. Use null for quantity if none is printed, like salt to taste.
+- method_steps: the cooking steps in order, in the file's words. Leave out any costs, prices, margins and supplier details.
+- prep_minutes: the preparation time printed for the whole recipe, in minutes. Don't add cooking time to it. Null if no preparation time is printed.
+- prep_quote: the exact words in the file that give that time. Null if prep_minutes is null.
+- service_minutes: the time printed to plate or serve one plate, in minutes. Null if it isn't printed, or is only given for several plates.
+- service_quote: the exact words in the file that give that time. Null if service_minutes is null.
+A time, quantity or price that isn't printed stays null. Never estimate one. List anything you can't read in unreadable.
+
+${SAFETY}`

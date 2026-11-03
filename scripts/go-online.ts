@@ -251,4 +251,4 @@ async function main() {
   if (local.WHATSAPP_VERIFY_TOKEN) say(`WhatsApp:    set the callback URL to ${realAddress}/whatsapp/webhook`)
 }
 
-main().catch((error) => stop((error as Error).message.slice(0, 200))).finally(() => { for (const leftover of ['.vercel', '.env.local']) fs.rmSync(leftover, { recursive: true, force: true }) })
+await main().catch((error) => stop((error as Error).message.slice(0, 200))).finally(() => { for (const leftover of ['.vercel', '.env.local']) fs.rmSync(leftover, { recursive: true, force: true }) })
