@@ -59,11 +59,12 @@ test('a sample with no database starts on Vercel, and a real site with no databa
 })
 
 test('a sample with no database works from the hosted entry point', async () => {
-  const site = await startInstance({ VERCEL: '1', NODE_ENV: 'production', STOCKPOT_ENTRY: 'api', TMPDIR: fs.mkdtempSync(path.join(temp, 'throwaway-')), DATABASE_URL: '', DB_SCHEMA: '', SUPABASE_URL: '', SUPABASE_SERVICE_KEY: '', SUPABASE_BUCKET: '', MODEL_API_KEY: '', OWNER_PASSCODE: '', STAFF_PASSCODE: '', SESSION_SECRET: '' })
+  const site = await startInstance({ VERCEL: '1', NODE_ENV: 'production', STOCKPOT_ENTRY: 'api', TMPDIR: fs.mkdtempSync(path.join(temp, 'throwaway-')), DATABASE_URL: '', DB_SCHEMA: '', SUPABASE_URL: '', SUPABASE_SERVICE_KEY: '', SUPABASE_BUCKET: '', MODEL_API_KEY: '', OWNER_PASSCODE: '', STAFF_PASSCODE: '', SESSION_SECRET: '', OTHER_SITE_URL: 'https://real.example/' })
   try {
     const session = await json(site.base, '/api/session')
     assert.equal(session.status, 200)
     assert.equal(session.data.mode, 'sample')
+    assert.equal(session.data.otherSite, 'https://real.example')
     const home = await json(site.base, '/api/home')
     assert.equal(home.status, 200)
     assert.ok(home.data.toConfirm)
@@ -94,7 +95,7 @@ test('vercel.json sends every kind of address to the right place', () => {
   for (const url of ['/api/home', '/api/cron', '/api/whatsapp/webhook', '/ws/call/12', '/healthz', '/whatsapp/webhook']) assert.equal(route(url), '/api/index', url)
   for (const url of ['/', '/anything', '/receipts']) assert.equal(route(url), '/index.html', url)
   assert.equal(settings.outputDirectory, 'dist')
-  assert.deepEqual(settings.regions, ['lhr1'])
+  assert.deepEqual(settings.regions, ['fra1'])
   const fn = settings.functions['api/index.ts']
   assert.equal(fn.maxDuration, 300)
   assert.match(fn.includeFiles, /public\/samples/)

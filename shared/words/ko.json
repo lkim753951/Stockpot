@@ -1126,13 +1126,13 @@
   "{arrived} kg, not {ordered} kg": "{ordered} kg 아니고 {arrived} kg",
   "{count} × {pack} {unit} = {total} {unit}": "{count} × {pack} {unit} = {total} {unit}",
   "Ask for": "요청할 내용",
-  "Get your money back from every delivery": "배송마다 내 돈을 돌려받으세요",
+  "Helping small restaurants get on their feet": "배송마다 내 돈을 돌려받으세요",
   "Heard on the call": "통화에서 들은 내용",
   "If they push back": "상대가 동의하지 않으면",
   "May be billed twice": "이중 청구 가능성",
   "Paid above the first price": "첫 가격보다 더 낸 금액",
   "Start with": "이렇게 시작하세요",
-  "Stockpot hears the price on the call, watches the delivery and reads the invoice. When they don't match, it shows you what you're owed.": "Stockpot은 통화에서 가격을 듣고, 배송을 지켜보고, 인보이스를 읽어요. 서로 맞지 않으면 돌려받을 금액을 보여드려요.",
+  "Stockpot takes on the repetitive work, helps you spot opportunities and P&L leakage, and keeps you ready for a crisis.": "Stockpot은 통화에서 가격을 듣고, 배송을 지켜보고, 인보이스를 읽어요. 서로 맞지 않으면 돌려받을 금액을 보여드려요.",
   "The facts": "사실 관계",
   "What to say": "무엇을 말할까요",
   "{received} of {ordered}": "{ordered} 중 {received}",
@@ -1307,5 +1307,7 @@
   "{replaced} replaced what was saved.": "{replaced}이(가) 저장된 내용을 대체했어요.",
   "{rows} rows share a dish and a day, so they were added together.": "{rows}줄은 메뉴와 날짜가 같아서 합쳤어요.",
   "{skipped} rows were already saved, so they were skipped.": "{skipped}줄은 이미 저장돼 있어서 건너뛰었어요.",
-  "{sold} sold, cost incomplete": "{sold} 판매, 비용 미완성"
+  "{sold} sold, cost incomplete": "{sold} 판매, 비용 미완성",
+  "Open the real app": "실제 앱 열기",
+  "Try the sample": "샘플 써보기"
 }

@@ -1054,13 +1054,13 @@
   "{arrived} kg, not {ordered} kg": "{arrived} kg, hindi {ordered} kg",
   "{count} × {pack} {unit} = {total} {unit}": "{count} × {pack} {unit} = {total} {unit}",
   "Ask for": "Hilingin",
-  "Get your money back from every delivery": "Bawiin ang pera mo sa bawat delivery",
+  "Helping small restaurants get on their feet": "Bawiin ang pera mo sa bawat delivery",
   "Heard on the call": "Narinig sa tawag",
   "If they push back": "Kung hindi sila pumayag",
   "May be billed twice": "Baka nasingil nang dalawang beses",
   "Paid above the first price": "Binayaran nang higit sa unang presyo",
   "Start with": "Simulan sa",
-  "Stockpot hears the price on the call, watches the delivery and reads the invoice. When they don't match, it shows you what you're owed.": "Naririnig ng Stockpot ang presyo sa tawag, pinapanood ang delivery, at binabasa ang invoice. Kapag hindi tugma, ipinapakita nito ang dapat ibalik sa iyo.",
+  "Stockpot takes on the repetitive work, helps you spot opportunities and P&L leakage, and keeps you ready for a crisis.": "Naririnig ng Stockpot ang presyo sa tawag, pinapanood ang delivery, at binabasa ang invoice. Kapag hindi tugma, ipinapakita nito ang dapat ibalik sa iyo.",
   "The facts": "Ang mga detalye",
   "What to say": "Ano ang sasabihin",
   "{received} of {ordered}": "{received} sa {ordered}",
@@ -1246,5 +1246,7 @@
   "{replaced} replaced what was saved.": "Pinalitan ng {replaced} ang naka-save.",
   "{rows} rows share a dish and a day, so they were added together.": "{rows} row ang may parehong putahe at araw, kaya pinagsama.",
   "{skipped} rows were already saved, so they were skipped.": "{skipped} row ang naka-save na, kaya nilaktawan.",
-  "{sold} sold, cost incomplete": "{sold} ang naibenta, kulang ang gastos"
+  "{sold} sold, cost incomplete": "{sold} ang naibenta, kulang ang gastos",
+  "Open the real app": "Buksan ang totoong app",
+  "Try the sample": "Subukan ang sample"
 }

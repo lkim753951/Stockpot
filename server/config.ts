@@ -45,6 +45,8 @@ export const config = {
     bucket: process.env.SUPABASE_BUCKET?.trim() || 'stockpot',
   },
   cronSecret: process.env.CRON_SECRET?.trim() || '',
+  /** The other site: the real app from the sample, and the sample from the real app. */
+  otherSite: process.env.OTHER_SITE_URL?.trim().replace(/\/+$/, '') || '',
   /** "sample" runs the same code path against a built-in stand-in for the Meta API. */
   mode: (apiKey ? 'live' : 'sample') as 'live' | 'sample',
   apiKey: apiKey || 'sample',

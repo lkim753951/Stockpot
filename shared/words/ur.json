@@ -1054,13 +1054,13 @@
   "{arrived} kg, not {ordered} kg": "{ordered} kg نہیں، {arrived} kg",
   "{count} × {pack} {unit} = {total} {unit}": "{count} × {pack} {unit} = {total} {unit}",
   "Ask for": "یہ مانگیں",
-  "Get your money back from every delivery": "ہر ڈیلیوری سے اپنا پیسہ واپس لیں",
+  "Helping small restaurants get on their feet": "ہر ڈیلیوری سے اپنا پیسہ واپس لیں",
   "Heard on the call": "کال پر سنا گیا",
   "If they push back": "اگر وہ نہ مانیں",
   "May be billed twice": "شاید دو بار بل ہوا",
   "Paid above the first price": "پہلی قیمت سے زیادہ ادا کیا",
   "Start with": "ایسے شروع کریں",
-  "Stockpot hears the price on the call, watches the delivery and reads the invoice. When they don't match, it shows you what you're owed.": "Stockpot کال پر قیمت سنتا ہے، ڈیلیوری دیکھتا ہے اور انوائس پڑھتا ہے۔ میل نہ کھانے پر دکھاتا ہے کہ آپ کا کتنا بنتا ہے۔",
+  "Stockpot takes on the repetitive work, helps you spot opportunities and P&L leakage, and keeps you ready for a crisis.": "Stockpot کال پر قیمت سنتا ہے، ڈیلیوری دیکھتا ہے اور انوائس پڑھتا ہے۔ میل نہ کھانے پر دکھاتا ہے کہ آپ کا کتنا بنتا ہے۔",
   "The facts": "حقائق",
   "What to say": "کیا کہنا ہے",
   "{received} of {ordered}": "{ordered} میں سے {received}",
@@ -1246,5 +1246,7 @@
   "{replaced} replaced what was saved.": "{replaced} نے پہلے سے محفوظ کی جگہ لی۔",
   "{rows} rows share a dish and a day, so they were added together.": "{rows} لائنوں میں ڈش اور دن ایک ہی ہے، اس لیے انہیں جمع کر دیا گیا۔",
   "{skipped} rows were already saved, so they were skipped.": "{skipped} لائنیں پہلے سے محفوظ تھیں، اس لیے چھوڑ دی گئیں۔",
-  "{sold} sold, cost incomplete": "{sold} بکے، لاگت نامکمل"
+  "{sold} sold, cost incomplete": "{sold} بکے، لاگت نامکمل",
+  "Open the real app": "اصل ایپ کھولیں",
+  "Try the sample": "نمونہ آزمائیں"
 }

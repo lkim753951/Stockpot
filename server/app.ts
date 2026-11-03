@@ -202,7 +202,7 @@ export function createApp() {
   })
 
   app.get('/api/session', async (request, response) => {
-    response.json({ role: roleOf(request), mode: config.mode, needsPasscode: passcodesInUse(), demoTime: config.mode === 'sample' ? localTime().time : null, onboarded: !!await setting('onboarded') })
+    response.json({ role: roleOf(request), mode: config.mode, needsPasscode: passcodesInUse(), otherSite: config.otherSite || null, demoTime: config.mode === 'sample' ? localTime().time : null, onboarded: !!await setting('onboarded') })
   })
 
   app.post('/api/login', (request, response) => {

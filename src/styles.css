@@ -675,9 +675,11 @@ a.card:hover, .report-list a:hover, .demo-link:hover, .tile-btn:hover { box-shad
 .proof-image.tracked i[data-n]::after { content: attr(data-n); position: absolute; left: 4px; top: 4px; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; background: var(--saffron, #f2a93b); color: #1d1a22; font: 800 15px/24px var(--font-display); font-style: normal; text-align: center; }
 
 /* Choosing a role: the app's own buttons, always in reach at the bottom of the screen. */
-.role-bar { position: sticky; bottom: 0; z-index: 3; display: flex; justify-content: center; gap: var(--space-2); margin: 0 calc(var(--space-4) * -1) -40px; padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line); }
-.role-bar .btn { min-width: 128px; min-height: 48px; padding-inline: var(--space-5); border-radius: 999px; }
-@media (min-width: 760px) { .role-bar { position: static; margin: 0; padding: 0; border-top: 0; background: none; } }
+.role-bar { position: sticky; bottom: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); margin: 0 calc(var(--space-4) * -1) -40px; padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line); }
+.role-buttons { display: flex; justify-content: center; gap: var(--space-2); }
+.role-buttons .btn { min-width: 128px; min-height: 48px; padding-inline: var(--space-5); border-radius: 999px; }
+.role-switch { min-height: 44px; }
+@media (min-width: 760px) { .role-bar { margin: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; } }
 
 /* The proof for one line: what was said, what came, what was billed, in that order. */
 .proof-trio { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--radius-lg); background: var(--surface-raised); box-shadow: var(--shadow-hover); }

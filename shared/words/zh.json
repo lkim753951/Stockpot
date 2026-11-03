@@ -1036,13 +1036,13 @@
   "{arrived} kg, not {ordered} kg": "不是{ordered} kg，是{arrived} kg",
   "{count} × {pack} {unit} = {total} {unit}": "{count} × {pack} {unit} = {total} {unit}",
   "Ask for": "提出要求",
-  "Get your money back from every delivery": "每次送货都把钱要回来",
+  "Helping small restaurants get on their feet": "每次送货都把钱要回来",
   "Heard on the call": "通话中听到",
   "If they push back": "如果对方不同意",
   "May be billed twice": "可能重复收费",
   "Paid above the first price": "高于首次价格的部分",
   "Start with": "这样开场",
-  "Stockpot hears the price on the call, watches the delivery and reads the invoice. When they don't match, it shows you what you're owed.": "Stockpot 在通话中听价格，查看送货，再读发票。一旦对不上，就告诉你该拿回多少。",
+  "Stockpot takes on the repetitive work, helps you spot opportunities and P&L leakage, and keeps you ready for a crisis.": "Stockpot 在通话中听价格，查看送货，再读发票。一旦对不上，就告诉你该拿回多少。",
   "The facts": "事实",
   "What to say": "怎么说",
   "{received} of {ordered}": "{received}，共 {ordered}",
@@ -1217,5 +1217,7 @@
   "{replaced} replaced what was saved.": "{replaced}替换了已保存的内容。",
   "{rows} rows share a dish and a day, so they were added together.": "有{rows}行的菜品和日期相同，已合并相加。",
   "{skipped} rows were already saved, so they were skipped.": "有{skipped}行已经保存过，已跳过。",
-  "{sold} sold, cost incomplete": "售出{sold}，成本不完整"
+  "{sold} sold, cost incomplete": "售出{sold}，成本不完整",
+  "Open the real app": "打开真实应用",
+  "Try the sample": "试用示例"
 }

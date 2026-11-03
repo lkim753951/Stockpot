@@ -35,7 +35,7 @@ import { Welcome } from './screens/Welcome'
 import { Connections } from './screens/Connections'
 
 export type Role = 'owner' | 'staff'
-export interface Session { role: Role | null; mode: 'live' | 'sample'; needsPasscode: boolean; demoTime: string | null; onboarded: boolean }
+export interface Session { role: Role | null; mode: 'live' | 'sample'; needsPasscode: boolean; otherSite: string | null; demoTime: string | null; onboarded: boolean }
 
 const SEEN = 'stockpot-seen'
 const readSeen = () => { try { return !!localStorage.getItem(SEEN) } catch { return false } }
@@ -198,9 +198,9 @@ export function App() {
   if (!session.role) {
     return signIn
       ? <Login role={signIn} onRole={setSignIn} onDone={async () => { await refresh(); open(signIn) }} onBack={() => setSignIn(null)} />
-      : <Welcome onChoose={choose} />
+      : <Welcome onChoose={choose} sample={session.mode === 'sample'} otherSite={session.otherSite} />
   }
-  if (screen === 'welcome' || (!seen && !window.location.hash)) return <Welcome onChoose={choose} />
+  if (screen === 'welcome' || (!seen && !window.location.hash)) return <Welcome onChoose={choose} sample={session.mode === 'sample'} otherSite={session.otherSite} />
   if (screen === 'start') return <Onboarding />
 
   const sample = session.mode === 'sample'

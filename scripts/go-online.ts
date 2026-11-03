@@ -1,5 +1,6 @@
 // Puts Stockpot on Vercel and Supabase. Run it through put-stockpot-online.command, which asks for the keys first.
 // Safe to run again: it keeps its secrets, overwrites settings and deploys both sites once more.
+// The sample stays on made-up data with no key and no database, so a problem there can't reach the real site.
 // It prints no key, passcode or phone number. Values reach Vercel over stdin, never on a command line.
 import crypto from 'node:crypto'
 import fs from 'node:fs'
@@ -9,11 +10,12 @@ import { storageHeaders } from '../server/files.ts'
 
 const VERCEL = (process.env.VERCEL_BIN ?? 'npx --yes vercel@65.10.0').split(' ')
 const HOSTING_FILE = '.env.hosting'
-const REGIONS = ['lhr1', 'dub1', 'cdg1', 'fra1', 'iad1']
+// The database is in Frankfurt, so the nearest region comes first.
+const REGIONS = ['fra1', 'cdg1', 'dub1', 'lhr1', 'iad1']
 const REAL_PROJECT = 'stockpot'
 const SAMPLE_PROJECT = 'stockpot-sample'
 const REAL_BUCKET = 'stockpot'
-const SAMPLE_BUCKET = 'stockpot-sample'
+const SAMPLE_ADDRESS = 'https://stockpot-app.vercel.app'
 
 /** Only these go from .env on this Mac to the real site. */
 const COPIED = ['MODEL_API_KEY', 'MAX_MODEL_CALLS', 'RESTAURANT_TIMEZONE', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET',
@@ -203,30 +205,20 @@ async function main() {
   say('1 of 5. Checking Supabase.')
   await checkDatabase(databaseUrl)
   await makeBucket(supabaseUrl, serviceKey, REAL_BUCKET)
-  await makeBucket(supabaseUrl, serviceKey, SAMPLE_BUCKET)
   await checkStorage(supabaseUrl, serviceKey, REAL_BUCKET)
-  say('  The database and both private buckets work.')
+  say('  The database and the private bucket work.')
 
   say('2 of 5. Signing in to Vercel.')
   if (!vercel(['whoami'], { capture: true }).ok && !vercel(['login']).ok) stop("Vercel sign-in didn't finish.")
 
-  const shared = { DATABASE_URL: databaseUrl, SUPABASE_URL: supabaseUrl, SUPABASE_SERVICE_KEY: serviceKey }
-  const timezone: Record<string, string> = local.RESTAURANT_TIMEZONE ? { RESTAURANT_TIMEZONE: local.RESTAURANT_TIMEZONE } : {}
-
-  say('3 of 5. The sample site, for judges and visitors.')
-  linkProject(SAMPLE_PROJECT)
-  setVariables({ ...shared, ...timezone, DB_SCHEMA: 'sample', SUPABASE_BUCKET: SAMPLE_BUCKET, CRON_SECRET: secret('SAMPLE_CRON_SECRET') })
-  const sampleAddress = deploy(SAMPLE_PROJECT)
-  await waitUntilUp(sampleAddress)
-  remember('SAMPLE_SITE', sampleAddress)
-  say(`  Up at ${sampleAddress}`)
-
-  say('4 of 5. The real site.')
+  say('3 of 5. The real site.')
+  const sampleAddress = hosting.SAMPLE_SITE || SAMPLE_ADDRESS
   const cronSecret = secret('CRON_SECRET')
   linkProject(REAL_PROJECT)
   const copied = Object.fromEntries(COPIED.filter((name) => local[name]).map((name) => [name, local[name]]))
   setVariables({
-    ...shared, ...copied, SUPABASE_BUCKET: REAL_BUCKET, CRON_SECRET: cronSecret, SESSION_SECRET: secret('SESSION_SECRET'),
+    ...copied, DATABASE_URL: databaseUrl, SUPABASE_URL: supabaseUrl, SUPABASE_SERVICE_KEY: serviceKey, SUPABASE_BUCKET: REAL_BUCKET,
+    CRON_SECRET: cronSecret, SESSION_SECRET: secret('SESSION_SECRET'), OTHER_SITE_URL: sampleAddress,
     OWNER_PASSCODE: hosting.OWNER_PASSCODE, STAFF_PASSCODE: hosting.STAFF_PASSCODE,
   })
   say(`  Copied from .env: ${Object.keys(copied).join(', ')}`)
@@ -236,6 +228,14 @@ async function main() {
   say(`  Up at ${realAddress}`)
   say('  Testing Meta from Vercel. This takes up to a minute.')
   const region = await reachMeta(realAddress, hosting.OWNER_PASSCODE)
+
+  say('4 of 5. The sample site, for judges and visitors.')
+  linkProject(SAMPLE_PROJECT)
+  setVariables({ OTHER_SITE_URL: realAddress })
+  deploy(SAMPLE_PROJECT)
+  await waitUntilUp(sampleAddress)
+  remember('SAMPLE_SITE', sampleAddress)
+  say(`  Up at ${sampleAddress}, with a link to the real site.`)
 
   say('5 of 5. The 5-minute timer.')
   const scheduled = await setUpCron(realAddress, databaseUrl, cronSecret)

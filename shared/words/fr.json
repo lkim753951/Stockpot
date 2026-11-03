@@ -1072,13 +1072,13 @@
   "{arrived} kg, not {ordered} kg": "{arrived} kg, pas {ordered} kg",
   "{count} × {pack} {unit} = {total} {unit}": "{count} × {pack} {unit} = {total} {unit}",
   "Ask for": "Demandez",
-  "Get your money back from every delivery": "Récupérez votre argent à chaque livraison",
+  "Helping small restaurants get on their feet": "Récupérez votre argent à chaque livraison",
   "Heard on the call": "Entendu pendant l'appel",
   "If they push back": "S'ils ne sont pas d'accord",
   "May be billed twice": "Peut-être facturé deux fois",
   "Paid above the first price": "Payé au-dessus du premier prix",
   "Start with": "Commencez par",
-  "Stockpot hears the price on the call, watches the delivery and reads the invoice. When they don't match, it shows you what you're owed.": "Stockpot entend le prix pendant l'appel, regarde la livraison et lit la facture. Quand ça ne colle pas, il vous montre ce qu'on vous doit.",
+  "Stockpot takes on the repetitive work, helps you spot opportunities and P&L leakage, and keeps you ready for a crisis.": "Stockpot entend le prix pendant l'appel, regarde la livraison et lit la facture. Quand ça ne colle pas, il vous montre ce qu'on vous doit.",
   "The facts": "Les faits",
   "What to say": "Que dire",
   "{received} of {ordered}": "{received} sur {ordered}",
@@ -1275,5 +1275,7 @@
   "{replaced} replaced what was saved.": "Remplacements de ce qui était enregistré : {replaced}.",
   "{rows} rows share a dish and a day, so they were added together.": "Lignes avec le même plat et le même jour, additionnées : {rows}.",
   "{skipped} rows were already saved, so they were skipped.": "Lignes déjà enregistrées, donc ignorées : {skipped}.",
-  "{sold} sold, cost incomplete": "{sold} vendus, coût incomplet"
+  "{sold} sold, cost incomplete": "{sold} vendus, coût incomplet",
+  "Open the real app": "Ouvrir la vraie appli",
+  "Try the sample": "Essayer l'exemple"
 }
