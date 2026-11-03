@@ -44,7 +44,11 @@ fi
 if ! have SUPABASE_SERVICE_KEY; then
   echo "2. In Supabase, open Project Settings, then API Keys."
   echo "   Copy the secret key that starts with sb_secret_. An older project shows a service_role key instead."
-  read -rs "key?Paste the key: "; echo
+  while true; do
+    read -rs "key?Paste the key: "; echo
+    [[ -n "$key" && "$key" != sb_publishable_* ]] && break
+    echo "That isn't the secret key. Copy the one under Secret keys, which starts with sb_secret_, then paste it here."
+  done
   save SUPABASE_SERVICE_KEY "$key"
   echo
 fi

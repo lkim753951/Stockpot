@@ -227,7 +227,7 @@ export function App() {
     <div className={`shell${staffView ? ' staff' : ''}`}>
       {sample ? (
         <div className="banner">
-          <span>{t('Sample, no AI. Demo time {demoTime}.', { demoTime: session.demoTime })}</span>
+          <span className="sample-label">{t('SAMPLE DATA')}</span>
           {session.role === 'owner' ? <button type="button" onClick={reset}>{t('Start again')}</button> : null}
         </div>
       ) : null}

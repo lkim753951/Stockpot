@@ -11,6 +11,8 @@ import { LanguageButton } from '../Language'
 /** The sample and the real app are separate sites, so the second choice is a plain link to the other one. */
 export function Welcome({ onChoose, sample, otherSite }: { onChoose: (role: Role) => void; sample: boolean; otherSite: string | null }) {
   return (
+    <>
+    {sample ? <div className="banner solo"><span className="sample-label">{t('SAMPLE DATA')}</span></div> : null}
     <main className="welcome">
       <div className="row between">
         <picture>
@@ -32,5 +34,6 @@ export function Welcome({ onChoose, sample, otherSite }: { onChoose: (role: Role
         {otherSite ? <a className="btn text small role-switch" href={otherSite}>{sample ? t('Open the real app') : t('Try the sample')}<ArrowRight size={20} aria-hidden="true" /></a> : null}
       </div>
     </main>
+    </>
   )
 }
