@@ -11,7 +11,7 @@ import { loadTruth, scoreFile, type TruthEntry } from '../scripts/ingest-score.t
 /**
  * Recipes, costing and file import, through the real routes against the stand-in for Meta.
  * The stand-in can't read a PDF or a photo: for those it answers from the ground truth, so these tests prove everything
- * after the read, not the read itself. Only test-ai-ingest.command tests real reading.
+ * after the read, not the read itself. Only scripts/test-ai-ingest.ts tests real reading.
  */
 
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'stockpot-ingest-'))

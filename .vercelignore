@@ -9,3 +9,4 @@ test
 *.log
 *.command
 ingest-report.md
+docs

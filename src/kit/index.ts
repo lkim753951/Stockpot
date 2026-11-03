@@ -33,10 +33,8 @@ export { EASE, bezier, css as easeCss } from './ease'
 export type { EaseName, Bezier } from './ease'
 
 // Small parts: starting points with quiet defaults; restyle them as the product does (parts/, controls/)
-export { Avatar, Check, Icon, Spinner, Toast, Tooltip, Meter, Menu, Facepile, Chip, BrandMark, Pin, Row } from './parts'
-export type { AvatarProps, IconName, BrandMarkProps, PinProps, RowProps } from './parts'
-export { brandMarks } from './brands'
-export type { BrandName, BrandAsset } from './brands'
+export { Avatar, Check, Icon, Spinner, Toast, Tooltip, Meter, Menu, Facepile, Chip, Pin, Row } from './parts'
+export type { AvatarProps, IconName, PinProps, RowProps } from './parts'
 export { Field, Segmented, Toggle, Tabs, Badge, Slot } from './controls'
 export type { FieldProps } from './controls'
 export { Code } from './code'

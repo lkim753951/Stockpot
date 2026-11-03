@@ -1,11 +1,25 @@
+# Dependencies and build output
 node_modules
 dist
-data
+
+# Secrets
 .env
 .env.*
 !.env.example
+
+# Local data and reports
+data
 *.log
+ingest-report.md
+
+# Local tools that stay on the owner's Mac
+*.command
+scripts/go-online.ts
+scripts/check-await.cjs
+scripts/mock-server.ts
+src/demo/REHEARSAL.md
+
+# Machine and hosting files
 .DS_Store
 .vercel
-ingest-report.md
-.env*
+_to_delete

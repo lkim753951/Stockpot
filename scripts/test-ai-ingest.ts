@@ -1,6 +1,6 @@
 // Runs every dataset file through the real ingest functions with the real Meta key, and writes ingest-report.md.
 // Nothing is saved anywhere that matters: it runs in a throwaway database and folder, with hosted storage turned off.
-// Run it from test-ai-ingest.command on a Mac. Add --mock to try the script itself against the stand-in, with no key.
+// Run it with: npx tsx scripts/test-ai-ingest.ts. Add --mock to try the script itself against the stand-in, with no key.
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -23,7 +23,7 @@ if (useMock) {
 
 const { config } = await import('../server/config.ts')
 if (config.mode !== 'live') {
-  console.error('Add MODEL_API_KEY to .env first. Double-click connect-apis.command to do that.')
+  console.error('Add MODEL_API_KEY to .env first.')
   process.exit(1)
 }
 const { seedIfEmpty } = await import('../server/seed.ts')
