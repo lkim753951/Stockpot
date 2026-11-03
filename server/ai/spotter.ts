@@ -11,7 +11,9 @@ export interface CatalogueItem {
 
 export async function loadCatalogue(): Promise<CatalogueItem[]> {
   return (await catalogue()).map((row) => ({
-    id: row.id, name: row.name, baseUnit: row.base_unit, caseQty: row.case_qty, aliases: JSON.parse(row.aliases),
+    // Items from an invoice or a price list only have a name, and calls use the short form of it.
+    id: row.id, name: row.name, baseUnit: row.base_unit, caseQty: row.case_qty,
+    aliases: [...new Set([String(row.name), String(row.name).split(',')[0].trim(), ...JSON.parse(row.aliases)])],
   }))
 }
 
@@ -19,11 +21,14 @@ const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 /** The most recently named item, so "they're six ninety" can follow "chicken thighs". */
 export function findItem(text: string, items: CatalogueItem[]): CatalogueItem | null {
-  let best: { item: CatalogueItem; index: number } | null = null
+  // "Plum tomatoes" and "tomatoes" end in the same place, and the fuller name is the one that was said.
+  let best: { item: CatalogueItem; index: number; end: number } | null = null
   for (const item of items) {
     for (const alias of [...item.aliases].sort((a, b) => b.length - a.length)) {
       const match = new RegExp(`\\b${escape(alias)}\\b`, 'i').exec(text)
-      if (match && (!best || match.index > best.index)) best = { item, index: match.index }
+      if (!match) continue
+      const end = match.index + match[0].length
+      if (!best || end > best.end || (end === best.end && match.index < best.index)) best = { item, index: match.index, end }
     }
   }
   return best?.item ?? null

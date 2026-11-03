@@ -540,7 +540,11 @@ button.feature-row { width: 100%; border: 0; background: none; font: inherit; te
 /* One sheet for photos, videos and files. */
 .evidence-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
 .camcorder { display: flex; flex-direction: column; gap: var(--space-2); }
-.camcorder video { width: 100%; max-height: 52dvh; border-radius: var(--radius-md); background: #000; object-fit: cover; }
+.camcorder-view { position: relative; overflow: hidden; border-radius: var(--radius-md); }
+.live-boxes { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.live-boxes rect { fill: none; stroke: #f2a93b; stroke-width: 3; }
+.live-count { position: absolute; left: var(--space-2); bottom: var(--space-2); margin: 0; padding: 4px 10px; border-radius: var(--radius-pill); background: rgba(0, 0, 0, 0.72); color: #fff; font-weight: 700; }
+.camcorder video { display: block; width: 100%; max-height: 52dvh; border-radius: var(--radius-md); background: #000; object-fit: cover; }
 
 /* Checklists. */
 .item-name { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: 700; }

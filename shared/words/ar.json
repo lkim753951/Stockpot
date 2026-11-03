@@ -1364,5 +1364,6 @@
   "{skipped} rows were already saved, so they were skipped.": "كانت {skipped} من الصفوف محفوظة مسبقًا، فتم تخطيها.",
   "{sold} sold, cost incomplete": "بِيع {sold}، والتكلفة غير مكتملة",
   "Open the real app": "افتح التطبيق الحقيقي",
-  "Try the sample": "جرّب الوضع التجريبي"
+  "Try the sample": "جرّب الوضع التجريبي",
+  "Seeing {count} now": "أرى {count} الآن"
 }

@@ -1367,5 +1367,6 @@
   "{skipped} rows were already saved, so they were skipped.": "Rânduri deja salvate, deci sărite: {skipped}.",
   "{sold} sold, cost incomplete": "{sold} vândute, cost incomplet",
   "Open the real app": "Deschide aplicația reală",
-  "Try the sample": "Încearcă proba"
+  "Try the sample": "Încearcă proba",
+  "Seeing {count} now": "Acum se văd: {count}"
 }

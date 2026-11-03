@@ -92,6 +92,8 @@ export async function sendChecklist(runId: number) {
   return { ok: !failed, sent, detail: failed?.detail ?? null }
 }
 
+const RETRY_AFTER_MS = 15 * 60000
+
 /** Runs on the scheduler: a list goes out an hour before it is due, or up to half an hour late. */
 export async function sendDueChecklists() {
   if (!whatsappReady()) return
@@ -99,7 +101,10 @@ export async function sendDueChecklists() {
   // Plain arithmetic on the restaurant's wall clock, which is how due times are stored.
   const shifted = (minutes: number) => new Date(Date.parse(`${stamp}:00Z`) + minutes * 60000).toISOString().slice(0, 16)
   const due = await all(`SELECT id FROM checklist_runs WHERE sent_at IS NULL AND completed_at IS NULL AND due_at BETWEEN ? AND ?`, shifted(-30), shifted(60))
+  const lastTry = new Date(Date.now() - RETRY_AFTER_MS).toISOString()
   for (const row of due) {
+    // The timer runs every minute, so a list WhatsApp refused waits before it's tried again.
+    if (await get(`SELECT id FROM team_messages WHERE run_id = ? AND status = 'failed' AND created_at >= ? LIMIT 1`, row.id, lastTry)) continue
     // Only the pass that marks the list sends it. If nobody got it, it's unmarked, and the next pass tries again.
     if (!(await run('UPDATE checklist_runs SET sent_at = ? WHERE id = ? AND sent_at IS NULL', nowIso(), row.id)).changes) continue
     const { sent } = await sendChecklist(Number(row.id))

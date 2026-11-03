@@ -89,5 +89,5 @@ export function startScheduler() {
   if (process.env.VERCEL) return
   const beat = () => background('scheduler', onePass)
   beat()
-  setInterval(beat, 5 * 60000).unref()
+  setInterval(beat, 60000).unref()
 }

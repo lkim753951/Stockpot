@@ -502,3 +502,25 @@ test('an urgent item goes out on WhatsApp once, and a failure stays out of the w
     config.whatsapp = { ...config.whatsapp, token: '', phoneNumberId: '', ownerNumber: '' }
   }
 })
+
+test('the live camera gets boxes for one small frame, and only staff can ask', async () => {
+  const image = `data:image/jpeg;base64,${Buffer.from('frame').toString('base64')}`
+  const seen = await staff('/api/staff/live-find', { body: { image, what: 'box', item: 'Tomatoes' } })
+  assert.equal(seen.status, 200)
+  assert.equal(seen.json.boxes.length, 1)
+  assert.equal((await staff('/api/staff/live-find', { body: { image: 'data:image/png;base64,AA', what: 'box', item: 'Tomatoes' } })).status, 400)
+  assert.equal((await api('/api/staff/live-find', { body: { image, what: 'box', item: 'Tomatoes' }, cookie: '' })).status, 401)
+})
+
+test('the analyst can open an invoice whose lines are not matched to an item yet', async () => {
+  const { insert, nowIso } = await import('../server/core/db.ts')
+  const { askTools } = await import('../server/ai/analyst.ts')
+  const invoice = await insert(`INSERT INTO invoices (file, original_name, status, supplier_name, number, date, gross_p, created_at) VALUES ('x.png', 'x.png', 'read', 'Harrow Lane Foods', 'NEW-1', ?, 14650, ?)`, daysAgo(1), nowIso())
+  await insert(`INSERT INTO invoice_lines (invoice_id, description, qty_billed, unit, unit_price_p, line_total_p, qty_base_milli, price_base_p) VALUES (?, 'Chicken thighs', 20, 'kg', 690, 13800, 20000, 0.69)`, invoice)
+  const tool = askTools.find((candidate) => candidate.name === 'get_invoices')!
+  const found = await tool.run({ from: daysAgo(7), to: daysAgo(0), supplier: 'harrow' }) as any[]
+  const row = found.find((entry) => entry.invoice === 'NEW-1')
+  assert.equal(row.total_pence, 14650)
+  assert.equal(row.lines[0].unit_price_pence, 690)
+  assert.equal((await tool.run({ from: daysAgo(7), to: daysAgo(0), supplier: 'nobody' }) as any[]).length, 0)
+})

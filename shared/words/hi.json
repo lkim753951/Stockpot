@@ -1248,5 +1248,6 @@
   "{skipped} rows were already saved, so they were skipped.": "{skipped} लाइनें पहले से सेव थीं, इसलिए छोड़ दी गईं।",
   "{sold} sold, cost incomplete": "{sold} बिका, लागत अधूरी",
   "Open the real app": "असली ऐप खोलें",
-  "Try the sample": "सैंपल आज़माएँ"
+  "Try the sample": "सैंपल आज़माएँ",
+  "Seeing {count} now": "अभी {count} दिख रहे हैं"
 }

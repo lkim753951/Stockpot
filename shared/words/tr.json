@@ -1248,5 +1248,6 @@
   "{skipped} rows were already saved, so they were skipped.": "{skipped} satır zaten kayıtlıydı, bu yüzden atlandı.",
   "{sold} sold, cost incomplete": "{sold} satıldı, maliyet eksik",
   "Open the real app": "Gerçek uygulamayı aç",
-  "Try the sample": "Örneği dene"
+  "Try the sample": "Örneği dene",
+  "Seeing {count} now": "Şu an {count} görünüyor"
 }

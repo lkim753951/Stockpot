@@ -1219,5 +1219,6 @@
   "{skipped} rows were already saved, so they were skipped.": "{skipped}行はすでに保存済みのため、スキップしました。",
   "{sold} sold, cost incomplete": "{sold}販売、原価は不完全",
   "Open the real app": "実際のアプリを開く",
-  "Try the sample": "サンプルを試す"
+  "Try the sample": "サンプルを試す",
+  "Seeing {count} now": "いま{count}個見えています"
 }

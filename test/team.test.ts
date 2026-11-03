@@ -140,6 +140,31 @@ test('a checklist goes out by itself an hour before it is due, and only once', a
   await sql(`UPDATE checklist_runs SET due_at = substr(?, 1, 10) || 'T08:00'`, stamp)
 })
 
+test('a list WhatsApp refused waits 15 minutes before the next try', async () => {
+  const { sendDueChecklists } = await import('../server/operations/team.ts')
+  const { localTime } = await import('../server/core/clock.ts')
+  const { run: sql } = await import('../server/core/db.ts')
+  const { stamp } = localTime()
+  const soon = new Date(Date.parse(`${stamp}:00Z`) + 20 * 60000).toISOString().slice(0, 16)
+  const later = new Date(Date.parse(`${stamp}:00Z`) + 180 * 60000).toISOString().slice(0, 16)
+  await sql('UPDATE checklist_runs SET due_at = ?', later)
+  const monthly = await run('Monthly safety checks')
+  await sql('UPDATE checklist_runs SET due_at = ?, sent_at = NULL WHERE id = ?', soon, monthly.id)
+  const failed = async () => Number((await api('/api/team')).json.messages.filter((message: any) => message.status === 'failed').length)
+  const before = await failed()
+  mock.state.failWhatsapp = true
+  try {
+    await sendDueChecklists()
+    await sendDueChecklists()
+    assert.equal(await failed(), before + 1)
+  } finally {
+    mock.state.failWhatsapp = false
+    await sql(`UPDATE team_messages SET status = 'sent' WHERE status = 'failed'`)
+    await sql('UPDATE checklist_runs SET sent_at = NULL')
+    await sql(`UPDATE checklist_runs SET due_at = substr(?, 1, 10) || 'T08:00'`, stamp)
+  }
+})
+
 test('a stranger who finds the number reaches nothing and is told nothing', async () => {
   const requests = mock.state.requests.length
   const replies = mock.state.whatsapp.length
@@ -303,6 +328,30 @@ test('WhatsApp blocking a message tells the owner what to do, with no number sho
   } finally {
     mock.state.failWhatsapp = false
     mock.state.whatsappError = null
+  }
+})
+
+test('with a template set, Stockpot writes first using it, then uses free-form text once someone has replied', async () => {
+  const { config } = await import('../server/core/config.ts')
+  const { run: sql } = await import('../server/core/db.ts')
+  const { sendToPerson, templateText } = await import('../server/integrations/whatsapp.ts')
+  assert.equal(templateText('Opening checks\n\n  Due\t11:00.'), 'Opening checks · Due 11:00')
+  config.whatsapp.template = 'stockpot_update'
+  await sql(`DELETE FROM team_messages WHERE direction = 'in' AND contact = 'Maria'`)
+  try {
+    const first = await sendToPerson({ to: { name: 'Maria', number: MARIA }, text: 'Opening checks\nDue 11:00' })
+    assert.equal(first.ok, true)
+    const sent = mock.state.whatsapp.at(-1).body
+    assert.equal(sent.type, 'template')
+    assert.equal(sent.template.name, 'stockpot_update')
+    assert.equal(sent.template.language.code, 'en')
+    assert.equal(sent.template.components[0].parameters[0].text, 'Opening checks · Due 11:00')
+
+    await deliver({ type: 'text', text: { body: 'Fridge is at 4' } })
+    await sendToPerson({ to: { name: 'Maria', number: MARIA }, text: 'Thanks' })
+    assert.equal(mock.state.whatsapp.at(-1).body.type, 'text')
+  } finally {
+    config.whatsapp.template = ''
   }
 })
 

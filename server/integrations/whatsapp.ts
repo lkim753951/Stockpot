@@ -1,12 +1,13 @@
 import crypto from 'node:crypto'
 import { config, saveToEnv } from '../core/config.ts'
-import { insert, locked, nowIso, run, saveSetting, setting } from '../core/db.ts'
+import { get, insert, locked, nowIso, run, saveSetting, setting } from '../core/db.ts'
 import { t } from '../core/lang.ts'
 
 /**
  * WhatsApp Cloud API. The owner's and staff numbers stay in .env: they are never stored in the
  * database, logged or sent to a browser. Everywhere else a person is known by their name.
  * Free-form text only reaches someone within 24 hours of their last message to the business number.
+ * Outside that window, Stockpot uses the approved template in WHATSAPP_TEMPLATE to reach them first.
  */
 
 export interface Contact { name: string; number: string; role: 'owner' | 'staff'; language?: string | null }
@@ -78,11 +79,39 @@ async function record(actionId: number | null, result: { ok: boolean; detail: st
 
 const unreachable = (error: unknown) => ({ ok: false, id: null, detail: `WhatsApp couldn't be reached: ${scrub((error as Error).message)}` })
 
+const WINDOW_MS = 24 * 60 * 60 * 1000
+const MARGIN_MS = 15 * 60 * 1000
+
+/** Whether this person wrote in recently enough for free-form text, with a margin before the window shuts. */
+async function windowOpen(name: string) {
+  const since = new Date(Date.now() - WINDOW_MS + MARGIN_MS).toISOString()
+  return !!await get(`SELECT id FROM team_messages WHERE direction = 'in' AND contact = ? AND created_at >= ? LIMIT 1`, name, since)
+}
+
+/** Template values can't hold line breaks or long gaps, and the template's own full stop follows them. */
+export const templateText = (text: string) => text.replace(/\s*\n+\s*/g, ' · ').replace(/\s+/g, ' ').trim().slice(0, 1000).replace(/[.\s]+$/, '')
+
+const templateBody = (text: string) => ({
+  type: 'template',
+  template: {
+    name: config.whatsapp.template,
+    language: { code: config.whatsapp.templateLanguage },
+    components: [{ type: 'body', parameters: [{ type: 'text', text: templateText(text) }] }],
+  },
+})
+
+/** Starts with the template when one is set and this person hasn't written in lately. */
+async function firstContact(name: string, text: string, freeForm: Record<string, unknown>) {
+  return config.whatsapp.template && !await windowOpen(name) ? templateBody(text) : freeForm
+}
+
 /** Never throws, because a failed alert must not stop a reading or a report being saved. */
 export async function sendWhatsAppAlert(actionId: number, title: string, detail: string | null, toConfirm = false) {
   if (!whatsappReady()) return
   const lines = [`Stockpot: ${title}`, ...(detail ? [detail] : []), ...(toConfirm ? [t('Open Stockpot to confirm this.')] : [])]
-  await record(actionId, await post(config.whatsapp.ownerNumber, { recipient_type: 'individual', type: 'text', text: { preview_url: false, body: lines.join('\n') } }).catch(unreachable))
+  const text = lines.join('\n')
+  const send = async () => post(config.whatsapp.ownerNumber, await firstContact('Owner', text, { recipient_type: 'individual', type: 'text', text: { preview_url: false, body: text } }))
+  await record(actionId, await send().catch(unreachable))
 }
 
 export async function sendWhatsAppTest() {
@@ -115,7 +144,9 @@ export async function sendToPerson({ to, text, buttons, runId = null }: Outgoing
   const body = buttons
     ? { recipient_type: 'individual', type: 'interactive', interactive: { type: 'button', body: { text }, action: { buttons: buttons.map((button) => ({ type: 'reply', reply: button })) } } }
     : { recipient_type: 'individual', type: 'text', text: { preview_url: false, body: text } }
-  const result = await post(to.number, body).catch(unreachable)
+  const number = to.number
+  const send = async () => post(number, await firstContact(to.name, text, body))
+  const result = await send().catch(unreachable)
   await log(result.ok ? 'sent' : 'failed', result.id, result.detail)
   return { ok: result.ok, simulated: false, detail: result.detail }
 }

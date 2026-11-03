@@ -1219,5 +1219,6 @@
   "{skipped} rows were already saved, so they were skipped.": "有{skipped}行已经保存过，已跳过。",
   "{sold} sold, cost incomplete": "售出{sold}，成本不完整",
   "Open the real app": "打开真实应用",
-  "Try the sample": "试用示例"
+  "Try the sample": "试用示例",
+  "Seeing {count} now": "现在看到 {count} 个"
 }

@@ -1,19 +1,59 @@
 import { useEffect, useRef, useState } from 'react'
 import { Camera, FolderOpen, ImageSquare, Record, Stop, VideoCamera } from '@phosphor-icons/react'
+import { api } from '../lib/api'
 import { t } from '../lib/i18n'
 import { ErrorNote, Sheet } from './ui'
 
 const LONGEST_CLIP_SECONDS = 30
+const LIVE_SECONDS = 60
+const LIVE_PAUSE_MS = 700
+const LIVE_WIDTH = 480
+
+type LiveTarget = { what: string; item: string }
+type LiveBox = { x1: number; y1: number; x2: number; y2: number }
 
 /** A phone's own camera app is better than anything in a page. A computer gets a camera right here. */
 const hasCameraApp = () => navigator.maxTouchPoints > 0
 
-function Camcorder({ mode, onFile, onBack }: { mode: 'photo' | 'video'; onFile: (file: File) => void; onBack: () => void }) {
+/** SAM looks at one small frame at a time while the camera is open, so the boxes follow within a second or two. */
+function useLiveFind(preview: React.RefObject<HTMLVideoElement | null>, target?: LiveTarget) {
+  const [seen, setSeen] = useState<{ boxes: LiveBox[]; width: number; height: number } | null>(null)
+  const what = target?.what
+  const item = target?.item
+  useEffect(() => {
+    if (item === undefined) return
+    let stopped = false
+    const started = Date.now()
+    const canvas = document.createElement('canvas')
+    const look = async () => {
+      while (!stopped && Date.now() - started < LIVE_SECONDS * 1000) {
+        const video = preview.current
+        if (video?.videoWidth) {
+          canvas.width = LIVE_WIDTH
+          canvas.height = Math.round((LIVE_WIDTH * video.videoHeight) / video.videoWidth)
+          canvas.getContext('2d')!.drawImage(video, 0, 0, canvas.width, canvas.height)
+          try {
+            const found = await api('/api/staff/live-find', { body: { image: canvas.toDataURL('image/jpeg', 0.6), what, item } })
+            if (!stopped) setSeen({ boxes: found.boxes, width: canvas.width, height: canvas.height })
+          } catch { break }
+        }
+        await new Promise((done) => setTimeout(done, LIVE_PAUSE_MS))
+      }
+      if (!stopped) setSeen(null)
+    }
+    look()
+    return () => { stopped = true }
+  }, [preview, what, item])
+  return seen
+}
+
+function Camcorder({ mode, live, onFile, onBack }: { mode: 'photo' | 'video'; live?: LiveTarget; onFile: (file: File) => void; onBack: () => void }) {
   const preview = useRef<HTMLVideoElement>(null)
   const stream = useRef<MediaStream | null>(null)
   const recorder = useRef<MediaRecorder | null>(null)
   const [seconds, setSeconds] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const seen = useLiveFind(preview, mode === 'video' ? live : undefined)
 
   useEffect(() => {
     let closed = false
@@ -63,7 +103,17 @@ function Camcorder({ mode, onFile, onBack }: { mode: 'photo' | 'video'; onFile: 
 
   return (
     <div className="camcorder">
-      <video ref={preview} autoPlay muted playsInline aria-label={t('Camera preview')} />
+      <div className="camcorder-view">
+        <video ref={preview} autoPlay muted playsInline aria-label={t('Camera preview')} />
+        {seen ? (
+          <>
+            <svg className="live-boxes" viewBox={`0 0 ${seen.width} ${seen.height}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              {seen.boxes.map((box, index) => <rect key={index} x={box.x1} y={box.y1} width={box.x2 - box.x1} height={box.y2 - box.y1} rx={6} />)}
+            </svg>
+            <p className="live-count" role="status">{t('Seeing {count} now', { count: seen.boxes.length })}</p>
+          </>
+        ) : null}
+      </div>
       <ErrorNote message={error} />
       {mode === 'photo'
         ? <button className="btn primary block" type="button" disabled={!!error} onClick={snap}><Camera size={24} aria-hidden="true" />{t('Take the photo')}</button>
@@ -76,13 +126,13 @@ function Camcorder({ mode, onFile, onBack }: { mode: 'photo' | 'video'; onFile: 
 }
 
 /** One way to add a picture everywhere in the app: take a photo, record a video, or pick a file. */
-export function EvidenceSheet({ title, hint, onFile, onClose, sample = false, videoOnly = false }: { title: string; hint?: string | null; onFile: (file: File) => void; onClose: () => void; videoOnly?: boolean; sample?: boolean }) {
+export function EvidenceSheet({ title, hint, live, onFile, onClose, sample = false, videoOnly = false }: { title: string; live?: LiveTarget; hint?: string | null; onFile: (file: File) => void; onClose: () => void; videoOnly?: boolean; sample?: boolean }) {
   const photoInput = useRef<HTMLInputElement>(null)
   const videoInput = useRef<HTMLInputElement>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const [camera, setCamera] = useState<'photo' | 'video' | null>(null)
   const take = (file?: File) => { if (file) onFile(file) }
-  const open = (mode: 'photo' | 'video') => (hasCameraApp() ? (mode === 'photo' ? photoInput : videoInput).current?.click() : setCamera(mode))
+  const open = (mode: 'photo' | 'video') => (hasCameraApp() && !(live && mode === 'video') ? (mode === 'photo' ? photoInput : videoInput).current?.click() : setCamera(mode))
   const useSample = async () => {
     const blob = await (await fetch('/samples/sample-thermometer.png')).blob()
     onFile(new File([blob], 'sample-thermometer.png', { type: 'image/png' }))
@@ -91,7 +141,7 @@ export function EvidenceSheet({ title, hint, onFile, onClose, sample = false, vi
   return (
     <Sheet title={title} onClose={onClose}>
       {hint ? <p className="muted">{hint}</p> : null}
-      {camera ? <Camcorder mode={camera} onFile={onFile} onBack={() => setCamera(null)} /> : (
+      {camera ? <Camcorder mode={camera} live={live} onFile={onFile} onBack={() => setCamera(null)} /> : (
         <div className="evidence-options">
           {videoOnly ? null : <button className="tile-btn" type="button" onClick={() => open('photo')}><Camera size={32} aria-hidden="true" />{t('Take a photo')}</button>}
           <button className="tile-btn" type="button" onClick={() => open('video')}><VideoCamera size={32} aria-hidden="true" />{t('Record a video')}</button>

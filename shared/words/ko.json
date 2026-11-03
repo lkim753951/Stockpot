@@ -1309,5 +1309,6 @@
   "{skipped} rows were already saved, so they were skipped.": "{skipped}줄은 이미 저장돼 있어서 건너뛰었어요.",
   "{sold} sold, cost incomplete": "{sold} 판매, 비용 미완성",
   "Open the real app": "실제 앱 열기",
-  "Try the sample": "샘플 써보기"
+  "Try the sample": "샘플 써보기",
+  "Seeing {count} now": "지금 {count}개 보여요"
 }

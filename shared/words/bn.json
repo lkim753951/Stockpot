@@ -1248,5 +1248,6 @@
   "{skipped} rows were already saved, so they were skipped.": "{skipped}টি সারি আগেই সেভ করা ছিল, তাই বাদ দেওয়া হয়েছে।",
   "{sold} sold, cost incomplete": "{sold} বিক্রি, খরচ অসম্পূর্ণ",
   "Open the real app": "আসল অ্যাপ খুলুন",
-  "Try the sample": "স্যাম্পল চেষ্টা করুন"
+  "Try the sample": "স্যাম্পল চেষ্টা করুন",
+  "Seeing {count} now": "এখন {count}টি দেখা যাচ্ছে"
 }

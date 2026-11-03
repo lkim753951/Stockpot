@@ -14,6 +14,7 @@ import { clearSampleData, RefusedWipe } from '../core/seed.ts'
 import { runView } from '../operations/checklists.ts'
 import { checkProof } from '../money/proof.ts'
 import { countInVideo, phraseFor } from '../ai/countVideo.ts'
+import { samFind } from '../ai/meta.ts'
 import { checkInbox, disconnectGmail, finishGmailLogin, gmailConfigured, gmailConnected, gmailLoginUrl, GmailError, sendMail } from '../integrations/gmail.ts'
 import { imageAllowed, ingestAllowed, MAX_FILE_BYTES, readIngest, readRecipeFile, recipeAllowed, saveIngest } from './ingest.ts'
 import type { IngestKind } from '../ai/prompts.ts'
@@ -27,6 +28,9 @@ import { isLang } from '../../shared/lang.ts'
 
 const fileName = (_request: unknown, file: Express.Multer.File, done: (error: Error | null, name: string) => void) =>
   done(null, `${crypto.randomUUID()}${path.extname(file.originalname).toLowerCase()}`)
+
+const LARGEST_LIVE_FRAME = 700000
+const LIVE_CONFIDENCE = 0.5
 
 const documents = multer({
   storage: multer.diskStorage({ destination: (_request, _file, done) => done(null, uploadDir()), filename: fileName }),
@@ -308,6 +312,14 @@ export function setupRoutes(app: Express) {
       orderId, frame, video, String(request.body?.addedBy ?? '').trim().slice(0, 60) || null, line.item_id, result.count, nowIso())
     response.status(201).json({ ...result, video, media: await deliveryMedia(orderId) })
   }
+
+  /** One frame from the live camera. It's small, and nothing is kept. */
+  app.post('/api/staff/live-find', requireStaff, guarded(async (request, response) => {
+    const image = String(request.body?.image ?? '')
+    const phrase = phraseFor(String(request.body?.what ?? ''), String(request.body?.item ?? ''))
+    if (!phrase || !image.startsWith('data:image/jpeg;base64,') || image.length > LARGEST_LIVE_FRAME) throw new SetupError('Add a photo or a video.')
+    response.json({ boxes: (await samFind(image, phrase)).filter((box) => (box.c ?? 1) >= LIVE_CONFIDENCE).slice(0, 30) })
+  }))
 
   app.post('/api/staff/deliveries/:id/count', requireStaff, takeEvidence, guarded(async (request, response) => {
     const files = (request.files ?? {}) as Record<string, Express.Multer.File[]>

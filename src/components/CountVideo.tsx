@@ -40,7 +40,7 @@ export function CountVideo({ orderId, line, sample, addedBy, onUse, onMedia, onC
   }
   const useSample = () => run(() => api(`/api/staff/deliveries/${orderId}/count-sample`, { body: fields }), (found) => `/api/staff/delivery-media/${found.video}`)
 
-  if (filming) return <EvidenceSheet title={t('Record the delivery')} onFile={film} onClose={() => setFilming(false)} videoOnly />
+  if (filming) return <EvidenceSheet title={t('Record the delivery')} onFile={film} onClose={() => setFilming(false)} live={sample ? undefined : { what, item: String(line.name) }} videoOnly />
   return (
     <Sheet title={t('Count on video')} onClose={onClose}>
       {busy ? <div className="count-busy"><Mascot size={64} thinking /><p>{t('Counting on the video')}</p></div> : null}

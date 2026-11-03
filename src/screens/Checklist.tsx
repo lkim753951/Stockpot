@@ -416,7 +416,7 @@ export function RunDetail({ id, sample, readOnly = false }: { id: string; sample
       {proposal ? <Proposal key={JSON.stringify(proposal)} proposal={proposal} runId={id} needsPicture={!!run.items.find((item: any) => item.id === proposal.itemId)?.needsProof} onPicture={needPicture} onSaved={saved} onClose={() => setProposal(null)} /> : null}
       {busy && !proposal ? <p className="thinking" role="status">{t('Checking the picture')}</p> : null}
       {proof ? <ProofCard proof={proof} preview={preview} value={proofValue} onValue={setProofValue} onSave={saveProof} onRetake={() => { setPicking(proof.returnTo); setProof(null) }} /> : null}
-      {picking ? <EvidenceSheet title={t(picking.label)} hint={picking.proofHint} sample={sample} onFile={sendProof} onClose={() => setPicking(null)} /> : null}
+      {picking ? <EvidenceSheet title={t(picking.label)} hint={picking.proofHint} sample={sample} live={!sample && picking.proofTarget ? { what: '', item: picking.proofTarget } : undefined} onFile={sendProof} onClose={() => setPicking(null)} /> : null}
       <ul className="items">
         {run.items.map((item: any) => <ItemRow key={item.id} item={item} runId={id} readOnly={readOnly} sample={sample} busy={busy} onSaved={saved} onProof={setPicking} />)}
       </ul>

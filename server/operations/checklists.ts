@@ -74,7 +74,7 @@ export async function runView(runId: number) {
   return {
     id: row.id, name: row.name, frequency: row.frequency, assignee: row.assignee, dueAt: row.due_at, completedAt: row.completed_at, state: stateOf(row, localTime().stamp),
     items: await Promise.all(items.map(async (item) => ({
-      id: item.id, label: item.label, type: item.check_type, needsProof: !!item.proof, proofHint: item.proof_hint, unit: item.unit, min: item.min_value, max: item.max_value,
+      id: item.id, label: item.label, type: item.check_type, needsProof: !!item.proof, proofHint: item.proof_hint, proofTarget: item.proof_target, unit: item.unit, min: item.min_value, max: item.max_value,
       entry: item.entry_id ? { proof: await proofView(item.proof_id), id: item.entry_id, value: item.value, photo: item.photo_file, transcript: item.transcript, source: item.source, by: item.reported_by, flagged: item.status === 'flagged', at: item.created_at } : null,
     }))),
   }

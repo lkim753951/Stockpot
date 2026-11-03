@@ -114,6 +114,9 @@ async function followInVideo(file: string, target: string, seconds: number) {
   }
 }
 
+/** SAM can see a digital thermometer as a plain screen, so it gets a second look under that name. */
+const OTHER_NAMES: Record<string, string> = { thermometer: 'digital display' }
+
 /**
  * SAM finds the thing in the picture and Muse Spark judges it. Neither saves anything:
  * the worker sees the suggestion and decides, and a saved "recheck" goes to the owner.
@@ -122,10 +125,16 @@ export async function checkProof(input: { runId: number; itemId: number; frames:
   const item = await itemFor(input.runId, input.itemId)
   if (!item) return null
   const target = (item.proof_target as string | null) ?? null
+  const otherName = target ? OTHER_NAMES[target] : undefined
   let boxes: SamBox[] = []
-  const track = target && input.videoFile ? await followInVideo(input.videoFile, target, input.seconds ?? 0) : null
+  let track = target && input.videoFile ? await followInVideo(input.videoFile, target, input.seconds ?? 0) : null
+  if (track && !track.seen && otherName) track = await followInVideo(input.videoFile!, otherName, input.seconds ?? 0) ?? track
   if (target && !track) {
-    try { boxes = await samFind(await dataUrl(input.frames[0]), target) } catch (error) { console.error('sam:', (error as Error).message) }
+    try {
+      const picture = await dataUrl(input.frames[0])
+      boxes = await samFind(picture, target)
+      if (!boxes.length && otherName) boxes = await samFind(picture, otherName)
+    } catch (error) { console.error('sam:', (error as Error).message) }
   }
   const found = track
     ? (track.seen ? `SAM 3.1 followed "${target}" through the video: visible in about ${track.share}% of it, ${track.objects} separate object(s).` : `SAM 3.1 could not find "${target}" anywhere in the video.`)

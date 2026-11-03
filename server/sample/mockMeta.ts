@@ -112,11 +112,11 @@ function replyFor(name: string, system: string, text: string) {
   if (name === 'call_quotes') {
     const newest = text.split('Newest turn:\n')[1] ?? text
     const quote = (over: object) => ({ per: 'base', price_pence: null, price_change_pence: null, quantity: null, quantity_unit: null, kind: 'offer', ...over })
-    if (/Twenty kilos of chicken thighs/.test(newest)) return { quotes: [quote({ item_id: thighs, quantity: 20, quantity_unit: 'kg' })] }
+    if (/Twenty kilos of chicken thighs/.test(newest)) return { quotes: [quote({ item_id: thighs, new_item_name: null, quantity: 20, quantity_unit: 'kg' })] }
     if (/gone up.*six ninety/i.test(newest)) return { quotes: [quote({ item_id: thighs, price_pence: 690 })] }
     if (/I paid six forty/i.test(newest)) return { quotes: [quote({ item_id: thighs, kind: 'reference', price_pence: 640 })] }
     if (/Go on then, six forty/i.test(newest)) return { quotes: [quote({ item_id: thighs, kind: 'agreed', price_pence: 640 })] }
-    if (/ten kilos of brown onions/i.test(newest)) return { quotes: [quote({ item_id: onions, quantity: 10, quantity_unit: 'kg' })] }
+    if (/ten kilos of brown onions/i.test(newest)) return { quotes: [quote({ item_id: onions, new_item_name: null, quantity: 10, quantity_unit: 'kg' })] }
     if (/Onions are eighty five/i.test(newest)) return { quotes: [quote({ item_id: onions, kind: 'agreed', price_pence: 85 })] }
     return { quotes: [] }
   }
@@ -126,8 +126,8 @@ function replyFor(name: string, system: string, text: string) {
       return {
         speaker_roles: [{ speaker: 'A', role: 'owner' }, { speaker: 'B', role: 'supplier' }],
         lines: [
-          { item_id: thighs, quantity: 20, quantity_unit: 'kg', agreed_price_pence: 640, per: 'base', evidence_turn: turnOf(/Go on then/) },
-          { item_id: onions, quantity: 10, quantity_unit: 'kg', agreed_price_pence: 85, per: 'base', evidence_turn: turnOf(/Onions are/) },
+          { item_id: thighs, new_item_name: null, quantity: 20, quantity_unit: 'kg', agreed_price_pence: 640, per: 'base', evidence_turn: turnOf(/Go on then/) },
+          { item_id: onions, new_item_name: null, quantity: 10, quantity_unit: 'kg', agreed_price_pence: 85, per: 'base', evidence_turn: turnOf(/Onions are/) },
         ],
         delivery_date: nextWeekday(4),
         summary: 'Ordered 20 kg chicken thighs and 10 kg brown onions for Thursday morning. Thighs agreed at £6.40 a kilo.',
@@ -139,7 +139,7 @@ function replyFor(name: string, system: string, text: string) {
     return {
       speaker_roles: [{ speaker: 'A', role: 'owner' }],
       lines: quantity && /onions/i.test(text)
-        ? [{ item_id: onions, quantity: quantity.quantity, quantity_unit: 'kg', agreed_price_pence: findPrices(text)[0]?.pence ?? null, per: 'base', evidence_turn: 1 }]
+        ? [{ item_id: onions, new_item_name: null, quantity: quantity.quantity, quantity_unit: 'kg', agreed_price_pence: findPrices(text)[0]?.pence ?? null, per: 'base', evidence_turn: 1 }]
         : [],
       delivery_date: weekday >= 0 ? nextWeekday(weekday) : null,
       summary: 'Short call about an order.',

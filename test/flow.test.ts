@@ -272,3 +272,21 @@ test('the "deliver 10 kg onions on Thursday" test call becomes an order and a ta
     mock.state.script = original
   }
 })
+
+test('a new restaurant: names work on a call, and a call can start the item list', async () => {
+  const { loadCatalogue, findItem } = await import('../server/ai/spotter.ts')
+  const { saveDraftOrder } = await import('../server/operations/calls.ts')
+  const { get, insert, nowIso } = await import('../server/core/db.ts')
+  await insert(`INSERT INTO items (name, base_unit) VALUES ('Plum tomatoes, tinned', 'kg')`)
+  assert.equal(findItem('how much are the plum tomatoes this week', await loadCatalogue())?.name, 'Plum tomatoes, tinned')
+
+  const supplier = await get('SELECT id FROM suppliers ORDER BY id LIMIT 1')
+  const callId = await insert(`INSERT INTO calls (supplier_id, status, source, consent_at, started_at) VALUES (?, 'processing', 'upload', ?, ?)`, supplier!.id, nowIso(), nowIso())
+  const orderId = await saveDraftOrder(callId, Number(supplier!.id), {
+    speaker_roles: [], delivery_date: null, summary: 'Ordered saffron.', tasks: [],
+    lines: [{ item_id: null, new_item_name: 'Saffron threads', quantity: 2, quantity_unit: 'kg', agreed_price_pence: null, per: 'base', evidence_turn: null }],
+  }, [], '2026-11-03')
+  assert.ok(orderId)
+  const line = await get('SELECT i.name FROM order_lines l JOIN items i ON i.id = l.item_id WHERE l.order_id = ?', orderId)
+  assert.equal(line!.name, 'Saffron threads')
+})

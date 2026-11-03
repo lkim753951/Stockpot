@@ -9,7 +9,7 @@ Where data lives, and how to run Stockpot on Vercel and Supabase.
 | Database | SQLite in `data/stockpot.sqlite` | Postgres on Supabase |
 | Files, photos, videos, recordings | `data/uploads` and `data/calls` | A private Supabase Storage bucket |
 | Backups | A copy a day in `data/backups`, a week kept | A JSON file a day under `backups/` in the bucket, a week kept |
-| Timers | A timer inside the server, every 5 minutes | `POST /api/cron`, called by Supabase Cron every 5 minutes |
+| Timers | A timer inside the server, every minute | `POST /api/cron`, called by Supabase Cron every minute |
 | Temp folder | Not used | A throwaway cache of files, filled again as needed |
 
 With no `DATABASE_URL`, Stockpot uses SQLite. With no `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`, it uses local files. An existing `data` folder keeps working as it is.
@@ -56,6 +56,7 @@ Every variable below goes under **Settings, Environment Variables**. The real si
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | For Gmail | Leave empty |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `OWNER_PHONE` | For phone calls | Leave empty |
 | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_OWNER_NUMBER`, `WHATSAPP_BUSINESS_NUMBER`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN` | For WhatsApp | Leave empty |
+| `WHATSAPP_TEMPLATE`, `WHATSAPP_TEMPLATE_LANGUAGE` | Approved template for first messages. The language defaults to `en` | Leave empty |
 | `WHATSAPP_STAFF_NUMBERS` | Optional. Staff added in the app are saved in the database and replace this | Leave empty |
 
 The real site refuses to start without its passcodes, its session secret, its database and its Storage. A site with no Meta key is treated as the sample. If it has a database, it refuses to start unless `DB_SCHEMA` is `sample`, so it can never clear the real tables. A database a real site has used is also marked, and sample mode won't clear it. The Connections screen can't save keys on Vercel, because there's no file to save them to.

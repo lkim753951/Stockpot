@@ -54,7 +54,7 @@ export async function testMeta() {
     const dot = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
     const sam = await samFind(dot, 'receipt').then(() => `${config.samModel} answered.`).catch((error) => `${config.samModel} failed: ${(error as Error).message.slice(0, 120)}`)
     const clip = `data:video/mp4;base64,${fs.readFileSync(path.resolve('public/samples/sample-proof.mp4')).toString('base64')}`
-    const video = await samTrack(clip, 'thermometer').then((frames) => `Video: found it in ${frames.length} frames.`).catch((error) => `Video failed: ${(error as Error).message.slice(0, 120)}`)
+    const video = await samTrack(clip, 'digital display').then((frames) => `Video: found it in ${frames.length} frames.`).catch((error) => `Video failed: ${(error as Error).message.slice(0, 120)}`)
     const voice = await transcribeWav(path.resolve('public/samples/sample-fridge.wav'), []).then((heard) => `Voice: heard ${heard.turns.length} turns.`).catch((error) => `Voice failed: ${(error as Error).message.slice(0, 120)}`)
     return { ok: true, detail: `${config.sparkModel} answered. ${sam} ${video} ${voice} ${await liveCallCheck()}` }
   } catch (error) {

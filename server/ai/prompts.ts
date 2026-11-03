@@ -91,9 +91,10 @@ export const orderSchema = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['item_id', 'quantity', 'quantity_unit', 'agreed_price_pence', 'per', 'evidence_turn'],
+        required: ['item_id', 'new_item_name', 'quantity', 'quantity_unit', 'agreed_price_pence', 'per', 'evidence_turn'],
         properties: {
-          item_id: { type: 'integer' },
+          item_id: nullable('integer'),
+          new_item_name: nullable('string'),
           quantity: { type: 'number' },
           quantity_unit: { type: 'string', enum: ['kg', 'l', 'case', 'each'] },
           agreed_price_pence: nullable('number'),
@@ -119,7 +120,8 @@ export const orderSchema = {
 export interface ExtractedOrder {
   speaker_roles: Array<{ speaker: string; role: 'owner' | 'supplier' | 'unknown' }>
   lines: Array<{
-    item_id: number
+    item_id: number | null
+    new_item_name?: string | null
     quantity: number
     quantity_unit: 'kg' | 'l' | 'case' | 'each'
     agreed_price_pence: number | null
@@ -135,6 +137,7 @@ export async function orderPrompt(today: string, weekday: string, supplier: stri
   return `You turn a finished phone call between a restaurant owner and ${supplier} into a draft order.
 Today is ${weekday} ${today}.
 
+- item_id is the item's id in the catalogue. If an ordered item isn't in the catalogue, use null and put a short plain name in new_item_name, like "Chicken thighs". Otherwise new_item_name is null.
 - agreed_price_pence is the final price both sides settled on, not the first price mentioned.
   If no price was agreed for an item, use null.
 - evidence_turn is the number of the turn where that price or quantity was finally stated.

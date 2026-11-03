@@ -1248,5 +1248,6 @@
   "{skipped} rows were already saved, so they were skipped.": "{skipped} row ang naka-save na, kaya nilaktawan.",
   "{sold} sold, cost incomplete": "{sold} ang naibenta, kulang ang gastos",
   "Open the real app": "Buksan ang totoong app",
-  "Try the sample": "Subukan ang sample"
+  "Try the sample": "Subukan ang sample",
+  "Seeing {count} now": "{count} ang nakikita ngayon"
 }

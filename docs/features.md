@@ -64,4 +64,4 @@ Owners never see keys. Open `#/developer` directly to add the Meta key, Google c
 
 On your own machine, phone numbers stay in `.env`. On Vercel, staff added in the app are kept in the database, because there's no file to write to and instances share no memory. Numbers are never logged or sent to a browser, and only people on the list can reach Stockpot. A message from anyone else is dropped before it costs a model call. Every webhook delivery is checked against your app secret.
 
-WhatsApp only delivers free-form text within 24 hours of a person's last message to the business number, so each person sends it a message first. Stockpot uses no message templates yet, so a list sent outside that window fails, and the Connections screen says why.
+WhatsApp only delivers free-form text within 24 hours of a person's last message to the business number. Outside that window, Stockpot uses the approved template named in `WHATSAPP_TEMPLATE`, so it can message someone first. Reply buttons only appear inside the window. With no template set, a list sent outside the window fails, and the Connections screen says why.

@@ -1219,5 +1219,6 @@
   "{skipped} rows were already saved, so they were skipped.": "{skipped} dòng đã lưu từ trước nên bỏ qua.",
   "{sold} sold, cost incomplete": "Đã bán {sold}, chi phí chưa đủ",
   "Open the real app": "Mở ứng dụng thật",
-  "Try the sample": "Dùng thử bản mẫu"
+  "Try the sample": "Dùng thử bản mẫu",
+  "Seeing {count} now": "Đang thấy {count}"
 }

@@ -1396,5 +1396,6 @@
   "{skipped} rows were already saved, so they were skipped.": "Wiersze już zapisane, więc pominięte: {skipped}.",
   "{sold} sold, cost incomplete": "Sprzedano {sold}, koszt niepełny",
   "Open the real app": "Otwórz prawdziwą aplikację",
-  "Try the sample": "Wypróbuj przykład"
+  "Try the sample": "Wypróbuj przykład",
+  "Seeing {count} now": "Widać teraz: {count}"
 }

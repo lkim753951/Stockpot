@@ -1277,5 +1277,6 @@
   "{skipped} rows were already saved, so they were skipped.": "Righe già salvate, quindi saltate: {skipped}.",
   "{sold} sold, cost incomplete": "{sold} venduti, costo incompleto",
   "Open the real app": "Apri l'app vera",
-  "Try the sample": "Prova l'esempio"
+  "Try the sample": "Prova l'esempio",
+  "Seeing {count} now": "{count} visibili ora"
 }

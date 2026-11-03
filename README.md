@@ -69,7 +69,7 @@ The app works in 18 languages. [See every feature](docs/features.md).
 | **Server** | Node 22, Express 5 and WebSockets |
 | **AI** | Meta Model API: Muse Spark, Muse Voice Transcribe and SAM 3.1 |
 | **Data** | Postgres and private file storage on Supabase, with SQLite for local use |
-| **Hosting** | Vercel Functions in Frankfurt, with Supabase Cron running timed work every 5 minutes |
+| **Hosting** | Vercel Functions in Frankfurt, with Supabase Cron running timed work every minute |
 
 ### Architecture
 

@@ -88,6 +88,9 @@ export const config = {
     /** Proves a message really came from Meta. Replies are refused without it. */
     appSecret: process.env.WHATSAPP_APP_SECRET?.trim() || '',
     verifyToken: process.env.WHATSAPP_VERIFY_TOKEN?.trim() || '',
+    /** A Meta-approved template, so Stockpot can start a conversation outside the 24-hour window. */
+    template: process.env.WHATSAPP_TEMPLATE?.trim() || '',
+    templateLanguage: process.env.WHATSAPP_TEMPLATE_LANGUAGE?.trim() || 'en',
     webhookPort: Number(process.env.WEBHOOK_PORT ?? 8788),
   },
 }
@@ -125,6 +128,8 @@ export function applySavedConnections() {
   config.twilio.ownerNumber = text('OWNER_PHONE')
   config.whatsapp.staff = parseStaff(text('WHATSAPP_STAFF_NUMBERS'))
   config.whatsapp.appSecret = text('WHATSAPP_APP_SECRET')
+  config.whatsapp.template = text('WHATSAPP_TEMPLATE')
+  config.whatsapp.templateLanguage = text('WHATSAPP_TEMPLATE_LANGUAGE') || 'en'
   config.whatsapp.verifyToken = text('WHATSAPP_VERIFY_TOKEN')
 }
 

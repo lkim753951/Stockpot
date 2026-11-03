@@ -8,6 +8,14 @@ import {
   type ExtractedDelivery, type ExtractedInvoice,
 } from '../ai/prompts.ts'
 import { nearly } from '../money/money.ts'
+import { itemFor } from './setup.ts'
+
+/** A new restaurant has no item list yet, so a clean invoice line starts one. A case with no known size can't. */
+async function billedItem(line: ExtractedInvoice['lines'][number]) {
+  const name = line.description.split(',')[0].trim().slice(0, 120)
+  if (!name || line.unit === 'case') return undefined
+  return itemFor(name, line.unit).then((item) => get('SELECT id, case_qty FROM items WHERE id = ?', item.id)).catch(() => undefined)
+}
 
 const MIME: Record<string, string> = {
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf',
@@ -118,17 +126,17 @@ export async function readInvoice(invoiceId: number) {
       date, extracted.net_total_pence, extracted.vat_total_pence, extracted.gross_total_pence, orderId, JSON.stringify(issues), invoiceId)
 
     for (const [index, line] of extracted.lines.entries()) {
-      const item = line.item_id !== null ? await get('SELECT id, case_qty FROM items WHERE id = ?', line.item_id) : undefined
+      const item = line.item_id !== null ? await get('SELECT id, case_qty FROM items WHERE id = ?', line.item_id) : lineIssues.has(index) ? undefined : await billedItem(line)
       const pack = line.unit === 'case' ? line.pack_quantity ?? (item?.case_qty as number | null) ?? null : null
       const qtyBase = line.unit === 'case' ? (pack ? line.quantity * pack : line.quantity) : line.quantity
       const priceBase = line.unit === 'case' && pack ? line.unit_price_pence / pack : line.unit_price_pence
       const lineId = await insert(`INSERT INTO invoice_lines (invoice_id, item_id, description, qty_billed, unit, pack_qty, unit_price_p, line_total_p,
           vat_rate, qty_base_milli, price_base_p, issue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        invoiceId, item ? line.item_id : null, line.description, line.quantity, line.unit, pack, line.unit_price_pence,
+        invoiceId, item ? item.id : null, line.description, line.quantity, line.unit, pack, line.unit_price_pence,
         Math.round(line.line_total_pence), line.vat_rate, Math.round(qtyBase * 1000), priceBase, lineIssues.get(index) ?? null)
       // Every clean line improves the next call: this becomes the "last paid" price.
       if (item && supplierId && date && !lineIssues.has(index)) {
-        await run('INSERT INTO price_history (item_id, supplier_id, date, price_p, invoice_line_id) VALUES (?, ?, ?, ?, ?)', line.item_id, supplierId, date, priceBase, lineId)
+        await run('INSERT INTO price_history (item_id, supplier_id, date, price_p, invoice_line_id) VALUES (?, ?, ?, ?, ?)', item.id, supplierId, date, priceBase, lineId)
       }
     }
     })

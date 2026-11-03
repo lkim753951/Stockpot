@@ -6,6 +6,7 @@ import { all, get, insert, isoDate, nowIso, run, transaction } from '../core/db.
 import { callDir, localFile, moveFile, removeFile, saveFile, writeFile } from '../core/files.ts'
 import { openRealtime, sparkJson, transcribeWav, type TranscriptTurn } from '../ai/meta.ts'
 import { buildCard, lastPaid, type PriceCard } from '../money/pricing.ts'
+import { itemFor } from '../setup/setup.ts'
 import { findItem, loadCatalogue, mentionsTrade, spotInstantPrice, toBaseQuantity, type CatalogueItem } from '../ai/spotter.ts'
 import { orderPrompt, orderSchema, quotesPrompt, quotesSchema, type ExtractedOrder, type Quote } from '../ai/prompts.ts'
 import { findPrices, findQuantities } from '../money/money.ts'
@@ -524,7 +525,17 @@ async function saveTasks(callId: number, extracted: ExtractedOrder, fallbackDate
   }
 }
 
+/** A new restaurant has no item list yet, so what was ordered on the call starts one. */
+async function addNewItems(extracted: ExtractedOrder) {
+  for (const line of extracted.lines) {
+    const name = line.new_item_name?.trim().slice(0, 120)
+    if (line.item_id !== null || !name || line.quantity_unit === 'case') continue
+    line.item_id = await itemFor(name, line.quantity_unit).then((item) => item.id).catch(() => null)
+  }
+}
+
 export async function saveDraftOrder(callId: number, supplierId: number, extracted: ExtractedOrder, turns: TranscriptTurn[], today: string) {
+  await addNewItems(extracted)
   const items = await loadCatalogue()
   const validDate = extracted.delivery_date && /^\d{4}-\d{2}-\d{2}$/.test(extracted.delivery_date) && extracted.delivery_date >= today
     ? extracted.delivery_date : null

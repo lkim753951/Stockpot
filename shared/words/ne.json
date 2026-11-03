@@ -1248,5 +1248,6 @@
   "{skipped} rows were already saved, so they were skipped.": "{skipped} लाइन पहिले नै सेभ थिए, त्यसैले छोडिए।",
   "{sold} sold, cost incomplete": "{sold} बिक्री, लागत अपूरो",
   "Open the real app": "वास्तविक एप खोल्नुहोस्",
-  "Try the sample": "नमुना प्रयास गर्नुहोस्"
+  "Try the sample": "नमुना प्रयास गर्नुहोस्",
+  "Seeing {count} now": "अहिले {count} देखिँदैछ"
 }
