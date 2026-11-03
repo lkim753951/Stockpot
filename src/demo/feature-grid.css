@@ -1,0 +1,61 @@
+.fg { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+.fg-tile { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface-raised); box-shadow: var(--shadow-raised); overflow: hidden; }
+.fg-copy { margin-top: auto; font-size: 17px; line-height: 24px; color: var(--ink-muted); }
+.fg-copy strong { color: var(--ink); }
+
+/* The call: the app's one loud surface, so it leads the grid. */
+.fg .ss-stage { --ss-font: var(--font-text); --ss-accent: var(--aubergine); }
+.fg-tile--picture { padding: 0; }
+.fg-tile--picture .fg-copy { padding: 0 var(--space-4) var(--space-4); }
+.fg-tile--stage { padding: 0; background: var(--stage); box-shadow: none; }
+.fg-tile--stage .fg-copy { padding: 0 var(--space-4) var(--space-4); color: var(--on-stage-muted); }
+.fg-tile--stage .fg-copy strong { color: var(--on-stage); }
+.fg-call .ss-stage { background: transparent; }
+.fg-quote { position: absolute; left: 16px; top: 20px; display: flex; flex-direction: column; gap: 4px; color: var(--on-stage); }
+.fg-live { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 4px; font: 700 14px/18px var(--font-text); color: var(--on-stage); }
+.fg-live i { width: 10px; height: 10px; border-radius: 50%; background: var(--saffron); }
+.fg-item { font: 650 22px/28px var(--font-display); }
+.fg-figure { display: flex; align-items: baseline; gap: 12px; }
+.fg-price { font: 800 88px/1 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.fg-unit { font: 700 20px/26px var(--font-text); color: var(--on-stage-muted); }
+.fg-note { justify-items: start; text-align: left; font: 700 17px/24px var(--font-text); white-space: nowrap; }
+.fg-note > * { justify-self: start; }
+
+/* The stat */
+.fg-lead { font-size: 17px; line-height: 24px; color: var(--ink-muted); }
+.fg-stat { font: 700 56px/60px var(--font-display); letter-spacing: -.02em; white-space: nowrap; color: var(--chilli); font-variant-numeric: tabular-nums; }
+.fg-stat span { font-size: 20px; letter-spacing: 0; color: var(--ink-muted); }
+.fg-why { font-size: 17px; line-height: 24px; }
+
+/* Paper */
+.fg-pile .ss-stage { background: var(--surface-sunken); }
+.fg-chat .ss-stage { --ss-me: #d9fdd3; --ss-thread-ground: #efeae2; background: #efeae2; }
+.fg-chat .ss-thread, .fg-chat .ss-bubble-row { --ss-me: #d9fdd3; }
+.fg-chat .ss-bubble-row[data-from='me'] .ss-bubble { --b: #d9fdd3; color: #1d1a22; }
+.fg-stack { position: absolute; top: 50%; left: 50%; display: grid; translate: -50% -50%; }
+.fg-paper { grid-area: 1 / 1; display: grid; align-content: start; gap: 8px; width: 180px; height: 124px; padding: 14px; border-radius: 10px; background: var(--ss-surface); box-shadow: var(--ss-shadow-card); }
+.fg-paper--back { translate: -18px 6px; rotate: -6deg; }
+.fg-paper--mid { translate: 18px -8px; rotate: 4deg; }
+.fg-paper--top { translate: 0 2px; rotate: -2deg; box-shadow: var(--ss-shadow-satellite); }
+.fg-total { font-weight: 700; }
+.fg-merchant { font: 700 15px/20px var(--font-text); color: var(--ss-text-strong); }
+.fg-line { display: flex; justify-content: space-between; gap: 8px; font: 400 13px/18px var(--font-text); color: var(--ss-text-strong); font-variant-numeric: tabular-nums; }
+.fg-thread { position: absolute; inset: 12px; display: flex; flex-direction: column; gap: 8px; }
+.fg-thread .ss-thread { flex: 1; min-height: 0; }
+.fg-reply { align-self: flex-start; display: inline-flex; align-items: center; justify-content: center; min-width: 76px; height: 32px; padding: 0 12px; border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--aubergine); font: 700 14px/18px var(--font-text); transition: background-color var(--motion) ease-out, color var(--motion) ease-out; }
+.fg-reply[data-saved] { background: var(--herb-soft); color: var(--herb); }
+
+/* Crisis */
+.fg-tile--alarm { background: var(--chilli-soft); box-shadow: none; }
+.fg-tile--alarm > svg { color: var(--chilli); }
+.fg-big { font: 700 28px/32px var(--font-display); }
+.fg-step { font: 700 17px/24px var(--font-text); }
+.fg-tile--alarm .fg-copy { color: var(--ink); }
+
+@media (min-width: 640px) {
+  .fg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fg-tile--wide { grid-column: span 2; }
+}
+
+.fg-pile .ss-stage[data-layout='compact'] .fg-paper--back { translate: -6px 6px; }
+.fg-pile .ss-stage[data-layout='compact'] .fg-paper--mid { translate: 8px -4px; }

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci --include=dev",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "regions": ["lhr1"],
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 300,
+      "includeFiles": "{public/samples/**,shared/words/**}",
+      "excludeFiles": "{dist/**,data/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index" },
+    { "source": "/ws/:path*", "destination": "/api/index" },
+    { "source": "/healthz", "destination": "/api/index" },
+    { "source": "/whatsapp/webhook", "destination": "/api/index" },
+    { "source": "/((?!api/|ws/|healthz|whatsapp/).*)", "destination": "/index.html" }
+  ]
+}

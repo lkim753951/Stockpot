@@ -1,0 +1,65 @@
+[
+  {
+    "turn": 1,
+    "speaker": "A",
+    "startMs": 450,
+    "endMs": 7130,
+    "text": "Morning Dave, it's Sam at Sample Kitchen. This call's recorded for our order records, is that OK?"
+  },
+  {
+    "turn": 2,
+    "speaker": "B",
+    "startMs": 7580,
+    "endMs": 10970,
+    "text": "No problem Sam. What can I get you for Thursday?"
+  },
+  {
+    "turn": 3,
+    "speaker": "A",
+    "startMs": 11420,
+    "endMs": 15926,
+    "text": "Twenty kilos of chicken thighs please. What's the price this week?"
+  },
+  {
+    "turn": 4,
+    "speaker": "B",
+    "startMs": 16376,
+    "endMs": 19811,
+    "text": "Thighs have gone up. They're six ninety a kilo now."
+  },
+  {
+    "turn": 5,
+    "speaker": "A",
+    "startMs": 20261,
+    "endMs": 28206,
+    "text": "Six ninety? I paid six forty last week, and Northgate are doing them at six ten. Can you match six forty?"
+  },
+  {
+    "turn": 6,
+    "speaker": "B",
+    "startMs": 28656,
+    "endMs": 32126,
+    "text": "Go on then, six forty a kilo for you this week."
+  },
+  {
+    "turn": 7,
+    "speaker": "A",
+    "startMs": 32576,
+    "endMs": 35784,
+    "text": "Thank you. And ten kilos of brown onions."
+  },
+  {
+    "turn": 8,
+    "speaker": "B",
+    "startMs": 36234,
+    "endMs": 41774,
+    "text": "Onions are eighty five pence a kilo, same as last time. All on the van Thursday morning."
+  },
+  {
+    "turn": 9,
+    "speaker": "A",
+    "startMs": 42224,
+    "endMs": 44176,
+    "text": "Perfect, thanks Dave."
+  }
+]
