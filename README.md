@@ -180,7 +180,3 @@ npm start
 | [How it works](docs/how-it-works.md) | Every model step, the safety rules and the architecture |
 | [Deploy](docs/deploy.md) | Where data lives, and how to host it on Vercel and Supabase |
 | [Testing](docs/testing.md) | How it was tested, and how to repeat it |
-
-## Credits
-
-Everything in this repository was written during the event, with Claude. Reused parts are the open-source packages in [`package.json`](package.json), the Stockpot brand files, the Figtree font, Phosphor icons, and the MIT-licensed [Stageshow](https://benji.org/stageshow) kit, used only for the welcome page demos.
