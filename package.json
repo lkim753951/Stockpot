@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Stockpot hears the price, watches the delivery, reads the invoice and gets restaurants their money back, built on Meta models.",
+  "description": "Stockpot helps small restaurants get on their feet instead of drowning in manual, repetitive work, built on Meta models.",
   "engines": {
     "node": "22.x"
   },

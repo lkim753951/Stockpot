@@ -18,8 +18,8 @@ export function Welcome({ onChoose }: { onChoose: (role: Role) => void }) {
         <LanguageButton />
       </div>
       <div className="welcome-hero">
-        <h1>{t('Get your money back from every delivery')}</h1>
-        <p className="muted">{t("Stockpot hears the price on the call, watches the delivery and reads the invoice. When they don't match, it shows you what you're owed.")}</p>
+        <h1>{t('Helping small restaurants get on their feet')}</h1>
+        <p className="muted">{t('Stockpot takes on the repetitive work, helps you spot opportunities and P&L leakage, and keeps you ready for a crisis.')}</p>
       </div>
       <Suspense fallback={<Sk width="100%" height={500} />}><Stories /></Suspense>
       <div className="role-bar">

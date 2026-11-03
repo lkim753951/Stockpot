@@ -1,12 +1,22 @@
 # Stockpot
 
-Stockpot hears the price on a supplier call, watches the delivery, reads the invoice, and gets a restaurant its money back. It also runs the staff checklists, then gives the owner one list of what needs fixing today, with the numbers behind it.
+Stockpot helps small business owners get on their feet instead of drowning in manual, repetitive work. Its AI helps them spot opportunities, cut P&L leakage, and prepare for, prevent and respond to a crisis through better communication and planning.
+
+Today it does this for independent restaurants. It hears the price on a supplier call, watches the delivery, reads the invoice and runs the staff checklists, then gives the owner one list of what needs fixing today, with the numbers behind it.
 
 Built for the Meta Global AI Developer Hackathon 2026, Build for Your World theme.
 
 **For:** independent UK restaurant owners who run the business from their phone.
 
 **Try it:** [stockpot-app.vercel.app](https://stockpot-app.vercel.app). It runs on made-up data with simulated AI, so it needs no key and no sign-in. To use the real Meta models, run it with your own key, as described below.
+
+## What it helps with
+
+- **Less manual work.** Receipts and invoices become rows. A spoken reading becomes a checklist entry once staff confirm it. A supplier call becomes a summary, a draft order and tasks.
+- **Spotting opportunities.** The analyst traces an unusual number to its cause and suggests 3 actions. Every dish shows its margin against your target and the menu price that would hit it.
+- **Less P&L leakage.** The last price paid appears during a supplier call. Each delivery line shows what was heard on the call, what arrived and what was billed. Old invoices alone show price rises and anything that may be billed twice.
+- **Preparing for a crisis, preventing it and responding to it.** The owner keeps cards ready for a gas leak, power cut, no water, fridge failure and wifi down. Daily checklists with photo proof catch problems early, and overdue ones are flagged and chased. When something goes wrong, staff open the right card in two taps, even with no connection, and an urgent report reaches the owner straight away.
+- **Better communication and planning.** Staff report in their own language and the owner reads it in English. Checklists and tasks reach staff on WhatsApp. **What to say** prepares the owner for a hard call with a supplier. Repeating checklists have a person and a deadline, and a dated item can go to the owner's calendar in one tap.
 
 ## Run it
 
@@ -175,7 +185,7 @@ Everything in this repository was written during the event. Code was written wit
 - Passcode sign-in with two roles, not individual accounts.
 - The recording notice relies on the owner playing it and ticking the box. Recording law and the privacy notice need review before real use.
 - There's no labour figure, because there's no rota yet. The staff bar has no Rota or Me tab for the same reason.
-- Food cost uses saved recipes and the newest price paid. Waste, labour and other costs aren't included, so this isn't a full P&L. Prep and service time are shown but never turned into a cost, because there's no wage data.
+- Food cost uses saved recipes and the newest price paid. Labour and other costs aren't included, so this isn't a full P&L. Prep and service time are shown but never turned into a cost, because there's no wage data.
 - The calculator's margin uses the menu price as typed, and the Dashboard uses net sales. If your menu prices include VAT, the calculator looks better than the Dashboard until you take VAT off.
 - A price list counts as a price paid from its date, so it feeds costs and the last-paid figure on calls, even if nothing was bought at that price.
 - File import takes `.xlsx`, not the older `.xls`. A workbook has only its biggest sheet read, and the preview says so. A file can be 15 MB and 5,000 rows, and a Word or text file 60,000 characters. The sample site with no Storage stops at 4.5 MB.
