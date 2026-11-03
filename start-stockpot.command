@@ -4,6 +4,7 @@ cd "${0:A:h}" || exit 1
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh" >/dev/null 2>&1
+command -v nvm >/dev/null 2>&1 && { nvm use >/dev/null 2>&1 || nvm install; }
 
 if ! command -v npm >/dev/null 2>&1; then
   echo "Stockpot needs Node.js. Install it from https://nodejs.org, then double-click this file again."

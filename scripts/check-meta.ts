@@ -11,7 +11,7 @@ if (config.mode !== 'live') {
   console.error('Add MODEL_API_KEY to .env first.')
   process.exit(1)
 }
-const { openRealtime, samFind, sparkJson, sparkTools, transcribeWav } = await import('../server/meta.ts')
+const { openRealtime, samFind, samTrack, sparkJson, sparkTools, transcribeWav } = await import('../server/meta.ts')
 const { seedIfEmpty } = await import('../server/seed.ts')
 const {
   invoicePrompt, invoiceSchema, quotesPrompt, quotesSchema, readingPrompt, readingSchema,
@@ -138,6 +138,13 @@ await step('SAM 3.1 finds an invoice in a photo', async () => {
   const image = `data:image/png;base64,${fs.readFileSync('public/samples/sample-invoice-previous.png').toString('base64')}`
   const boxes = await samFind(image, 'document')
   return `${boxes.length} found${boxes[0] ? `, first box ${boxes[0].x1},${boxes[0].y1} to ${boxes[0].x2},${boxes[0].y2}` : ''}`
+})
+
+await step('SAM 3.1 follows boxes through a video', async () => {
+  const clip = `data:video/mp4;base64,${fs.readFileSync('public/samples/sample-delivery.mp4').toString('base64')}`
+  const frames = await samTrack(clip, 'cardboard box')
+  if (!frames.length) throw new Error('No frames came back')
+  return `found in ${frames.length} frames. First frame: ${JSON.stringify(frames[0]).slice(0, 160)}`
 })
 
 await step('Muse Spark calls a function tool and uses the result', async () => {
