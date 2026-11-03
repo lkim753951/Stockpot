@@ -79,6 +79,9 @@ export class LiveCall {
   /** One at a time, because a pool of connections could otherwise save turn 5 before turn 4. */
   private line: Promise<void> = Promise.resolve()
   private sparkWarned = false
+  private sparkMisses = 0
+  /** The newest turn with a price for each item, so a slower answer about an older turn can't replace it. */
+  private readonly newestPrice = new Map<number, number>()
   private ended = false
   private told = false
   private readyToHear!: () => void
@@ -228,6 +231,7 @@ export class LiveCall {
     if (!spot) return
     // A price that has only just appeared may still be growing: "six" then "six ninety".
     if (!/[\s.,?!]$/.test(text) && !/\d\.\d{2}/.test(text) && !/\b(kilo|kg|litre|each|box|case)\b/i.test(text)) return
+    this.newestPrice.set(spot.item.id, (this.turns.at(-1)?.no ?? 0) + 1)
     await this.show({
       itemId: spot.item.id, kind: 'offer', pricePence: spot.pricePence,
       quantityBase: this.quantities.get(spot.item.id) ?? null, source: 'instant', latencyMs: this.latency(audioMs),
@@ -253,6 +257,7 @@ export class LiveCall {
     this.rememberQuantity(text)
     const spot = spotInstantPrice(text, this.context(), this.items)
     if (spot) {
+      this.newestPrice.set(spot.item.id, turn.no)
       await this.show({
         itemId: spot.item.id, kind: 'offer', pricePence: spot.pricePence,
         quantityBase: this.quantities.get(spot.item.id) ?? null, source: 'instant', latencyMs: this.latency(audioMs),
@@ -276,10 +281,13 @@ export class LiveCall {
         timeoutMs: 15000,
         attempts: 1,
       })
+      this.sparkMisses = 0
       for (const quote of quotes) await this.applyQuote(quote, turn)
     } catch (error) {
       console.error(`call ${this.callId} quotes:`, (error as Error).message)
-      if (!this.sparkWarned) {
+      // One slow answer isn't worth interrupting a call for. Clear prices show either way.
+      this.sparkMisses += 1
+      if (this.sparkMisses >= 2 && !this.sparkWarned) {
         this.sparkWarned = true
         this.emit({ type: 'warning', message: 'Slower price checks are unavailable. Clear prices will still show.' })
       }
@@ -294,6 +302,7 @@ export class LiveCall {
       if (base !== null) this.quantities.set(item.id, base)
     }
     if (quote.kind === 'reference') return
+    if (quote.kind === 'offer' && (this.newestPrice.get(item.id) ?? 0) > turn.no) return
     let pence = quote.price_pence
     if (pence === null && quote.price_change_pence !== null) {
       const last = await lastPaid(item.id, this.supplierId)

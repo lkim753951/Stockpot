@@ -13,3 +13,26 @@ What has been tested, and how to repeat it.
 - The sample site runs on real Vercel, including a sample call over a live WebSocket.
 - The real site runs on Vercel with Supabase. Its deploy check on 3 November 2026 reached Muse Spark, SAM 3.1, Muse Voice Transcribe and the live call connection from `fra1`, and one 5-minute timer pass ran cleanly.
 - All 13 real Meta checks passed from a Mac on 3 November 2026, covering Muse Spark, Muse Voice Transcribe and SAM 3.1 on the sample files. To repeat them, run `npm run check:meta`. **WhatsApp, Twilio and Gmail have only been tested against stand-ins.** Real speakerphone audio, kitchen noise, handwriting and live delay are unmeasured.
+
+## Real site test, 3 November 2026
+
+These ran through the real Vercel site and Supabase, with the real Meta models and the sample files.
+
+| Feature | Result |
+| --- | --- |
+| Invoice photo | Number, 2 lines and total of £146.50 all correct, about 6 seconds |
+| Voice check | "Fridge two is at nine degrees" saved as 9°C, flagged out of range, about 6 seconds |
+| Photo proof | Read 9°C, and flagged that the display said Fridge 2 on the Fridge one check, about 8 seconds |
+| Video proof | SAM 3.1 followed the display through 100% of the clip, through a Supabase link |
+| Video count | Counted 4 boxes from a 5 MB clip sent straight to Storage, about 12 seconds |
+| Live camera frame | 3 boxes in about 1.3 seconds |
+| Staff report | Polish voice note became an English task |
+| Uploaded call | 9 turns, summary and speakers |
+| Live call | First words after about 2 seconds, price card as the price was said, draft order with the agreed price |
+| Import | 2 files read, totals matched the printed totals |
+| Recipe PDF | Read in about 7 seconds |
+| Analyst | Answered from the invoice with the right price and total |
+| WhatsApp | Message received, reply delivered, checklist sent |
+
+Not tested yet: a real microphone call, a real camera, the template message, Gmail and phone calls.
+
