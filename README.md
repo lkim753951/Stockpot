@@ -39,7 +39,7 @@ flowchart LR
 | Feature | What it does |
 | --- | --- |
 | **Supplier calls** | Shows the last price paid during a call, then writes the summary, draft order and tasks |
-| **Deliveries** | Shows what was agreed, delivered and billed for each line, and counts boxes on video |
+| **Deliveries** | Shows what was agreed, delivered and billed for each line, and counts boxes on video, with boxes drawn live over the camera |
 | **Receipts and invoices** | Turns photos and PDFs into rows, checks the printed sums and flags anything unsure |
 | **Price check** | Finds price rises and possible double billing from old invoices |
 | **Menu and margins** | Reads recipes, costs each dish and shows the menu price that hits your target margin |
@@ -167,7 +167,7 @@ npm start
 
 ## Testing
 
-- ✅ 238 automated tests
+- ✅ 244 automated tests
 - ✅ 13 of 13 real Meta model checks
 - ✅ 22 of 22 sample files read correctly by real Muse Spark
 - ✅ Real deployment on Vercel and Supabase

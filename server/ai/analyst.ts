@@ -70,10 +70,10 @@ async function sourcesFor(itemName: string, from: string, to: string) {
 
 /** Every invoice in a period with its lines, so a fresh invoice can be asked about before its items are matched. */
 async function invoicesBetween(from: string, to: string, supplier?: string) {
-  const invoices = await all(`SELECT id, number, date, supplier_name, gross_p FROM invoices WHERE status = 'read' AND date BETWEEN ? AND ? ORDER BY date DESC, id DESC LIMIT 40`, from, to)
+  const invoices = await all(`SELECT id, number, date, supplier_name, gross_p, status FROM invoices WHERE status IN ('read', 'needs-review') AND COALESCE(date, substr(created_at, 1, 10)) BETWEEN ? AND ? ORDER BY date DESC, id DESC LIMIT 40`, from, to)
   const named = invoices.filter((row) => !supplier || String(row.supplier_name ?? '').toLowerCase().includes(supplier.toLowerCase()))
   return Promise.all(named.map(async (row) => ({
-    source_id: `invoice:${row.id}`, supplier: row.supplier_name, invoice: row.number, date: row.date, total_pence: row.gross_p,
+    source_id: `invoice:${row.id}`, supplier: row.supplier_name, invoice: row.number, date: row.date, total_pence: row.gross_p, needs_checking: row.status === 'needs-review',
     lines: (await all('SELECT description, qty_billed, unit, unit_price_p, line_total_p FROM invoice_lines WHERE invoice_id = ? ORDER BY id', row.id))
       .map((line) => ({ item: line.description, quantity: line.qty_billed, unit: line.unit, unit_price_pence: line.unit_price_p, total_pence: line.line_total_p })),
   })))

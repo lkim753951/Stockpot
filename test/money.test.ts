@@ -40,3 +40,10 @@ test('formats money', () => {
   assert.equal(formatPounds(85), '£0.85')
   assert.equal(formatPounds(-50), '-£0.50')
 })
+
+test('a bare number before a unit price is read as pence, as the real transcriber writes it', async () => {
+  const { findPrices } = await import('../server/money/money.ts')
+  assert.equal(findPrices("Thighs have gone up they're 690 a kilo now")[0]?.pence, 690)
+  assert.equal(findPrices('Go on then 1250 per case for you')[0]?.pence, 1250)
+  assert.equal(findPrices('Twenty kilos, and 500 kilos next month').length, 0)
+})

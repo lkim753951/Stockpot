@@ -60,6 +60,8 @@ export function findPrices(input: string): SpokenPrice[] {
   run(/\b(\d{1,3})\s?(?:p|pence)\b/g, (m) => Number(m[1]))
   run(new RegExp(`\\b(${WORD_NUMBER})\\s+(?:p|pence)\\b`, 'g'), (m) => wordsToNumber(m[1]))
   run(/(?<![\d.])(\d{1,3})\.(\d{2})(?!\d)/g, (m) => Number(m[1]) * 100 + Number(m[2]))
+  // A transcriber writes "six ninety a kilo" as 690 a kilo, so a bare number before a unit price is pence.
+  run(/(?<![\d.£])(\d{3,4})\s+(?:a|per|each)\s+(?:kilo|kg|litre|liter|box|case|bag|tray|sack)\b/g, (m) => Number(m[1]))
   // "six ninety", "twelve fifty". The second word must be a tens value or a teen to read as pence.
   run(new RegExp(`\\b(${NUMBER_WORD})[ -](ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:[ -](one|two|three|four|five|six|seven|eight|nine))?\\b`, 'g'), (m) => {
     const after = text.slice(m.index + m[0].length)

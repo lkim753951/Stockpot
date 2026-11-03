@@ -273,7 +273,7 @@ export class LiveCall {
         system: await quotesPrompt(),
         content: [{ type: 'text', text: `Earlier turns:\n${earlier}\n\nNewest turn:\n${turn.text}` }],
         effort: 'low',
-        timeoutMs: 9000,
+        timeoutMs: 15000,
         attempts: 1,
       })
       for (const quote of quotes) await this.applyQuote(quote, turn)
