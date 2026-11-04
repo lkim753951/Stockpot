@@ -203,6 +203,19 @@ export interface FileTranscript {
   turns: TranscriptTurn[]
 }
 
+const LONGEST_KEYWORD = 30
+
+/** Meta refuses the whole transcription if one keyword is too long, so long names are cut at a word and repeats dropped. */
+export function usableKeywords(keywords: string[]) {
+  const short = keywords.map((keyword) => {
+    const word = keyword.trim()
+    if (word.length <= LONGEST_KEYWORD) return word
+    const space = word.lastIndexOf(' ', LONGEST_KEYWORD)
+    return word.slice(0, space > 0 ? space : LONGEST_KEYWORD).replace(/[\s,;:.-]+$/, '')
+  })
+  return [...new Set(short.filter(Boolean))]
+}
+
 export interface TranscribeOptions {
   mode?: 'PUSH_TO_TALK' | 'ENDPOINTING' | 'DIARIZATION'
   /** Pass null to leave the setting out, so the model detects the language itself. */
@@ -212,13 +225,14 @@ export interface TranscribeOptions {
 /** Muse Voice Transcribe file endpoint. Takes mono 16-bit WAV, up to 10 minutes and 32 MB. */
 export async function transcribeWav(file: string, keywords: string[], options: TranscribeOptions = {}): Promise<FileTranscript> {
   const language = options.languageBias === undefined ? ['English'] : options.languageBias
+  const words = usableKeywords(keywords)
   return withRetries(async () => {
     countCall()
     const form = new FormData()
     const settings = {
       mode: options.mode ?? 'DIARIZATION', model: config.voiceModel, audioEncoding: 'WAV',
       ...(language ? { languageBias: language } : {}),
-      ...(keywords.length ? { keywords } : {}),
+      ...(words.length ? { keywords: words } : {}),
     }
     form.append('request', new Blob([JSON.stringify(settings)], { type: 'application/json' }))
     form.append('audio', new Blob([fs.readFileSync(file)], { type: 'audio/wav' }), 'call.wav')
@@ -248,6 +262,7 @@ export interface RealtimeHandlers {
  */
 export function openRealtime(keywords: string[], handlers: RealtimeHandlers, languageBias: string[] | null = ['English'], startMs = 0) {
   // Each connection is a new session to Meta. Only the local stand-in needs telling where in its script to carry on.
+  const words = usableKeywords(keywords)
   const carryOn = startMs && /^ws:\/\/(127\.0\.0\.1|localhost)/.test(config.realtimeUrl) ? `&startMs=${startMs}` : ''
   const socket = new WebSocket(`${config.realtimeUrl}?sessionId=stockpot-${crypto.randomUUID()}${carryOn}`)
   let accepted = false
@@ -262,7 +277,7 @@ export function openRealtime(keywords: string[], handlers: RealtimeHandlers, lan
       partialMode: 'CUMULATIVE',
       emitAudioProgress: false,
       ...(languageBias ? { languageBias } : {}),
-      ...(keywords.length ? { keywords } : {}),
+      ...(words.length ? { keywords: words } : {}),
     }))
   })
 

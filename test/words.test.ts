@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { problemsIn } from '../scripts/words-check.ts'
 import { LANGUAGES } from '../shared/lang.ts'
+import { usableKeywords } from '../server/ai/meta.ts'
 
 test('every sentence in the app is translated, with its details in place', () => {
   for (const { code } of LANGUAGES.filter((language) => language.code !== 'en')) assert.deepEqual(problemsIn(code), [], code)
@@ -17,4 +18,12 @@ test('the browser loads each language from the real words folder', () => {
   for (const { code } of LANGUAGES.filter((language) => language.code !== 'en')) {
     assert.ok(fs.existsSync(path.resolve('src/lib', glob, `${code}.json`)), code)
   }
+})
+
+test('transcription keywords stay within Meta\'s limit', () => {
+  const long = 'Chicken thighs, boneless, skin on, five kilo tray'
+  const [cut] = usableKeywords([long])
+  assert.equal(cut, 'Chicken thighs, boneless, skin')
+  assert.deepEqual(usableKeywords(['Basmati rice', ' Basmati rice ', '']), ['Basmati rice'])
+  assert.ok(usableKeywords([long, 'x'.repeat(50)]).every((word) => word.length <= 30))
 })
