@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { config } from '../core/config.ts'
 import { get, insert, nowIso } from '../core/db.ts'
 import type { Lang } from '../../shared/lang.ts'
@@ -24,6 +25,23 @@ export function callScript(text: string, language: string) {
   const voice = VOICES[spokenLanguage(language) as Lang]!
   const say = `<Say language="${voice.split('-Standard')[0]}" voice="Google.${voice}">${xml(text)}</Say>`
   return `<Response>${say}<Pause length="1"/>${say}</Response>`
+}
+
+const LINK_LASTS_MS = 10 * 60000
+const seal = (payload: string) => createHmac('sha256', config.sessionSecret).update(payload).digest('base64url')
+
+/** Twilio's trial refuses words sent with the call, so it fetches them from a short-lived signed link. */
+export function callLink(text: string, language: string) {
+  const payload = Buffer.from(JSON.stringify({ text, language, until: Date.now() + LINK_LASTS_MS })).toString('base64url')
+  return `${config.publicUrl}/api/phone/say?c=${payload}&s=${seal(payload)}`
+}
+
+/** The script behind a link, or null if the link was changed or has run out. */
+export function scriptFromLink(payload: string, signature: string) {
+  const [given, expected] = [Buffer.from(signature), Buffer.from(seal(payload))]
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null
+  const { text, language, until } = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+  return Date.now() > Number(until) ? null : callScript(String(text), String(language))
 }
 
 /** Twilio wants +447700900123. People type 07700 900123 or 0044 7700 900123. Local numbers are taken as UK. */
@@ -58,7 +76,7 @@ async function dial(number: string, text: string, language: string) {
     const response = await fetch(`${baseUrl}/Accounts/${accountSid}/Calls.json`, {
       method: 'POST',
       headers: { Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ To: to, From: dialable(fromNumber), Twiml: callScript(text, language) }),
+      body: new URLSearchParams({ To: to, From: dialable(fromNumber), ...(config.publicUrl ? { Url: callLink(text, language) } : { Twiml: callScript(text, language) }) }),
       signal: AbortSignal.timeout(15000),
     })
     ok = response.ok

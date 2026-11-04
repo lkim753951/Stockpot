@@ -20,7 +20,7 @@ import { whatToSay } from './ai/whatToSay.ts'
 import { RefusedWipe, refreshStaleSample, resetSample, seedIfEmpty } from './core/seed.ts'
 import { addOwnAction, assignAction, confirmAction, dismissAction, finishAction, listActions, listDoneToday, reopenAction, setUrgency, snoozeAction } from './operations/actions.ts'
 import { connectionStatus, testMeta } from './integrations/connections.ts'
-import { testCall } from './integrations/phone.ts'
+import { scriptFromLink, testCall } from './integrations/phone.ts'
 import { loadStaff, sendToPerson, sendWhatsAppTest, team, whatsappReady } from './integrations/whatsapp.ts'
 import { receive, sendChecklist, teamView, whatsappWebhook } from './operations/team.ts'
 import { homeView } from './operations/home.ts'
@@ -191,6 +191,13 @@ export function createApp() {
     if (!samePass(request.header('authorization'))) return void response.status(401).json({ error: 'Sign in first.' })
     await startUp()
     response.json(await onePass())
+  })
+
+  /** Twilio fetches what to say from here. The signed link is the only way in, so it needs no sign-in. */
+  app.all('/api/phone/say', (request, response) => {
+    const script = scriptFromLink(String(request.query.c ?? ''), String(request.query.s ?? ''))
+    if (!script) return void response.status(403).end()
+    response.type('text/xml').send(script)
   })
 
   // Instances share no memory, so each request reads what another one may have changed.

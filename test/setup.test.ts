@@ -338,6 +338,20 @@ test('a late checklist goes to the person, then the owner, and rings a phone onc
   assert.match(callScript('Hello', 'ar'), /language="ar-XA"/)
 })
 
+test('with a public address, Twilio fetches the words from a signed link that nobody can change', async () => {
+  const { callLink, scriptFromLink } = await import('../server/integrations/phone.ts')
+  const { config } = await import('../server/core/config.ts')
+  const saved = config.publicUrl
+  config.publicUrl = 'https://example.test'
+  const link = new URL(callLink('Closing checks are late.', 'en'))
+  config.publicUrl = saved
+  assert.equal(link.pathname, '/api/phone/say')
+  const [payload, signature] = [link.searchParams.get('c')!, link.searchParams.get('s')!]
+  assert.match(scriptFromLink(payload, signature)!, /<Say[^>]*>Closing checks are late\.<\/Say>/)
+  assert.equal(scriptFromLink(`${payload}x`, signature), null)
+  assert.equal(scriptFromLink(payload, 'wrong'), null)
+})
+
 test('numbers become ones Twilio can dial, and its errors never quote them', async () => {
   const { config } = await import('../server/core/config.ts')
   const { dialable, testCall } = await import('../server/integrations/phone.ts')
