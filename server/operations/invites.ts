@@ -1,6 +1,6 @@
 import crypto from 'node:crypto'
 import { config } from '../core/config.ts'
-import { all, get, nowIso, run } from '../core/db.ts'
+import { all, get, insert, nowIso, run } from '../core/db.ts'
 import { inLanguage, t } from '../core/lang.ts'
 import { background } from '../core/background.ts'
 import { changeStaff, sendToPerson, whatsappReady } from '../integrations/whatsapp.ts'
@@ -44,6 +44,9 @@ export async function joinByInvite(raw: Record<string, any>) {
   if (!(await run('UPDATE invites SET used_at = ? WHERE code = ? AND used_at IS NULL', nowIso(), code)).changes) return false
   const name = String(invite.name)
   await changeStaff((people) => [...people, { name, number, language: (invite.language as string | null) ?? null }])
+  // Their message opens WhatsApp's 24-hour window, and Stockpot goes by what's logged here.
+  await insert('INSERT INTO team_messages (wa_id, direction, contact, kind, body, created_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
+    raw.id ?? null, 'in', name, 'text', String(raw.text?.body).slice(0, 2000), nowIso())
   background('invite', () => inLanguage(invite.language, () => sendToPerson({ to: { name, number }, text: t("Hi {name}, you're on the team. Your checklists will come here.", { name }) })))
   return true
 }

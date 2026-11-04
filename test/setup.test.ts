@@ -420,6 +420,22 @@ test('the database is copied once a day and only a week is kept', async () => {
   assert.ok((await dataStatus()).lastBackup)
 })
 
+test('joining opens the 24-hour window, so the next message is plain text and not a template', async () => {
+  const { joinByInvite } = await import('../server/operations/invites.ts')
+  const { sendToPerson } = await import('../server/integrations/whatsapp.ts')
+  const { config } = await import('../server/core/config.ts')
+  const saved = { ...config.whatsapp }
+  Object.assign(config.whatsapp, { token: 'wa', phoneNumberId: '555', ownerNumber: '447700900001', baseUrl: mock.httpBase, template: 'stockpot_update' })
+  try {
+    const made = await call(owner, '/api/team/invites', 'POST', { name: 'Windowed', language: 'en' })
+    assert.equal(await joinByInvite({ id: 'wamid.join-window', from: '447700900077', text: { body: `JOIN ${made.data.code}` } }), true)
+    await sendToPerson({ to: { name: 'Windowed', number: '447700900077' }, text: 'Your list' })
+    assert.equal(mock.state.whatsapp.at(-1).body.type, 'text')
+  } finally {
+    Object.assign(config.whatsapp, saved)
+  }
+})
+
 test('an invite link adds someone the moment they send it, and only once', async () => {
   const { joinByInvite } = await import('../server/operations/invites.ts')
   const made = await call(owner, '/api/team/invites', 'POST', { name: 'Tomasz', language: 'pl' })

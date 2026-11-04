@@ -105,13 +105,19 @@ async function firstContact(name: string, text: string, freeForm: Record<string,
   return config.whatsapp.template && !await windowOpen(name) ? templateBody(text) : freeForm
 }
 
+/** A template Meta hasn't approved fails with a 132 code. The person may still be in their window, so plain text gets a try. */
+async function sendFirst(number: string, name: string, text: string, freeForm: Record<string, unknown>) {
+  const body = await firstContact(name, text, freeForm)
+  const result = await post(number, body)
+  return !result.ok && body !== freeForm && /#132\d{3}/.test(String(result.detail)) ? post(number, freeForm) : result
+}
+
 /** Never throws, because a failed alert must not stop a reading or a report being saved. */
 export async function sendWhatsAppAlert(actionId: number, title: string, detail: string | null, toConfirm = false) {
   if (!whatsappReady()) return
   const lines = [`Stockpot: ${title}`, ...(detail ? [detail] : []), ...(toConfirm ? [t('Open Stockpot to confirm this.')] : [])]
   const text = lines.join('\n')
-  const send = async () => post(config.whatsapp.ownerNumber, await firstContact('Owner', text, { recipient_type: 'individual', type: 'text', text: { preview_url: false, body: text } }))
-  await record(actionId, await send().catch(unreachable))
+  await record(actionId, await sendFirst(config.whatsapp.ownerNumber, 'Owner', text, { recipient_type: 'individual', type: 'text', text: { preview_url: false, body: text } }).catch(unreachable))
 }
 
 export async function sendWhatsAppTest() {
@@ -145,8 +151,7 @@ export async function sendToPerson({ to, text, buttons, runId = null }: Outgoing
     ? { recipient_type: 'individual', type: 'interactive', interactive: { type: 'button', body: { text }, action: { buttons: buttons.map((button) => ({ type: 'reply', reply: button })) } } }
     : { recipient_type: 'individual', type: 'text', text: { preview_url: false, body: text } }
   const number = to.number
-  const send = async () => post(number, await firstContact(to.name, text, body))
-  const result = await send().catch(unreachable)
+  const result = await sendFirst(number, to.name, text, body).catch(unreachable)
   await log(result.ok ? 'sent' : 'failed', result.id, result.detail)
   return { ok: result.ok, simulated: false, detail: result.detail }
 }
