@@ -69,15 +69,19 @@ export function Dashboard() {
   return (
     <Screen wide title={t('Dashboard')}>
       <PeriodPicker state={period} />
-      <section className="money-hero" aria-label={t('Money saved')}>
-        <p className="money-label">{t('Money saved')}</p>
-        <p className="money-figure num"><Counted pence={saved} /></p>
-        {saved ? null : <p className="money-empty">{t('Savings show up here after a call or a claim.')}</p>}
-        <div className="money-split">
-          <span><b className="num">{pounds(money.talkedDownPence)}</b> {t('talked down on calls')}</span>
-          <span><b className="num">{pounds(money.foundPence)}</b> {t('found on invoices')}</span>
-          {money.openPence ? <a href="#/checks"><b className="num">{pounds(money.openPence)}</b> {t('still to get back')}</a> : null}
+      <section className={`money-hero${saved ? '' : ' none'}`} aria-label={t('Money saved')}>
+        <div>
+          <p className="money-label">{t('Money saved')}</p>
+          <p className="money-figure num"><Counted pence={saved} /></p>
+          {saved ? null : <p className="money-empty">{t('Savings show up here after a call or a claim.')}</p>}
         </div>
+        {saved || money.openPence ? (
+          <div className="money-split">
+            {saved ? <span><b className="num">{pounds(money.talkedDownPence)}</b> {t('talked down on calls')}</span> : null}
+            {saved ? <span><b className="num">{pounds(money.foundPence)}</b> {t('found on invoices')}</span> : null}
+            {money.openPence ? <a href="#/checks"><b className="num">{pounds(money.openPence)}</b> {t('still to get back')}</a> : null}
+          </div>
+        ) : null}
       </section>
       {noSales ? (
         <section className="card">
@@ -117,7 +121,7 @@ export function Dashboard() {
         </div>
 
         <div className="split-side">
-          <section className="stack">
+          <section className="card">
             <h2>{t('Dish margins')}</h2>
             {facts.dishes.length ? (
               <table className="compare">

@@ -15,7 +15,7 @@ export type ChipTone = keyof typeof CHIP_ICONS
 /** Colour never carries a status alone, so a status chip is always an icon and a word. Plain is for counts, which aren't a status. */
 export function Chip({ tone, children }: { tone: ChipTone; children: ReactNode }) {
   const Icon = CHIP_ICONS[tone]
-  return <span className={`chip ${tone}`}>{Icon ? <Icon size={18} aria-hidden="true" /> : null}{children}</span>
+  return <span className={`chip ${tone}`}>{Icon ? <Icon size={16} aria-hidden="true" /> : null}{children}</span>
 }
 
 /** One fixed icon for each feature, used everywhere that feature appears. */

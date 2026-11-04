@@ -60,18 +60,6 @@ export function Actions({ sample }: { sample: boolean }) {
   return (
     <Screen title={t('Tasks')} lead={t('{count} open. Checked at {checkedAt}.', { count: data.actions.length, checkedAt: data.checkedAt })}>
       <ToConfirm actions={data.toConfirm} onChange={load} />
-      <details className="worked">
-        <summary>{t('How this list works')}</summary>
-        <p>{t('A task is a one-off job, for you or someone you assign it to. A checklist repeats on a schedule, and staff prove it with a photo.')}</p>
-        <p>{t('Stockpot adds tasks from your calls, receipts, checklists and staff reports, and you can add your own.')}</p>
-        <p>{t('New tasks from calls, staff reports and delivery problems wait under To confirm until you say yes. Anything about safety skips that and comes straight here.')}</p>
-        <ul>
-          <li>{t('Urgent: a safety problem, or something that can not wait.')}</li>
-          <li>{t('Today: something due today, or money to claim.')}</li>
-          <li>{t('Later: everything else.')}</li>
-        </ul>
-        <p>{t('Use Priority on any card to change it. Stockpot keeps to your choice.')}</p>
-      </details>
       <Segment label={t('Show')} fill value={shown} options={BUCKETS.map(({ value, label }) => ({ value, label: `${t(label)} ${counts[value]}` }))} onChange={setBucket} />
       <section className="stack" aria-label={t(BUCKETS.find(({ value }) => value === shown)!.label)}>
         {cards.length
@@ -93,6 +81,18 @@ export function Actions({ sample }: { sample: boolean }) {
           </ul>
         </section>
       ) : null}
+      <details className="worked">
+        <summary>{t('How this list works')}</summary>
+        <p>{t('A task is a one-off job, for you or someone you assign it to. A checklist repeats on a schedule, and staff prove it with a photo.')}</p>
+        <p>{t('Stockpot adds tasks from your calls, receipts, checklists and staff reports, and you can add your own.')}</p>
+        <p>{t('New tasks from calls, staff reports and delivery problems wait under To confirm until you say yes. Anything about safety skips that and comes straight here.')}</p>
+        <ul>
+          <li>{t('Urgent: a safety problem, or something that can not wait.')}</li>
+          <li>{t('Today: something due today, or money to claim.')}</li>
+          <li>{t('Later: everything else.')}</li>
+        </ul>
+        <p>{t('Use Priority on any card to change it. Stockpot keeps to your choice.')}</p>
+      </details>
       <Dock><button className="btn primary block" type="button" onClick={() => setAdding(true)}><Plus size={24} aria-hidden="true" />{t('Add a task')}</button></Dock>
       {adding ? <AddTask onClose={() => setAdding(false)} onDone={() => { setAdding(false); void load() }} /> : null}
     </Screen>

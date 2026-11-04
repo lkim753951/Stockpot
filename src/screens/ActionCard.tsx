@@ -1,4 +1,5 @@
 import { t, tk } from '../lib/i18n'
+import { DotsThree } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { api } from '../lib/api'
 import { dayWords, inSentence, whenWords } from '../lib/dates'
@@ -85,19 +86,18 @@ function ConfirmCard({ action, onChange }: { action: any; onChange: () => void }
   return (
     <Reveal closed={leaving}>
       <article className="card action compact">
-        <div>{chipFor(action)}</div>
+        <div className="card-top">{chipFor(action)}<span className="meta">{t('{source}, {when}', { source: action.source, when: whenWords(action.createdAt) })}</span></div>
         <div className="action-main no-tick">
           <div>
             <h3>{action.href ? <a className="action-title" href={action.href}>{action.title}</a> : <span className="action-title">{action.title}</span>}</h3>
             {action.detail ? <p>{action.detail}</p> : null}
           </div>
         </div>
-        <p className="meta">{t('{source}, {when}', { source: action.source, when: whenWords(action.createdAt) })}</p>
         <ErrorNote message={error} />
         <div className="card-actions">
           <button className="btn primary small" type="button" onClick={() => decide('confirm')}>{t('Confirm')}</button>
-          <button className="btn text small" type="button" onClick={() => decide('dismiss')}>{t('Dismiss')}</button>
           {action.suggested?.href?.startsWith('tel:') ? <a className="btn small" href={action.suggested.href}>{action.suggested.label}</a> : null}
+          <button className="btn text small" type="button" onClick={() => decide('dismiss')}>{t('Dismiss')}</button>
         </div>
       </article>
     </Reveal>
@@ -119,6 +119,7 @@ export function ActionCard({ action, lead = false, compact = false, line = false
   const [leaving, setLeaving] = useState(false)
   const [assigning, setAssigning] = useState(false)
   const [priority, setPriority] = useState(false)
+  const [more, setMore] = useState(false)
   const card = useRef<HTMLElement>(null)
   const start = useRef<number | null>(null)
 
@@ -169,7 +170,7 @@ export function ActionCard({ action, lead = false, compact = false, line = false
   return (
     <Reveal closed={leaving}>
     <article ref={card} className={`card action${lead ? ' lead' : ''}${urgent ? ' urgent-card' : ''}${compact ? ' compact' : ''}`} {...swipe}>
-      <div>{chipFor(action)}</div>
+      <div className="card-top">{chipFor(action)}<span className="meta">{meta}</span></div>
       <div className={`action-main${action.closable ? '' : ' no-tick'}`}>
         {tick}
         <div>
@@ -177,19 +178,25 @@ export function ActionCard({ action, lead = false, compact = false, line = false
           {action.detail ? <p>{action.detail}</p> : null}
         </div>
       </div>
-      <p className="meta">{meta}</p>
       <div className="card-actions">
         {action.suggested ? <a className={`btn small${lead ? ' primary' : ''}`} href={action.suggested.href}>{action.suggested.label}</a> : null}
         {['problem', 'delivery'].includes(action.sourceType) && action.href ? <a className="btn text small" href={`${action.href}/say`}>{t('What to say')}</a> : null}
-        <button className="btn text small" type="button" onClick={() => setPriority(true)}>{t('Priority')}</button>
-        <button className="btn text small" type="button" onClick={snooze}>{t('Snooze')}</button>
-        {canAssign ? (
-          canSend
-            ? <button className="btn text small" type="button" onClick={() => setAssigning(true)}>{t('Assign')}</button>
-            : <a className="btn text small" href={shareLink(action)} target="_blank" rel="noreferrer">{t('Assign')}</a>
-        ) : null}
-        {action.dueDate && action.sourceType !== 'overdue' ? <a className="btn text small" href={calendarLink(action)} target="_blank" rel="noreferrer">{t('Calendar')}</a> : null}
+        <button className="icon-btn card-more" type="button" aria-label={t('More')} onClick={() => setMore(true)}><DotsThree size={24} weight="bold" aria-hidden="true" /></button>
       </div>
+      {more ? (
+        <Sheet title={action.title} onClose={() => setMore(false)}>
+          <div className="stack">
+            <button className="btn block" type="button" onClick={() => { setMore(false); setPriority(true) }}>{t('Priority')}</button>
+            <button className="btn block" type="button" onClick={() => { setMore(false); void snooze() }}>{t('Snooze')}</button>
+            {canAssign ? (
+              canSend
+                ? <button className="btn block" type="button" onClick={() => { setMore(false); setAssigning(true) }}>{t('Assign')}</button>
+                : <a className="btn block" href={shareLink(action)} target="_blank" rel="noreferrer">{t('Assign')}</a>
+            ) : null}
+            {action.dueDate && action.sourceType !== 'overdue' ? <a className="btn block" href={calendarLink(action)} target="_blank" rel="noreferrer">{t('Calendar')}</a> : null}
+          </div>
+        </Sheet>
+      ) : null}
       {priority ? <PrioritySheet action={action} onClose={() => setPriority(false)} onDone={() => { setPriority(false); onChange() }} /> : null}
       {assigning ? <AssignSheet action={action} onClose={() => setAssigning(false)} onDone={() => { setAssigning(false); onChange() }} /> : null}
     </article>

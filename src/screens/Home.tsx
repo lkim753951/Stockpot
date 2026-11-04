@@ -92,12 +92,6 @@ export function Home({ sample, onClock }: { sample: boolean; onClock: () => void
             )}
           </section>
 
-          <nav className="quick" aria-label={t('Quick actions')}>
-            <a className="quick-item" href="#/call"><span className="quick-icon"><PhoneCall size={24} aria-hidden="true" /></span>{t('Record a call')}</a>
-            <a className="quick-item" href="#/receipts"><span className="quick-icon"><Receipt size={24} aria-hidden="true" /></span>{t('Add receipts')}</a>
-            <a className="quick-item" href="#/settings/team"><span className="quick-icon"><UsersThree size={24} aria-hidden="true" /></span>{t('Team')}</a>
-            <a className="quick-item" href="#/checklists"><span className="quick-icon"><ClipboardText size={24} aria-hidden="true" /></span>{t('Checklists')}</a>
-          </nav>
         </div>
 
         <div className="split-side">
@@ -111,10 +105,16 @@ export function Home({ sample, onClock }: { sample: boolean; onClock: () => void
             </div>
             <p className="caption">{t('Compared with the 7 days before. Updated at {checkedAt}.', { checkedAt })}</p>
           </section>
+          <nav className="quick" aria-label={t('Quick actions')}>
+            <a className="quick-item" href="#/call"><span className="quick-icon"><PhoneCall size={24} aria-hidden="true" /></span>{t('Record a call')}</a>
+            <a className="quick-item" href="#/receipts"><span className="quick-icon"><Receipt size={24} aria-hidden="true" /></span>{t('Add receipts')}</a>
+            <a className="quick-item" href="#/settings/team"><span className="quick-icon"><UsersThree size={24} aria-hidden="true" /></span>{t('Team')}</a>
+            <a className="quick-item" href="#/checklists"><span className="quick-icon"><ClipboardText size={24} aria-hidden="true" /></span>{t('Checklists')}</a>
+          </nav>
+          {sample ? <button className="btn text small demo-jump" type="button" onClick={jump}><Clock size={22} aria-hidden="true" />{t('Demo: jump to 22:30')}</button> : null}
         </div>
       </div>
 
-      {sample ? <button className="btn text" type="button" onClick={jump}><Clock size={24} aria-hidden="true" />{t('Demo: jump to 22:30')}</button> : null}
     </main>
   )
 }

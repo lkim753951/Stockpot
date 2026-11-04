@@ -36,6 +36,9 @@ const GROUPS = [
   { key: 'attention-soft', title: tk('Arrived, invoice to come') }, { key: 'done', title: tk('Done') },
 ]
 
+/** In these groups the heading already says what a chip would. */
+const SAYS_ITS_STATE = ['today', 'coming']
+
 /** Where an order has got to, each step with its date, so nobody has to ring round to find out. */
 function Timeline({ check }: { check: any }) {
   const steps = [
@@ -135,7 +138,7 @@ export function Checks() {
                   <a className="feature-row delivery-row" href={`#/checks/${check.orderId}`}>
                     <Truck size={24} aria-hidden="true" />
                     <strong>{check.supplier}</strong>
-                    <span className="note">{stateChip(check)}</span>
+                    {SAYS_ITS_STATE.includes(group.key) ? <span /> : <span className="note">{stateChip(check)}</span>}
                     <small>{check.arrivedAt ? `${t('Arrived {when}', { when: whenWords(check.arrivedAt) })}${check.storedAt ? `, ${t(check.storedAt)}` : ''}` : t('Due {when}', { when: niceDate(check.deliveryDate) })}</small>
                   </a>
                 </li>
