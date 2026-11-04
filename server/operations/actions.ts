@@ -10,7 +10,7 @@ import { responsesFor } from './emergency.ts'
 export type Urgency = 'now' | 'today' | 'soon'
 
 export interface NewAction {
-  sourceType: 'order' | 'check' | 'task' | 'overdue' | 'reading' | 'report' | 'summary' | 'suggestion' | 'proof' | 'delivery' | 'manual' | 'problem'
+  sourceType: 'order' | 'check' | 'task' | 'overdue' | 'reading' | 'report' | 'summary' | 'suggestion' | 'proof' | 'delivery' | 'manual' | 'problem' | 'supplier'
   sourceId: number
   urgency: Urgency
   title: string
@@ -117,6 +117,7 @@ async function sourceOf(row: Record<string, any>) {
     }
     case 'overdue': return t('Checklist')
     case 'proof': return t('Staff photo')
+    case 'supplier': return t('Supplier reply')
     case 'manual': return t('You added this')
     case 'problem': return t('Delivery check-in')
     case 'delivery': return t('Order')
@@ -140,6 +141,7 @@ async function suggestionFor(row: Record<string, any>) {
   switch (row.source_type) {
     case 'order': return { label: t('Check order'), href }
     case 'check': return { label: t('Claim it back'), href }
+    case 'supplier': return { label: t('See the delivery'), href }
     case 'overdue': return { label: t('See what is left'), href }
     case 'proof': return { label: t('See the photo'), href }
     case 'delivery':
@@ -175,6 +177,7 @@ async function linkFor(row: Record<string, any>) {
     case 'proof':
       return ((entry) => (entry ? `#/run/${entry.run_id}` : null))(await get('SELECT run_id FROM checklist_entries WHERE id = ?', id))
     case 'delivery':
+    case 'supplier':
     case 'problem': return `#/checks/${id}`
     case 'reading': {
       const entry = await get('SELECT run_id FROM checklist_entries WHERE id = ?', id)

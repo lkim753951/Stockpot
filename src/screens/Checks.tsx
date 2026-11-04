@@ -13,7 +13,11 @@ const ISSUES: Record<string, string> = { short: tk('Short'), damaged: tk('Damage
 
 const today = () => new Date().toISOString().slice(0, 10)
 
+const dueWords = (check: any) => (check.deliveryDate ? t('Due {when}', { when: `${niceDate(check.deliveryDate)}${check.etaTime ? `, ${check.etaTime}` : ''}` }) : t('Waiting for the supplier'))
+
 const stateChip = (check: any) => {
+  if (check.sentAt && check.invoice && !check.invoiceAcceptedAt) return <Chip tone="attention">{t('Accept invoice')}</Chip>
+  if (check.sentAt && !check.deliveryDate) return <Chip tone="neutral">{t('Waiting for the supplier')}</Chip>
   if (check.credit?.status === 'settled') return <Chip tone="good">{t('Settled')}</Chip>
   if (check.problem && !check.owedPence) return <Chip tone="urgent">{t('Problem')}</Chip>
   if (check.state === 'owed') return <Chip tone="urgent">{t('{owedPence} to claim', { owedPence: pounds(check.owedPence) })}</Chip>
@@ -26,7 +30,7 @@ const stateChip = (check: any) => {
 
 const groupOf = (check: any) => {
   if (check.credit?.status === 'settled' || check.state === 'clear') return 'done'
-  if (check.problem || check.state === 'owed' || (!check.arrivedAt && check.deliveryDate && check.deliveryDate < today())) return 'attention'
+  if ((check.sentAt && check.invoice && !check.invoiceAcceptedAt) || check.problem || check.state === 'owed' || (!check.arrivedAt && check.deliveryDate && check.deliveryDate < today())) return 'attention'
   if (!check.arrivedAt && check.deliveryDate === today()) return 'today'
   return check.arrivedAt ? 'attention-soft' : 'coming'
 }
@@ -43,8 +47,12 @@ const SAYS_ITS_STATE = ['today', 'coming']
 function Timeline({ check }: { check: any }) {
   const steps = [
     { label: t('Ordered'), done: true, when: check.orderedOn ? dayWords(check.orderedOn) : check.orderedAt ? whenWords(check.orderedAt) : null },
-    { label: t('Confirmation emailed'), done: !!check.emailedAt, when: check.emailedAt ? whenWords(check.emailedAt) : null },
-    { label: t('Arrived'), done: !!check.arrivedAt, when: check.arrivedAt ? whenWords(check.arrivedAt) : t('Due {when}', { when: niceDate(check.deliveryDate) }) },
+    ...(check.sentAt ? [
+      { label: t('Sent on WhatsApp'), done: true, when: whenWords(check.sentAt) },
+      { label: t('Supplier replied'), done: !!check.repliedAt, when: check.repliedAt ? whenWords(check.repliedAt) : null },
+      { label: t('Invoice accepted'), done: !!check.invoiceAcceptedAt, when: check.invoiceAcceptedAt ? whenWords(check.invoiceAcceptedAt) : null },
+    ] : [{ label: t('Confirmation emailed'), done: !!check.emailedAt, when: check.emailedAt ? whenWords(check.emailedAt) : null }]),
+    { label: t('Arrived'), done: !!check.arrivedAt, when: check.arrivedAt ? whenWords(check.arrivedAt) : dueWords(check) },
     { label: t('Invoice matched'), done: !!check.invoice, when: check.invoice?.number ?? null },
     { label: check.state === 'owed' ? t('Money claimed back') : t('All clear'), done: check.state === 'clear' || check.credit?.status === 'settled', when: null },
   ]
@@ -52,6 +60,27 @@ function Timeline({ check }: { check: any }) {
     <ol className="timeline">
       {steps.map((step) => <li key={step.label} data-done={step.done || undefined}><i aria-hidden="true">{step.done ? <Check size={14} weight="bold" /> : null}</i><span>{step.label}</span>{step.when ? <small>{step.when}</small> : null}</li>)}
     </ol>
+  )
+}
+
+function AcceptInvoice({ check, onDone }: { check: any; onDone: () => void }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const accept = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await api(`/api/orders/${check.orderId}/accept-invoice`, { method: 'POST' })
+      onDone()
+    } catch (problem) { setError((problem as Error).message); setBusy(false) }
+  }
+  return (
+    <section className="card">
+      <h2>{t('Accept this invoice?')}</h2>
+      <p>{check.invoice.gross_p ? pounds(check.invoice.gross_p) : t('Not read yet')}{check.invoice.number ? `, ${check.invoice.number}` : ''}</p>
+      <ErrorNote message={error} />
+      <button className="btn primary block" type="button" disabled={busy} onClick={accept}>{t('Accept invoice')}</button>
+    </section>
   )
 }
 
@@ -139,7 +168,7 @@ export function Checks() {
                     <Truck size={24} aria-hidden="true" />
                     <strong>{check.supplier}</strong>
                     {SAYS_ITS_STATE.includes(group.key) ? <span /> : <span className="note">{stateChip(check)}</span>}
-                    <small>{check.arrivedAt ? `${t('Arrived {when}', { when: whenWords(check.arrivedAt) })}${check.storedAt ? `, ${t(check.storedAt)}` : ''}` : t('Due {when}', { when: niceDate(check.deliveryDate) })}</small>
+                    <small>{check.arrivedAt ? `${t('Arrived {when}', { when: whenWords(check.arrivedAt) })}${check.storedAt ? `, ${t(check.storedAt)}` : ''}` : dueWords(check)}</small>
                   </a>
                 </li>
               ))}
@@ -221,7 +250,7 @@ export function CheckDetail({ id, say = false }: { id: string; say?: boolean }) 
   const trouble = check.problem || check.state === 'owed'
 
   return (
-    <Screen title={check.supplier} lead={t('Delivery {deliveryDate}', { deliveryDate: niceDate(check.deliveryDate) })}>
+    <Screen title={check.supplier} lead={check.deliveryDate ? t('Delivery {deliveryDate}', { deliveryDate: niceDate(check.deliveryDate) }) : dueWords(check)}>
       {check.state === 'owed' ? (
         <section className="claim"><strong>{pounds(check.owedPence)}</strong><p>{t('to claim back')}</p></section>
       ) : <div>{stateChip(check)}</div>}
@@ -234,6 +263,8 @@ export function CheckDetail({ id, say = false }: { id: string; say?: boolean }) 
       {saying ? <WhatToSay id={id} onClose={() => setSaying(false)} /> : null}
 
       <Timeline check={check} />
+      {check.supplierReply ? <p className="notice">{t('Supplier: {words}', { words: check.supplierReply })}</p> : null}
+      {check.sentAt && check.invoice && !check.invoiceAcceptedAt ? <AcceptInvoice check={check} onDone={() => { void api(`/api/checks/${id}`).then(load) }} /> : null}
 
       {!check.arrivedAt ? <a className="btn primary block" href={`#/checks/${id}/receive`}><Package size={24} aria-hidden="true" />{t('Check in delivery')}</a> : null}
 
@@ -302,7 +333,7 @@ export function CheckDetail({ id, say = false }: { id: string; say?: boolean }) 
 
       <section className="card">
         <table className="compare">
-          <thead><tr><th scope="col">{t('Item')}</th><th scope="col">{t('Agreed on call')}</th><th scope="col">{t('Delivered')}</th><th scope="col">{t('Billed')}</th></tr></thead>
+          <thead><tr><th scope="col">{t('Item')}</th><th scope="col">{check.sentVia ? t('Ordered') : t('Agreed on call')}</th><th scope="col">{t('Delivered')}</th><th scope="col">{t('Billed')}</th></tr></thead>
           <tbody>
             {check.lines.map((line: any) => (
               <tr key={line.itemId}>

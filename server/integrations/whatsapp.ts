@@ -62,6 +62,7 @@ export async function changeStaff(change: (people: Staff) => Staff) {
 
 const PLAIN_ERRORS: Record<number, string> = {
   131047: "WhatsApp blocked this because that person hasn't messaged the Stockpot number in the last 24 hours. Ask them to send it any message.",
+  131026: "WhatsApp couldn't deliver this. Check the number is on WhatsApp.",
   131030: 'This number is not on the allowed list. Add it under API Setup in your Meta app.',
   190: 'Your WhatsApp token has expired. Run connect-apis.command with a new one.',
 }
@@ -142,13 +143,15 @@ export interface Outgoing {
   /** Up to three reply buttons, as id and label. Labels stop at 20 characters. */
   buttons?: Array<{ id: string; title: string }>
   runId?: number | null
+  /** For anyone outside the team. The task reminder template would read wrong, so it's plain text or nothing. */
+  plainOnly?: boolean
 }
 
 /**
  * Sends to one person and writes it to the team log. With no WhatsApp connected the message is
  * only logged, marked simulated, so the sample restaurant still shows the whole conversation.
  */
-export async function sendToPerson({ to, text, buttons, runId = null }: Outgoing) {
+export async function sendToPerson({ to, text, buttons, runId = null, plainOnly = false }: Outgoing) {
   const log = (status: string, id: string | null, detail: string | null) =>
     insert('INSERT INTO team_messages (wa_id, direction, contact, kind, body, run_id, status, detail, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       id, 'out', to.name, buttons ? 'buttons' : 'text', text, runId, status, detail, nowIso())
@@ -160,7 +163,7 @@ export async function sendToPerson({ to, text, buttons, runId = null }: Outgoing
     ? { recipient_type: 'individual', type: 'interactive', interactive: { type: 'button', body: { text }, action: { buttons: buttons.map((button) => ({ type: 'reply', reply: button })) } } }
     : { recipient_type: 'individual', type: 'text', text: { preview_url: false, body: text } }
   const number = to.number
-  const result = await sendFirst(number, to.name, text, body).catch(unreachable)
+  const result = await (plainOnly ? post(number, body) : sendFirst(number, to.name, text, body)).catch(unreachable)
   await log(result.ok ? 'sent' : 'failed', result.id, result.detail)
   return { ok: result.ok, simulated: false, detail: result.detail }
 }

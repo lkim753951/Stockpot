@@ -169,7 +169,7 @@ npm start
 
 ## Testing
 
-- ✅ 256 automated tests
+- ✅ 261 automated tests
 - ✅ 13 of 13 real Meta model checks
 - ✅ 22 of 22 sample files read correctly by real Muse Spark
 - ✅ Real deployment on Vercel and Supabase

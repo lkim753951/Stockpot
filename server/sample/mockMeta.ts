@@ -261,6 +261,11 @@ function replyFor(name: string, system: string, text: string) {
     const value = findNumbers(text).at(-1) ?? null
     return { kind: 'checks', language, updates: found.map((check) => ({ item_id: check.id, value: check.type === 'tick' ? null : value })) }
   }
+  if (name === 'supplier_reply') {
+    const when = text.match(/\b(\d{4}-\d{2}-\d{2})\b(?=[^\n]*$)/)
+    const time = text.match(/\b(\d{1,2}):(\d{2})\b/)
+    return { delivery_date: when?.[1] ?? null, delivery_time: time ? `${time[1].padStart(2, '0')}:${time[2]}` : null, cannot_supply: [], summary: text.split('\n').at(-1) ?? '' }
+  }
   if (name === 'voice_turn') {
     const facts = JSON.parse(text)
     const newest = String(facts.newest)

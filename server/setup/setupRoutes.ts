@@ -1,3 +1,4 @@
+import { acceptInvoice, orderMessage, sendOrder } from '../operations/supplierOrders.ts'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -150,6 +151,9 @@ export function setupRoutes(app: Express) {
   app.post('/api/shopping/portions-from-receipts', requireOwner, guarded(async (_request, response) => response.json(await usePurchaseEstimate())))
   app.post('/api/shopping/items/:id', requireOwner, guarded(async (request, response) => { await setItemSource(id(request), request.body ?? {}); response.json(await shoppingList()) }))
   app.get('/api/shopping/order/:id', requireOwner, guarded(async (request, response) => response.json({ ...await orderText(id(request)), gmail: await gmailConnected() })))
+  app.get('/api/shopping/order/:id/whatsapp', requireOwner, guarded(async (request, response) => response.json(await orderMessage(id(request)))))
+  app.post('/api/shopping/order/:id/whatsapp', requireOwner, guarded(async (request, response) => response.status(201).json({ orderId: await sendOrder(id(request), request.body ?? {}) })))
+  app.post('/api/orders/:id/accept-invoice', requireOwner, guarded(async (request, response) => { await acceptInvoice(id(request)); response.json({ ok: true }) }))
   app.post('/api/shopping/order/:id/send', requireOwner, guarded(async (request, response) => {
     const { to, subject, body } = request.body ?? {}
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(to ?? ''))) throw new SetupError('Add the supplier email address.')

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CaretRight, CheckCircle, Copy, EnvelopeSimple, Plus, Truck } from '@phosphor-icons/react'
+import { CaretRight, CheckCircle, Copy, EnvelopeSimple, Plus, Truck, WhatsappLogo } from '@phosphor-icons/react'
 import { api, niceDate, pounds } from '../lib/api'
 import { t, tn } from '../lib/i18n'
 import { CATEGORIES } from '../lib/categories'
@@ -144,7 +144,49 @@ function SupplierSheet({ supplier, onClose, onSaved }: { supplier: any; onClose:
 }
 
 /** The owner reads the order before it goes. It is in English, because it goes to the supplier. */
+function WhatsAppOrder({ supplierId, onClose }: { supplierId: number; onClose: () => void }) {
+  const [draft, setDraft] = useState<any>(null)
+  const [name, setName] = useState('')
+  const [body, setBody] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [sent, setSent] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => { api(`/api/shopping/order/${supplierId}/whatsapp`).then((next) => { setDraft(next); setName(next.ownerName) }).catch((e) => setError(e.message)) }, [supplierId])
+  const message = body ?? (draft ? draft.body.replace('{owner}', name.trim() || '...') : '')
+  const send = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      const { orderId } = await api(`/api/shopping/order/${supplierId}/whatsapp`, { body: { body: message, ownerName: name } })
+      setSent(orderId)
+    } catch (problem) { setError((problem as Error).message) } finally { setBusy(false) }
+  }
+  if (sent) {
+    return (
+      <div className="stack">
+        <p className="notice" role="status"><CheckCircle size={20} aria-hidden="true" />{t('Sent.')}</p>
+        <a className="btn primary block" href={`#/checks/${sent}`} onClick={onClose}>{t('See the delivery')}</a>
+      </div>
+    )
+  }
+  return (
+    <>
+      <ErrorNote message={error} />
+      {!draft && !error ? <Loading /> : null}
+      {draft ? (
+        <>
+          <label className="field">{t('Your name')}<input value={name} onChange={(event) => setName(event.target.value)} /></label>
+          <label className="field">{t('Message')}<textarea rows={11} value={message} onChange={(event) => setBody(event.target.value)} /></label>
+          <button className="btn primary block" type="button" disabled={busy || !name.trim() || !draft.phone} onClick={send}><WhatsappLogo size={24} aria-hidden="true" />{busy ? t('Sending') : t('Send on WhatsApp')}</button>
+          {draft.phone ? null : <p className="notice">{t('Add the supplier phone number.')}</p>}
+        </>
+      ) : null}
+    </>
+  )
+}
+
 function OrderSheet({ supplierId, onClose }: { supplierId: number; onClose: () => void }) {
+  const [how, setHow] = useState<'whatsapp' | 'email'>('whatsapp')
   const [email, setEmail] = useState<any>(null)
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'copied'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -158,10 +200,12 @@ function OrderSheet({ supplierId, onClose }: { supplierId: number; onClose: () =
     try { await navigator.clipboard.writeText(email.body); setState('copied') } catch { setError(t("That didn't work. Try again.")) }
   }
   return (
-    <Sheet title={t('Order email')} onClose={onClose}>
-      <ErrorNote message={error} />
-      {!email && !error ? <Loading /> : null}
-      {email ? (
+    <Sheet title={t('Send the order')} onClose={onClose}>
+      <Segment label={t('Show')} fill value={how} onChange={setHow} options={[{ value: 'whatsapp', label: t('WhatsApp') }, { value: 'email', label: t('Email') }]} />
+      {how === 'whatsapp' ? <WhatsAppOrder supplierId={supplierId} onClose={onClose} /> : null}
+      {how === 'email' ? <ErrorNote message={error} /> : null}
+      {how === 'email' && !email && !error ? <Loading /> : null}
+      {how === 'email' && email ? (
         <>
           <label className="field">{t('To')}<input type="email" value={email.to} onChange={(event) => setEmail({ ...email, to: event.target.value })} /></label>
           <label className="field">{t('Subject')}<input value={email.subject} onChange={(event) => setEmail({ ...email, subject: event.target.value })} /></label>

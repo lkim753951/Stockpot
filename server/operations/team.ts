@@ -15,6 +15,7 @@ import { itemFor, listRuns, outOfRange, rangeShown, runView, saveEntry } from '.
 import { fileReport } from './reports.ts'
 import { checkProof } from '../money/proof.ts'
 import { joinByInvite } from './invites.ts'
+import { orderWaitingOn, supplierByNumber, supplierSentInvoice, supplierWrote } from './supplierOrders.ts'
 import { crisisCard } from './crisisCards.ts'
 import { voiceNoteToWav } from '../ai/voicenote.ts'
 import { assigneesFor, contactFor, downloadMedia, loadStaff, markDelivery, sendToPerson, signatureValid, team, whatsappReady, type Contact } from '../integrations/whatsapp.ts'
@@ -388,6 +389,34 @@ export function fromWebhook(message: Record<string, any>): Incoming | null {
   }
 }
 
+const DOCUMENT_TYPES: Record<string, string> = { ...IMAGE_TYPES, 'application/pdf': '.pdf' }
+
+/**
+ * A supplier replying to an order. Their number can also be on the team, as it is when the owner tries this on their
+ * own phone, so an order waiting on them comes first. With no order waiting, a team member carries on as usual.
+ */
+async function fromSupplier(raw: Record<string, any>) {
+  const supplier = await supplierByNumber(String(raw.from ?? ''))
+  if (!supplier) return false
+  const waiting = await orderWaitingOn(Number(supplier.id))
+  if (!waiting && contactFor(String(raw.from ?? ''))) return false
+  const caption = String(raw.text?.body ?? raw.image?.caption ?? raw.document?.caption ?? '')
+  await run(`INSERT INTO team_messages (wa_id, direction, contact, kind, body, status, created_at) VALUES (?, 'in', ?, ?, ?, 'received', ?) ON CONFLICT DO NOTHING`, String(raw.id), supplier.name, raw.type === 'text' ? 'text' : 'photo', caption || null, nowIso())
+  if (!waiting) return true
+  const media = raw.document ?? raw.image
+  if (media?.id) {
+    const { bytes, mime } = await downloadMedia(String(media.id))
+    const extension = DOCUMENT_TYPES[mime.split(';')[0]]
+    if (extension) {
+      const file = mediaFile(extension)
+      await writeFile(file, bytes)
+      await supplierSentInvoice(supplier, file, String(raw.document?.filename ?? `invoice${extension}`))
+    }
+  }
+  if (caption) await supplierWrote(supplier, caption)
+  return true
+}
+
 async function deliver(payload: Record<string, any>) {
   await loadStaff()
   const receiving: Array<Promise<unknown>> = []
@@ -397,6 +426,7 @@ async function deliver(payload: Record<string, any>) {
       if (value.metadata?.phone_number_id && value.metadata.phone_number_id !== config.whatsapp.phoneNumberId) continue
       for (const status of value.statuses ?? []) await markDelivery(String(status.id), status.status === 'failed', status.errors?.[0]?.code)
       for (const raw of value.messages ?? []) {
+        if (await fromSupplier(raw)) continue
         const message = fromWebhook(raw)
         if (message) receiving.push(receive(message))
         else if (!await joinByInvite(raw)) console.log('Ignored a WhatsApp message from a number that is not on the team.')

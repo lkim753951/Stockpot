@@ -444,3 +444,50 @@ test('a voice note decodes into the format Meta accepts', async () => {
   await voiceNoteToWav(fs.readFileSync('/tmp/stockpot-note.ogg'), out)
   assert.equal(isUsableClip(out), true)
 })
+
+test('an order goes out on WhatsApp, and the reply reaches the owner, the tracker and staff at the ETA', async () => {
+  const db = await import('../server/core/db.ts')
+  const { staffDeliveryAlerts } = await import('../server/operations/supplierOrders.ts')
+  const { localTime } = await import('../server/core/clock.ts')
+  const supplier = (await api('/api/shopping')).json.suppliers.find((row: any) => row.items.length)
+  await db.run('UPDATE suppliers SET phone = ? WHERE id = ?', '+44 7700 900777', supplier.id)
+  const draft = (await api(`/api/shopping/order/${supplier.id}/whatsapp`)).json
+  assert.match(draft.body, /This is \{owner\} from .*I would like to order some items\. Here is the list:\n1\. /)
+  assert.match(draft.body, /Can I have an invoice for the order as well as the delivery ETA\?$/)
+
+  const before = mock.state.whatsapp.length
+  const text = draft.body.replace('{owner}', 'Lucas')
+  const sentOrder = await api(`/api/shopping/order/${supplier.id}/whatsapp`, { method: 'POST', body: { body: text, ownerName: 'Lucas' } })
+  assert.equal(sentOrder.status, 201)
+  const orderId = sentOrder.json.orderId
+  assert.equal(mock.state.whatsapp.length, before + 1)
+  assert.equal(lastSent().to, '447700900777')
+  assert.equal(lastSent().type, 'text')
+  const check = async () => (await api(`/api/checks/${orderId}`)).json
+  assert.ok((await check()).sentAt)
+  assert.equal((await api(`/api/orders/${orderId}/accept-invoice`, { method: 'POST' })).status, 400)
+
+  // Fifteen minutes ago, so the staff alert is already due.
+  const { date, time } = localTime()
+  const past = `${String(Math.max(0, Number(time.slice(0, 2)) - 1)).padStart(2, '0')}:00`
+  const alerts = mock.state.whatsapp.length
+  await said(`We can deliver ${date} at ${past}`, '447700900777')
+  await waitFor(async () => (await check()).repliedAt, 'the reply')
+  assert.equal((await check()).deliveryDate, date)
+  assert.equal((await check()).etaTime, past)
+  await waitFor(() => mock.state.whatsapp.length > alerts, 'the owner alert')
+  assert.match(words(lastSent()), /replied about your order/)
+
+  await db.run(`INSERT INTO invoices (file, status, gross_p, order_id, supplier_id, created_at) VALUES ('bill.pdf', 'read', 12000, ?, ?, ?)`, orderId, supplier.id, db.nowIso())
+  assert.equal((await api(`/api/orders/${orderId}/accept-invoice`, { method: 'POST' })).status, 200)
+  assert.ok((await check()).invoiceAcceptedAt)
+  assert.match(words(lastSent()), /invoice is accepted/)
+
+  const staffBefore = mock.state.whatsapp.length
+  await staffDeliveryAlerts()
+  assert.ok(mock.state.whatsapp.length > staffBefore)
+  assert.match(words(lastSent()), /delivery is due at/)
+  const once = mock.state.whatsapp.length
+  await staffDeliveryAlerts()
+  assert.equal(mock.state.whatsapp.length, once)
+})

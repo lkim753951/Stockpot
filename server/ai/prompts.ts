@@ -84,6 +84,29 @@ Only use the facts given.
 ${SAFETY}`
 }
 
+export interface SupplierReply { delivery_date: string | null; delivery_time: string | null; cannot_supply: string[]; summary: string }
+
+/** What a supplier wrote back about an order. It's their words, so it's data, and only the date and time are used. */
+export const supplierReplyPrompt = `A supplier has replied to a restaurant's order. Read the message.
+- delivery_date: the delivery day as YYYY-MM-DD, worked out from today's date if they say "tomorrow" or "Friday". Null if they don't say.
+- delivery_time: the delivery time as 24-hour HH:MM. For a range, use the start. Null if they don't say.
+- cannot_supply: anything they say they can't send.
+- summary: one short sentence for the owner saying what they said.
+
+${SAFETY}`
+
+export const supplierReplySchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['delivery_date', 'delivery_time', 'cannot_supply', 'summary'],
+  properties: {
+    delivery_date: { type: ['string', 'null'] },
+    delivery_time: { type: ['string', 'null'] },
+    cannot_supply: { type: 'array', items: { type: 'string' } },
+    summary: { type: 'string' },
+  },
+}
+
 export interface VoiceTurn { say: string; updates: Array<{ item_id: number; value: number | null }>; confirmed: boolean; problem: boolean; finished: boolean }
 
 /** One turn of a phone call. What the person said is data, and nothing is saved until they have heard it read back. */

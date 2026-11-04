@@ -9,6 +9,7 @@ import { sweepCalls } from '../operations/calls.ts'
 import { sendDueChecklists } from '../operations/team.ts'
 import { checkInbox } from '../integrations/gmail.ts'
 import { chaseLate } from '../operations/chase.ts'
+import { staffDeliveryAlerts } from '../operations/supplierOrders.ts'
 import { backupIfDue } from './backup.ts'
 import { sweepInvoices } from '../setup/documents.ts'
 import { removeFile } from './files.ts'
@@ -76,6 +77,7 @@ export async function onePass() {
   await step('backup', backupIfDue)
   await step('send', sendDueChecklists)
   await step('chase', chaseLate)
+  await step('deliveries', staffDeliveryAlerts)
   await step('calls', sweepCalls)
   await step('invoices', sweepInvoices)
   await step('uploads', sweepUploads)

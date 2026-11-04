@@ -1,3 +1,4 @@
+import { invoicesForOrders, orderWaitingOn, supplierWrote } from '../operations/supplierOrders.ts'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -122,6 +123,31 @@ function attachments(part: any, found: Array<{ name: string; id: string }> = [])
   return found
 }
 
+const plainText = (part: any): string => {
+  if (part?.mimeType === 'text/plain' && part.body?.data) return Buffer.from(part.body.data, 'base64url').toString('utf8')
+  for (const child of part?.parts ?? []) {
+    const found = plainText(child)
+    if (found) return found
+  }
+  return ''
+}
+
+/** A supplier who answers an order by email, with the delivery time in the words. */
+async function repliesByEmail() {
+  const waiting = await all(`SELECT DISTINCT s.id, s.name, s.email FROM orders o JOIN suppliers s ON s.id = o.supplier_id WHERE o.sent_at IS NOT NULL AND o.invoice_accepted_at IS NULL AND s.email IS NOT NULL AND s.email NOT LIKE '%.example'`)
+  for (const supplier of waiting) {
+    const order = await orderWaitingOn(Number(supplier.id))
+    if (!order) continue
+    const list = await gmail<{ messages?: Array<{ id: string }> }>(`/users/me/messages?maxResults=5&q=${encodeURIComponent(`from:${supplier.email} newer_than:7d`)}`)
+    for (const { id } of list.messages ?? []) {
+      if (!(await run('INSERT INTO mail_seen (message_id, at) VALUES (?, ?) ON CONFLICT DO NOTHING', `reply:${id}`, nowIso())).changes) continue
+      const message = await gmail(`/users/me/messages/${id}?format=full`)
+      if (Number(message.internalDate) < Date.parse(String(order.sent_at))) continue
+      await supplierWrote(supplier, plainText(message.payload).slice(0, 4000))
+    }
+  }
+}
+
 /** Pulls invoices from supplier emails. Each message is only looked at once, so a re-run can't double a bill. */
 export async function checkInbox() {
   if (!await gmailConnected()) return { added: 0 }
@@ -150,7 +176,8 @@ export async function checkInbox() {
     }
   }
   await saveSetting('gmail_checked_at', nowIso())
-  if (ids.length) background('gmail invoices', () => readInvoices(ids))
+  if (ids.length) background('gmail invoices', async () => { await readInvoices(ids); await invoicesForOrders(ids) })
+  await repliesByEmail()
   return { added: ids.length }
 }
 
