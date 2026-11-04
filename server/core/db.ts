@@ -18,6 +18,11 @@ CREATE TABLE IF NOT EXISTS items (
   id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, aliases TEXT NOT NULL DEFAULT '[]',
   base_unit TEXT NOT NULL CHECK (base_unit IN ('kg','l','each')), case_qty REAL
 );
+CREATE TABLE IF NOT EXISTS stock_counts (
+  id INTEGER PRIMARY KEY, item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+  count_value REAL NOT NULL, pack TEXT NOT NULL CHECK (pack IN ('container','box','crate','unit')),
+  counted_by TEXT NOT NULL, counted_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS price_history (
   id INTEGER PRIMARY KEY, item_id INTEGER NOT NULL REFERENCES items(id),
   supplier_id INTEGER NOT NULL REFERENCES suppliers(id), date TEXT NOT NULL,
@@ -201,6 +206,8 @@ const LATER_COLUMNS: Array<[string, string, string]> = [
   ['suppliers', 'category', 'TEXT'],
   ['items', 'supplier_id', 'INTEGER'],
   ['items', 'category', 'TEXT'],
+  ['items', 'density_kg_l', 'REAL'],
+  ['items', 'density_source', 'TEXT'],
   ['dishes', 'weekly_portions', 'INTEGER'],
   ['calls', 'connections', 'INTEGER NOT NULL DEFAULT 0'],
   ['calls', 'last_seen_at', 'TEXT'],
@@ -264,7 +271,7 @@ const VIEWS = ['v_three_way', 'v_dish_margin', 'v_food_cost']
 const RELATIONS = new Set([...TABLES, ...VIEWS])
 
 /** Bump this when the schema changes. Postgres only runs its setup when this number moves. */
-const SCHEMA_VERSION = '4'
+const SCHEMA_VERSION = '5'
 
 /** Runs fn over the code in a statement, leaving strings, quoted names and comments alone. */
 function mapCode(sql: string, fn: (code: string) => string) {

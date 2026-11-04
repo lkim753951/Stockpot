@@ -9,7 +9,7 @@ import { reportDeliveryProblems } from '../operations/checks.ts'
 import { t } from './lang.ts'
 
 const TABLES = [
-  'credits', 'message_log', 'team_messages', 'team_proposals', 'checklist_entries', 'checklist_runs', 'checklist_items', 'checklist_templates', 'staff_reports', 'actions', 'weekly_reports', 'sales',
+  'stock_counts', 'credits', 'message_log', 'team_messages', 'team_proposals', 'checklist_entries', 'checklist_runs', 'checklist_items', 'checklist_templates', 'staff_reports', 'actions', 'weekly_reports', 'sales',
   'delivery_media', 'delivery_lines', 'deliveries', 'invoice_lines', 'invoices', 'order_lines', 'tasks', 'orders', 'live_cards', 'call_turns', 'calls',
   'price_history', 'recipe_lines', 'dishes', 'items', 'suppliers',
 ]
@@ -55,6 +55,14 @@ async function seedAll() {
   for (const [itemId, supplierId, category] of [[thighs, harrow, 'Meat and fish'], [onions, northgate, 'Veg and fruit'], [tomatoes, northgate, 'Veg and fruit'],
     [rice, spice, 'Spices and dry goods'], [oil, spice, 'Spices and dry goods'], [cream, oakfield, 'Dairy']] as Array<[number, number, string]>) {
     await run('UPDATE items SET supplier_id = ?, category = ? WHERE id = ?', supplierId, category, itemId)
+  }
+
+  // Yesterday's stock count, so the Stock tab and the shopping list have something to show. The densities stand in for the AI's.
+  for (const [itemId, density] of [[thighs, 0.75], [onions, 0.55], [tomatoes, 0.6], [rice, 0.85], [oil, 0.92], [cream, 1]]) {
+    await run(`UPDATE items SET density_kg_l = ?, density_source = 'ai' WHERE id = ?`, density, itemId)
+  }
+  for (const [itemId, count, pack] of [[rice, 2, 'box'], [onions, 1, 'crate'], [oil, 3, 'container'], [cream, 2, 'container']] as Array<[number, number, string]>) {
+    await insert(`INSERT INTO stock_counts (item_id, count_value, pack, counted_by, counted_at) VALUES (?, ?, ?, 'staff', ?)`, itemId, count, pack, new Date(Date.now() - 86400000).toISOString())
   }
 
   const curry = await dish('Chicken curry', 950, 80, [[thighs, 0.2], [rice, 0.15], [cream, 0.05], [onions, 0.1], [oil, 0.02]])

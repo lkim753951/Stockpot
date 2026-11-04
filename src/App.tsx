@@ -1,6 +1,6 @@
 import { t, tk } from './lib/i18n'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { Bell, BellRinging, ChartLineUp, CookingPot, ChatCircleText, ClipboardText, GearSix, House, Moon, SignOut, Siren, SquaresFour, Sun, Tray, Truck } from '@phosphor-icons/react'
+import { Bell, BellRinging, ChartLineUp, CookingPot, ChatCircleText, ClipboardText, GearSix, House, Moon, Package, SignOut, Siren, SquaresFour, Sun, Tray, Truck } from '@phosphor-icons/react'
 import { api } from './lib/api'
 import { useTheme } from './lib/theme'
 import { alertPermission, alertsSupported, useAlerts, AlertToasts } from './components/alerts'
@@ -9,6 +9,7 @@ import { Home } from './screens/Home'
 import { Actions } from './screens/Actions'
 import { Features } from './screens/Features'
 import { Shopping } from './screens/Shopping'
+import { Stock } from './screens/Stock'
 import { Call } from './screens/Call'
 import { CallDetail, Calls } from './screens/Calls'
 import { Order } from './screens/Order'
@@ -59,6 +60,7 @@ const OWNER_TABS = [
   { href: 'home', label: tk('Home'), Icon: House },
   { href: 'dashboard', label: tk('Dashboard'), Icon: ChartLineUp },
   { href: 'actions', label: tk('Tasks'), Icon: Tray },
+  { href: 'stock', label: tk('Stock'), Icon: Package },
   { href: 'features', label: tk('Features'), Icon: SquaresFour },
 ]
 
@@ -66,6 +68,7 @@ const STAFF_TABS = [
   { href: 'staff', label: tk('Today'), Icon: ClipboardText },
   { href: 'staff/report', label: tk('Report'), Icon: ChatCircleText },
   { href: 'staff/recipes', label: tk('Recipes'), Icon: CookingPot },
+  { href: 'staff/stock', label: tk('Stock'), Icon: Package },
   { href: 'staff/deliveries', label: tk('Deliveries'), Icon: Truck },
   { href: 'staff/crisis', label: tk('Crisis'), Icon: Siren },
 ]
@@ -82,6 +85,7 @@ function StaffScreen({ parts, sample }: { parts: string[]; sample: boolean }) {
   if (section === 'report') return <StaffReport sample={sample} />
   if (section === 'recipes') return id ? <StaffRecipe id={id} /> : <StaffRecipes />
   if (section === 'crisis') return id ? <CrisisCardView cardKey={id} base="#/staff/crisis" /> : <CrisisList base="#/staff/crisis" />
+  if (section === 'stock') return <Stock />
   if (section === 'deliveries') return <StaffList />
   if (section && /^\d+$/.test(section)) return <StaffDelivery id={section} sample={sample} />
   return <StaffToday />
@@ -93,6 +97,7 @@ function OwnerScreen({ parts, sample, onClock }: { parts: string[]; sample: bool
     case 'actions': return <Actions sample={sample} />
     case 'features': return <Features />
     case 'shopping': return <Shopping />
+    case 'stock': return <Stock owner />
     case 'call': return <Call sample={sample} />
     case 'calls': return id ? <CallDetail id={id} /> : <Calls sample={sample} />
     case 'order': return <Order id={id} />
@@ -219,7 +224,7 @@ export function App() {
   const liveCall = screen === 'call'
   const tabs = staffView ? STAFF_TABS : OWNER_TABS
   const activeTab = staffView
-    ? (['report', 'crisis', 'deliveries', 'recipes'].includes(parts[1]) ? `staff/${parts[1]}` : parts[1] && /^\d+$/.test(parts[1]) ? 'staff/deliveries' : 'staff')
+    ? (['report', 'crisis', 'deliveries', 'recipes', 'stock'].includes(parts[1]) ? `staff/${parts[1]}` : parts[1] && /^\d+$/.test(parts[1]) ? 'staff/deliveries' : 'staff')
     : OWNER_PARENT[screen] ?? screen
 
   const reset = async () => {
@@ -259,7 +264,7 @@ export function App() {
       </div>
       {staffView ? null : <AlertToasts toasts={alerts.toasts} onClose={alerts.dismiss} />}
       {asking ? <Agent onClose={() => setAsking(false)} /> : null}
-      <nav className="nav" aria-label={staffView ? t('Staff') : t('Owner')} style={{ ['--tabs' as string]: 5 }}>
+      <nav className="nav" aria-label={staffView ? t('Staff') : t('Owner')} style={{ ['--tabs' as string]: 6 }}>
         <a className="nav-logo" href="#/welcome" aria-label={t('About Stockpot')}>{logo}</a>
         {tabs.map(({ href, label, Icon }, index) => {
           const on = activeTab === href

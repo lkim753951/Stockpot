@@ -108,6 +108,15 @@ const TYPICAL: Array<[RegExp, number]> = [
 ]
 const typical = (name: string, unit: string) => TYPICAL.find(([pattern]) => pattern.test(name))?.[1] ?? (unit === 'each' ? 40 : 350)
 
+/** Typical bulk densities, kg a litre, so the sample can estimate any ingredient. */
+const DENSITIES: Array<[RegExp, number]> = [
+  [/oil/i, 0.92], [/cream|milk|yogh?urt|stock|sauce|juice/i, 1.02], [/rice|lentil|sugar|salt/i, 0.85], [/flour/i, 0.55], [/pasta|noodle/i, 0.45],
+  [/onion|potato|carrot|tomato/i, 0.6], [/chicken|lamb|beef|pork|mince|fish/i, 0.75], [/butter|ghee|cheese|paneer/i, 0.9], [/herb|coriander|parsley|mint|spinach/i, 0.15], [/spice|cumin|turmeric|paprika/i, 0.5],
+]
+const densityReply = (text: string) => ({
+  densities: [...text.matchAll(/^\d+\. (.+)$/gm)].map(([, name]) => ({ name, kg_per_litre: DENSITIES.find(([pattern]) => pattern.test(name))?.[1] ?? 0.6 })),
+})
+
 function estimateReply(text: string) {
   const listed = [...text.matchAll(/^\d+\. (.+): ([\d.]+) (g|ml|each)$/gm)]
   if (listed.length) return { ingredients: listed.map(([, name, quantity, unit]) => ({ name, quantity: Number(quantity), unit, pence_per_unit: typical(name, unit) })) }
@@ -127,6 +136,7 @@ function replyFor(name: string, system: string, text: string) {
   if (name === 'proof_target') return { target: 'fryer' }
   if (name === 'call_script_words') return { opening: `Hi ${text.match(/Contact: ([^.]+)\./)?.[1] ?? 'there'}, it's about our last delivery. Have you got a minute?`, ask: 'Could you send the rest over, or put a credit note through, please?', pushback: 'No problem, I can send you the photos and the invoice now.' }
   if (name === 'dish_estimate') return estimateReply(text)
+  if (name === 'ingredient_density') return densityReply(text)
   if (name === 'menu') {
     return { dishes: [
       { name: 'Lamb kofta', price_pence: 1250, ingredients: [{ name: 'Lamb mince', quantity: 180, unit: 'g' }, { name: 'Flatbread', quantity: 1, unit: 'each' }] },

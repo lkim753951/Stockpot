@@ -22,6 +22,16 @@ const text = (value: unknown, limit = 120) => (typeof value === 'string' ? value
 /** What a supplier sells, and what an ingredient is. The shopping list groups by these. */
 export const CATEGORIES = ['Veg and fruit', 'Meat and fish', 'Dairy', 'Spices and dry goods', 'Drinks', 'Other']
 
+/** A first guess at what an ingredient is, from its name. The owner can change it, and their choice is kept. */
+const GUESSES: Array<[string, RegExp]> = [
+  ['Meat and fish', /chicken|beef|lamb|pork|mince|bacon|sausage|duck|turkey|fish|salmon|cod|haddock|prawn|shrimp|tuna|thigh|breast|steak/i],
+  ['Dairy', /milk|cream|butter|cheese|yog(h)?urt|paneer|ghee|egg|feta|halloumi|mozzarella/i],
+  ['Spices and dry goods', /spice|cumin|turmeric|coriander seed|garam|masala|paprika|chilli powder|pepper|salt|cinnamon|cardamom|clove|bay lea|rice|lentil|dal|chickpea|bean|flour|pasta|noodle|sugar|oil|vinegar|stock|tinned|tin|coconut milk|sauce|nut|seed/i],
+  ['Drinks', /juice|soda|cola|water|beer|wine|tea|coffee|lassi/i],
+  ['Veg and fruit', /onion|tomato|potato|carrot|garlic|ginger|chilli|pepper|spinach|lettuce|cabbage|mushroom|aubergine|courgette|leek|celery|coriander|parsley|mint|basil|herb|lemon|lime|apple|mango|banana|berry|veg|fruit|cucumber|pea|kale|squash/i],
+]
+export const guessCategory = (name: string) => GUESSES.find(([, pattern]) => pattern.test(name))?.[0] ?? 'Other'
+
 export const listSuppliers = () => all('SELECT id, name, contact, email, phone, category FROM suppliers ORDER BY name')
 
 export async function saveSupplier(input: Record<string, unknown>, id?: number) {

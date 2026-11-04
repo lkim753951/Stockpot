@@ -10,7 +10,7 @@ type Tab = 'list' | 'suppliers' | 'dishes'
 /** Seconds between quiet refreshes while the list is open, so a recipe changed on another phone shows up here. */
 const REFRESH_MS = 30000
 
-const amount = (quantity: number, unit: string) => (unit === 'each' ? `${Number(quantity.toFixed(2))} ${t('each')}` : quantity < 1 ? `${Math.round(quantity * 1000)} ${unit === 'kg' ? 'g' : 'ml'}` : `${Number(quantity.toFixed(2))} ${unit}`)
+export const amount = (quantity: number, unit: string) => (unit === 'each' ? `${Number(quantity.toFixed(2))} ${t('each')}` : quantity < 1 ? `${Math.round(quantity * 1000)} ${unit === 'kg' ? 'g' : 'ml'}` : `${Number(quantity.toFixed(2))} ${unit}`)
 const caseWords = (item: any) => (item.cases ? tn(item.cases, '{n} case of {size}', '{n} cases of {size}', { size: amount(item.caseQty, item.unit) }) : null)
 
 function useShopping() {
@@ -41,6 +41,7 @@ function ItemSheet({ item, data, onClose, onChange }: { item: any; data: any; on
       <ul className="list">
         <li><span>{t('Your recipes use a week')}</span><strong className="num">{amount(item.need / (1 + data.spare / 100), item.unit)}</strong></li>
         <li><span>{t('With {spare}% spare', { spare: data.spare })}</span><strong className="num">{amount(item.need, item.unit)}</strong></li>
+        {item.stock !== null ? <li><span>{t('In stock')}</span><strong className="num">{amount(item.stock, item.unit)}</strong></li> : null}
         <li><span>{t('To order')}</span><strong className="num">{amount(item.order, item.unit)}{item.cases ? <span className="when"><br />{caseWords(item)}</span> : null}</strong></li>
         {item.costPence !== null ? <li><span>{t('About')}</span><strong className="num">{pounds(item.costPence)}</strong></li> : null}
       </ul>
