@@ -1432,5 +1432,11 @@
   "{supplier} charged {amount} on {date}": "{supplier} tính {amount} vào {date}",
   "{urgent} urgent": "{urgent} gấp",
   "{value} or above": "{value} trở lên",
-  "{value} or below": "{value} trở xuống"
+  "{value} or below": "{value} trở xuống",
+  "Add from a photo": "Thêm từ ảnh",
+  "Reading the photo": "Đang đọc ảnh",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "Stockpot không tìm thấy gì để kiểm tra trong ảnh đó. Hãy chụp gần quầy hơn.",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "other": "Đã thêm {n} mục kiểm tra từ ảnh. Hãy đọc lại trước khi lưu."
+  }
 }

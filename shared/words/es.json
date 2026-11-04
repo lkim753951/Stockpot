@@ -1596,5 +1596,13 @@
   "{supplier} charged {amount} on {date}": "{supplier} cobró {amount} el {date}",
   "{urgent} urgent": "Urgentes: {urgent}",
   "{value} or above": "{value} o más",
-  "{value} or below": "{value} o menos"
+  "{value} or below": "{value} o menos",
+  "Add from a photo": "Añadir con una foto",
+  "Reading the photo": "Leyendo la foto",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "Stockpot no encontró nada que revisar en esa foto. Prueba con una más cerca del puesto.",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "one": "Se añadió {n} control desde la foto. Revísalo antes de guardar.",
+    "many": "Se añadieron {n} controles desde la foto. Revísalos antes de guardar.",
+    "other": "Se añadieron {n} controles desde la foto. Revísalos antes de guardar."
+  }
 }

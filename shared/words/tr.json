@@ -1469,5 +1469,12 @@
   "{supplier} charged {amount} on {date}": "{supplier}, {date} tarihinde {amount} aldı",
   "{urgent} urgent": "{urgent} acil",
   "{value} or above": "{value} veya üstü",
-  "{value} or below": "{value} veya altı"
+  "{value} or below": "{value} veya altı",
+  "Add from a photo": "Fotoğraftan ekle",
+  "Reading the photo": "Fotoğraf okunuyor",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "Stockpot bu fotoğrafta kontrol edilecek bir şey bulamadı. İstasyona daha yakından çekmeyi dene.",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "one": "Fotoğraftan {n} kontrol eklendi. Kaydetmeden önce oku.",
+    "other": "Fotoğraftan {n} kontrol eklendi. Kaydetmeden önce oku."
+  }
 }

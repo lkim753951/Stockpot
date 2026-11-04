@@ -1469,5 +1469,12 @@
   "{supplier} charged {amount} on {date}": "{supplier} {date} তারিখে {amount} নিয়েছে",
   "{urgent} urgent": "{urgent}টি জরুরি",
   "{value} or above": "{value} বা তার বেশি",
-  "{value} or below": "{value} বা তার কম"
+  "{value} or below": "{value} বা তার কম",
+  "Add from a photo": "ছবি থেকে যোগ করুন",
+  "Reading the photo": "ছবি পড়া হচ্ছে",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "Stockpot ওই ছবিতে যাচাই করার মতো কিছু পায়নি। স্টেশনের আরও কাছ থেকে ছবি তুলুন।",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "one": "ছবি থেকে {n}টি চেক যোগ হয়েছে। সেভ করার আগে পড়ে নিন।",
+    "other": "ছবি থেকে {n}টি চেক যোগ হয়েছে। সেভ করার আগে পড়ে নিন।"
+  }
 }

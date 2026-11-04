@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
-import { CaretRight, ClipboardText, Plus, Trash } from '@phosphor-icons/react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { Camera, CaretRight, ClipboardText, Plus, Trash } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { CALL_LANGUAGES, LANGUAGES } from '../../shared/lang'
 import { currentLanguage, locale, t, tk, tn } from '../lib/i18n'
 import { Dock, Empty, ErrorNote, Loading, Screen, Segment, Sheet } from '../components/ui'
+import { readableImage } from '../lib/reading'
 
 const TYPES = [{ value: 'tick', label: tk('Tick') }, { value: 'temperature', label: tk('Temperature') }, { value: 'stock', label: tk('Stock count') }]
 const WEEKS = [{ value: 1, label: tk('First') }, { value: 2, label: tk('Second') }, { value: 3, label: tk('Third') }, { value: 4, label: tk('Fourth') }, { value: -1, label: tk('Last') }]
@@ -116,6 +117,27 @@ export function ChecklistSettings() {
   }
   const item = (index: number, change: object) => setForm({ ...form, items: form.items.map((row: any, at: number) => (at === index ? { ...row, ...change } : row)) })
 
+  // A photo of the station, or of a written prep list, becomes one check per thing in it. They join the form unsaved.
+  const camera = useRef<HTMLInputElement>(null)
+  const [reading, setReading] = useState(false)
+  const [added, setAdded] = useState<number | null>(null)
+  const fromPhoto = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setReading(true)
+    setError(null)
+    setAdded(null)
+    try {
+      const data = new FormData()
+      data.append('file', await readableImage(file))
+      const { items } = await api('/api/setup/checklists/from-photo', { form: data })
+      const found = items.map((row: any) => ({ ...NEW_ITEM, label: row.label, proofHint: row.show }))
+      setForm((current: any) => ({ ...current, items: [...current.items.filter((row: any) => row.id || row.label.trim()), ...found] }))
+      setAdded(found.length)
+    } catch (problem) { setError((problem as Error).message) } finally { setReading(false) }
+  }
+
   return (
     <Screen title={t('Checklists')} lead={t('Past records stay safe when you change a list.')}>
       {!form ? <ErrorNote message={error} /> : null}
@@ -135,9 +157,9 @@ export function ChecklistSettings() {
           ))}
         </ul>
       ) : null}
-      <Dock><button className="btn primary block" type="button" onClick={() => setForm(structuredClone(BLANK))}><Plus size={24} aria-hidden="true" />{t('New checklist')}</button></Dock>
+      <Dock><button className="btn primary block" type="button" onClick={() => { setAdded(null); setForm(structuredClone(BLANK)) }}><Plus size={24} aria-hidden="true" />{t('New checklist')}</button></Dock>
       {form ? (
-        <Sheet title={form.id ? t(form.name) : t('New checklist')} onClose={() => { setForm(null); setError(null) }}>
+        <Sheet title={form.id ? t(form.name) : t('New checklist')} onClose={() => { setForm(null); setError(null); setAdded(null) }}>
           <label className="field">{t('Name')}<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
           <h3>{t('When')}</h3>
           <ScheduleEditor schedule={form.schedule} onChange={(schedule) => setForm({ ...form, schedule })} />
@@ -186,7 +208,12 @@ export function ChecklistSettings() {
               <ItemEditor key={row.id ?? `new-${index}`} item={row} onChange={(change) => item(index, change)} onRemove={() => setForm({ ...form, items: form.items.filter((_: any, at: number) => at !== index) })} />
             ))}
           </ul>
-          <button className="btn text small" type="button" onClick={() => setForm({ ...form, items: [...form.items, { ...NEW_ITEM }] })}><Plus size={20} aria-hidden="true" />{t('Add a check')}</button>
+          {added ? <p className="notice" role="status">{tn(added, 'Added {n} check from the photo. Read it before you save.', 'Added {n} checks from the photo. Read them before you save.')}</p> : null}
+          <div className="row check-adds">
+            <button className="btn small" type="button" disabled={reading} onClick={() => camera.current?.click()}><Camera size={20} aria-hidden="true" />{reading ? t('Reading the photo') : t('Add from a photo')}</button>
+            <button className="btn text small" type="button" onClick={() => setForm({ ...form, items: [...form.items, { ...NEW_ITEM }] })}><Plus size={20} aria-hidden="true" />{t('Add a check')}</button>
+          </div>
+          <input ref={camera} type="file" accept="image/*" hidden onChange={fromPhoto} />
           <ErrorNote message={error} />
           <button className="btn primary block" type="button" disabled={busy} onClick={save}>{busy ? t('Saving') : t('Save')}</button>
           {form.id ? <button className="btn text block" type="button" onClick={retire}>{t('Stop using this list')}</button> : null}

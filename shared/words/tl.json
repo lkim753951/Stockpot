@@ -1469,5 +1469,12 @@
   "{supplier} charged {amount} on {date}": "Naningil ang {supplier} ng {amount} noong {date}",
   "{urgent} urgent": "{urgent} urgent",
   "{value} or above": "{value} pataas",
-  "{value} or below": "{value} pababa"
+  "{value} or below": "{value} pababa",
+  "Add from a photo": "Idagdag mula sa litrato",
+  "Reading the photo": "Binabasa ang litrato",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "Walang nakitang susuriin si Stockpot sa litratong iyon. Subukan nang mas malapit sa station.",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "one": "Nagdagdag ng {n} check mula sa litrato. Basahin bago i-save.",
+    "other": "Nagdagdag ng {n} check mula sa litrato. Basahin bago i-save."
+  }
 }

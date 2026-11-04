@@ -1432,5 +1432,11 @@
   "{supplier} charged {amount} on {date}": "{supplier}在{date}收了{amount}",
   "{urgent} urgent": "{urgent}项紧急",
   "{value} or above": "{value}或以上",
-  "{value} or below": "{value}或以下"
+  "{value} or below": "{value}或以下",
+  "Add from a photo": "从照片添加",
+  "Reading the photo": "正在读取照片",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "Stockpot 在照片里没找到要检查的东西。请离工位近一点再拍。",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "other": "已从照片添加 {n} 项检查。保存前请核对。"
+  }
 }
