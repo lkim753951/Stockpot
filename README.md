@@ -42,6 +42,7 @@ flowchart LR
 | **Deliveries** | Shows what was agreed, delivered and billed for each line, and counts boxes on video, with boxes drawn live over the camera |
 | **Receipts and invoices** | Turns photos and PDFs into rows, checks the printed sums and flags anything unsure |
 | **Price check** | Finds price rises and possible double billing from old invoices |
+| **Stock** | Counts in containers, boxes and crates, estimates the weight with AI, and takes what you have off the order |
 | **Menu and margins** | Reads recipes, costs each dish and shows the menu price that hits your target margin |
 | **File import** | Reads sales, recipes and price lists from CSV, Excel, PDF, Word, text and photos |
 | **Analyst** | Traces an unusual number to its cause, suggests 3 actions and answers questions |
@@ -55,6 +56,7 @@ flowchart LR
 | **Reports** | Lets staff report in their own language, and the owner reads it in English |
 | **Crisis cards** | Opens the right steps in two taps, even with no connection |
 | **Recipes** | Shows ingredients, steps and timings, and never shows costs |
+| **Stock** | Counts ingredients in containers, boxes and crates, with no costs shown |
 | **Deliveries** | Records what arrived, where it went and what went wrong |
 
 The app works in 18 languages. [See every feature](docs/features.md).

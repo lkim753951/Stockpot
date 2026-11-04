@@ -1,25 +1,16 @@
 import { all, get, run } from '../core/db.ts'
 import { localTime } from '../core/clock.ts'
-import { CATEGORIES, SetupError } from '../setup/setup.ts'
+import { CATEGORIES, guessCategory, SetupError } from '../setup/setup.ts'
+import { stockOnHand } from './stock.ts'
 
 /**
  * The weekly shopping list. Every recipe's ingredients, times how many of each dish sell in a week, plus a little
- * spare, grouped by the supplier each ingredient comes from. All plain arithmetic on saved data: no model guesses a number.
+ * spare, less what a recent stock count says is already there, grouped by the supplier each ingredient comes from. All plain arithmetic on saved data: no model guesses a number.
  */
 
 /** Spare on top of what the recipes use, for trimming, waste and a busy night. */
 export const SPARE_PERCENT = 10
 const SALES_WEEKS = 4
-
-/** A first guess at what an ingredient is, from its name. The owner can change it, and their choice is kept. */
-const GUESSES: Array<[string, RegExp]> = [
-  ['Meat and fish', /chicken|beef|lamb|pork|mince|bacon|sausage|duck|turkey|fish|salmon|cod|haddock|prawn|shrimp|tuna|thigh|breast|steak/i],
-  ['Dairy', /milk|cream|butter|cheese|yog(h)?urt|paneer|ghee|egg|feta|halloumi|mozzarella/i],
-  ['Spices and dry goods', /spice|cumin|turmeric|coriander seed|garam|masala|paprika|chilli powder|pepper|salt|cinnamon|cardamom|clove|bay lea|rice|lentil|dal|chickpea|bean|flour|pasta|noodle|sugar|oil|vinegar|stock|tinned|tin|coconut milk|sauce|nut|seed/i],
-  ['Drinks', /juice|soda|cola|water|beer|wine|tea|coffee|lassi/i],
-  ['Veg and fruit', /onion|tomato|potato|carrot|garlic|ginger|chilli|pepper|spinach|lettuce|cabbage|mushroom|aubergine|courgette|leek|celery|coriander|parsley|mint|basil|herb|lemon|lime|apple|mango|banana|berry|veg|fruit|cucumber|pea|kale|squash/i],
-]
-export const guessCategory = (name: string) => GUESSES.find(([, pattern]) => pattern.test(name))?.[0] ?? 'Other'
 
 /** How much to buy: never less than needed, in steps a supplier can sell. A known case size rounds up to whole cases. */
 function toOrder(need: number, unit: string, caseQty: number | null) {
@@ -85,6 +76,7 @@ export async function shoppingList() {
     item.used += Number(line.qty_base) * week.portions
   }
 
+  const onHand = await stockOnHand()
   for (const item of items.values()) {
     // Who it comes from: the owner's choice, then whoever sold it last, then the supplier for its kind of thing.
     if (item.supplierId === null) {
@@ -95,7 +87,9 @@ export async function shoppingList() {
     const price = await get('SELECT price_p FROM price_history WHERE item_id = ? AND date <= ? ORDER BY date DESC, id DESC LIMIT 1', item.id, today)
       ?? await get('SELECT price_p FROM price_history WHERE item_id = ? ORDER BY date ASC, id ASC LIMIT 1', item.id)
     const need = item.used * (1 + SPARE_PERCENT / 100)
-    const order = toOrder(need, item.unit, item.caseQty)
+    const held = onHand.get(item.id)
+    item.stock = held?.fresh ? held.stock : null
+    const order = toOrder(Math.max(0, need - (item.stock ?? 0)), item.unit, item.caseQty)
     item.need = Number(need.toFixed(3))
     item.order = order.quantity
     item.cases = order.cases

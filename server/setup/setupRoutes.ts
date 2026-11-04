@@ -5,7 +5,7 @@ import type { Express, NextFunction, Request, Response } from 'express'
 import multer from 'multer'
 import { config, saveToEnv } from '../core/config.ts'
 import { all, get, insert, nowIso, run } from '../core/db.ts'
-import { requireOwner, requireStaff } from '../core/auth.ts'
+import { requireOwner, requireStaff, roleOf } from '../core/auth.ts'
 import { allowedExtension } from './documents.ts'
 import { sendStored, uploadDir, writeFile } from '../core/files.ts'
 import { dropFile, takeFields, takeFile, VIDEO_EXTENSIONS } from '../core/uploads.ts'
@@ -21,6 +21,7 @@ import type { IngestKind } from '../ai/prompts.ts'
 import { deleteDish, deleteSupplier, hasSampleData, listChecklists, changeItemUnit, listDishes, listSuppliers, restaurantName, retireChecklist, saveChecklist, saveDish, setDishPortions, saveRestaurant, saveSupplier, SetupError } from './setup.ts'
 import { estimateDish } from './estimate.ts'
 import { orderText, setItemSource, setWeeklyPortions, shoppingList, usePurchaseEstimate } from '../operations/shopping.ts'
+import { estimateDensities, saveStockCount, setDensity, stockView } from '../operations/stock.ts'
 import { changeStaff, whatsappReady } from '../integrations/whatsapp.ts'
 import { crisisCard, crisisCards, isCrisisPhoto, resetCrisisCard, saveCrisisCard } from '../operations/crisisCards.ts'
 import { saveSetting, setting } from '../core/db.ts'
@@ -122,6 +123,27 @@ export function setupRoutes(app: Express) {
   app.delete('/api/setup/suppliers/:id', requireOwner, guarded(async (request, response) => { await deleteSupplier(id(request)); response.json({ ok: true }) }))
 
   app.get('/api/setup/dishes', requireOwner, async (_request, response) => response.json(await listDishes()))
+  /** Staff and the owner both count stock. Only the owner gets the order figures, and neither route carries a price. */
+  const stockFor = async (request: Request) => {
+    const view = await stockView()
+    if (roleOf(request) !== 'owner') return view
+    const orders = new Map((await shoppingList()).items.map((item) => [item.id, item.order]))
+    return { ...view, items: view.items.map((item) => ({ ...item, order: orders.get(item.id) ?? null })) }
+  }
+  app.get('/api/stock', requireStaff, guarded(async (request, response) => response.json(await stockFor(request))))
+  app.post('/api/stock/estimate', requireStaff, guarded(async (request, response) => {
+    await estimateDensities(Number(request.body?.itemId) || undefined)
+    response.json(await stockFor(request))
+  }))
+  app.post('/api/stock/:id/count', requireStaff, guarded(async (request, response) => {
+    await saveStockCount(id(request), request.body ?? {}, roleOf(request) as string)
+    response.json(await stockFor(request))
+  }))
+  app.post('/api/stock/:id/density', requireOwner, guarded(async (request, response) => {
+    await setDensity(id(request), request.body?.density)
+    response.json(await stockFor(request))
+  }))
+
   /** The weekly shopping list: recipes times portions a week, by supplier. Nothing here orders on its own. */
   app.get('/api/shopping', requireOwner, async (_request, response) => response.json(await shoppingList()))
   app.post('/api/shopping/portions/:id', requireOwner, guarded(async (request, response) => { await setWeeklyPortions(id(request), request.body?.portions); response.json(await shoppingList()) }))

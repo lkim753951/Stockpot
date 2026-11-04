@@ -217,6 +217,56 @@ test('an AI estimate uses a price paid first, guesses the rest, suggests an 80% 
   assert.equal((await call(staff, '/api/setup/dishes/estimate', 'POST', { name: 'Dal' })).status, 403)
 })
 
+test('stock counts turn containers, boxes and crates into litres, kilos and a smaller order', async () => {
+  const dish = (await call(owner, '/api/setup/dishes', 'POST', { name: 'Count stew', pricePence: 1000, lines: [
+    { name: 'Count onions', quantity: 200, unit: 'g' }, { name: 'Count oil', quantity: 10, unit: 'ml' }, { name: 'Count limes', quantity: 1, unit: 'each' },
+  ] })).data.id
+  await call(owner, `/api/shopping/portions/${dish}`, 'POST', { portions: 100 })
+  const find = (data: any, name: string) => data.items.find((row: any) => row.name === name)
+
+  let view = (await call(staff, '/api/stock')).data
+  const onions = find(view, 'Count onions'), oil = find(view, 'Count oil'), limes = find(view, 'Count limes')
+  assert.deepEqual(view.packs, { container: 1, box: 5, crate: 30 })
+  assert.equal(onions.stock, null)
+  assert.ok(!('order' in onions), 'staff get no order figures')
+  assert.ok(!/pence|price/i.test(JSON.stringify(view)), 'staff get no money')
+
+  // Before any density, a count stays in litres and nothing is taken off the order.
+  view = (await call(staff, `/api/stock/${onions.id}/count`, 'POST', { count: 2, pack: 'crate' })).data
+  assert.deepEqual([find(view, 'Count onions').litres, find(view, 'Count onions').stock, find(view, 'Count onions').count.by], [60, null, 'staff'])
+  assert.equal((await call(owner, '/api/shopping')).data.items.find((row: any) => row.name === 'Count onions').order, 22)
+
+  // The AI's density makes it kilos, and the owner's own figure replaces it and is never estimated over.
+  view = (await call(staff, '/api/stock/estimate', 'POST', { itemId: onions.id })).data
+  assert.deepEqual([find(view, 'Count onions').density, find(view, 'Count onions').densitySource, find(view, 'Count onions').kg], [0.6, 'ai', 36])
+  assert.equal((await call(staff, `/api/stock/${onions.id}/density`, 'POST', { density: 0.5 })).status, 403)
+  assert.equal((await call(owner, `/api/stock/${onions.id}/density`, 'POST', { density: 9 })).status, 400)
+  view = (await call(owner, `/api/stock/${onions.id}/density`, 'POST', { density: 0.5 })).data
+  assert.deepEqual([find(view, 'Count onions').density, find(view, 'Count onions').densitySource, find(view, 'Count onions').kg], [0.5, 'set', 30])
+  view = (await call(owner, '/api/stock/estimate', 'POST', {})).data
+  assert.deepEqual([find(view, 'Count onions').density, find(view, 'Count oil').densitySource], [0.5, 'ai'])
+
+  // 100 portions at 200 g, plus 10%, is 22 kg. 1 box at 0.5 kg a litre is 2.5 kg, so 19.5 kg is left to order.
+  view = (await call(owner, `/api/stock/${onions.id}/count`, 'POST', { count: 1, pack: 'box' })).data
+  assert.equal(find(view, 'Count onions').order, 19.5)
+  // Litres need no density: 3 containers of a 1.1 litre need leaves nothing to order.
+  view = (await call(owner, `/api/stock/${oil.id}/count`, 'POST', { count: 3, pack: 'container' })).data
+  assert.deepEqual([find(view, 'Count oil').stock, find(view, 'Count oil').order], [3, 0])
+
+  // Items counted singly can't go in a box, and a count has to be a number.
+  assert.equal((await call(staff, `/api/stock/${limes.id}/count`, 'POST', { count: 1, pack: 'box' })).status, 400)
+  assert.equal((await call(staff, `/api/stock/${onions.id}/count`, 'POST', { count: '', pack: 'box' })).status, 400)
+  assert.equal((await call(staff, `/api/stock/${onions.id}/count`, 'POST', { count: 1, pack: 'pallet' })).status, 400)
+  view = (await call(staff, `/api/stock/${limes.id}/count`, 'POST', { count: 40, pack: 'unit' })).data
+  assert.deepEqual([find(view, 'Count limes').stock, find(view, 'Count limes').kg], [40, null])
+
+  // A count over a week old stops reducing the order, and asks to be redone.
+  await run(`UPDATE stock_counts SET counted_at = '2020-01-01T09:00:00.000Z' WHERE item_id = ?`, onions.id)
+  view = (await call(owner, '/api/stock')).data
+  assert.deepEqual([find(view, 'Count onions').fresh, find(view, 'Count onions').order], [false, 22])
+  await call(owner, `/api/shopping/portions/${dish}`, 'POST', { portions: 0 })
+})
+
 test('the shopping list is recipes times portions a week, with spare, rounded up, and grouped by supplier', async () => {
   const veg = (await call(owner, '/api/setup/suppliers', 'POST', { name: 'Green Veg Co', category: 'Veg and fruit', email: 'orders@greenveg.test', contact: 'Ana' })).data.id
   const meat = (await call(owner, '/api/setup/suppliers', 'POST', { name: 'Best Meats', category: 'Meat and fish' })).data.id
