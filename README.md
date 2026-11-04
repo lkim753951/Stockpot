@@ -215,7 +215,6 @@ These come from the trial accounts used for the hackathon, not from the app:
 - **WhatsApp** uses Meta's test number, so messages only reach phone numbers registered as test recipients. Your own phone won't get them.
 - **Phone calls** use a Twilio trial account, so calls only go to verified numbers.
 - **Gmail** sign-in is in Google's testing mode, so only accounts added as test users can connect.
-- **The sample site** simulates the AI answers, so a photo or file you add there gets a fixed sample reply. The real app uses the Meta models.
 
 ## Read more
 
