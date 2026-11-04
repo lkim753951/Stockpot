@@ -260,7 +260,7 @@ const VIEWS = ['v_three_way', 'v_dish_margin', 'v_food_cost']
 const RELATIONS = new Set([...TABLES, ...VIEWS])
 
 /** Bump this when the schema changes. Postgres only runs its setup when this number moves. */
-const SCHEMA_VERSION = '2'
+const SCHEMA_VERSION = '3'
 
 /** Runs fn over the code in a statement, leaving strings, quoted names and comments alone. */
 function mapCode(sql: string, fn: (code: string) => string) {
