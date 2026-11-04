@@ -1596,5 +1596,13 @@
   "{supplier} charged {amount} on {date}": "{supplier} a facturat {amount} pe {date}",
   "{urgent} urgent": "Urgente: {urgent}",
   "{value} or above": "{value} sau mai mult",
-  "{value} or below": "{value} sau mai puțin"
+  "{value} or below": "{value} sau mai puțin",
+  "Add from a photo": "Adaugă dintr-o poză",
+  "Reading the photo": "Citesc poza",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "Stockpot n-a găsit nimic de verificat în poză. Încearcă una mai aproape de post.",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "one": "Am adăugat {n} verificare din poză. Citește-o înainte să salvezi.",
+    "few": "Am adăugat {n} verificări din poză. Citește-le înainte să salvezi.",
+    "other": "Am adăugat {n} de verificări din poză. Citește-le înainte să salvezi."
+  }
 }

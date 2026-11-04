@@ -136,6 +136,15 @@ function replyFor(name: string, system: string, text: string) {
   if (name === 'proof_target') return { target: 'fryer' }
   if (name === 'call_script_words') return { opening: `Hi ${text.match(/Contact: ([^.]+)\./)?.[1] ?? 'there'}, it's about our last delivery. Have you got a minute?`, ask: 'Could you send the rest over, or put a credit note through, please?', pushback: 'No problem, I can send you the photos and the invoice now.' }
   if (name === 'dish_estimate') return estimateReply(text)
+  // The sample has no model to look at the photo, so every photo reads as the same curry station.
+  if (name === 'checklist_photo') return { items: [
+    { label: 'Diced onions', show: 'A full tub of diced onions, lid on, labelled' },
+    { label: 'Chopped coriander', show: 'A tub of chopped coriander, fresh and green' },
+    { label: 'Ginger and garlic paste', show: 'A full tub of paste with the date label showing' },
+    { label: 'Sliced green chillies', show: 'A small tub of sliced chillies, lid on' },
+    { label: 'Cooked basmati rice', show: 'A covered tray of rice, labelled with the time' },
+    { label: 'Lemon wedges', show: 'A tub of lemon wedges, cut today' },
+  ] }
   if (name === 'ingredient_density') return densityReply(text)
   if (name === 'menu') {
     return { dishes: [

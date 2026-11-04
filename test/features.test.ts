@@ -196,6 +196,22 @@ test('a report about something else still gets no supplier buttons', async () =>
   assert.equal(card.help, null)
 })
 
+test('a photo of a station becomes checks in the form, and nothing is saved until the owner says so', async () => {
+  const before = (await api('/api/setup/checklists')).json.length
+  const form = new FormData()
+  form.append('file', new Blob([fs.readFileSync('public/samples/sample-dish.png')], { type: 'image/png' }), 'station.png')
+  const read = await api('/api/setup/checklists/from-photo', { form })
+  assert.equal(read.status, 200)
+  assert.ok(read.json.items.length >= 3)
+  assert.deepEqual(read.json.items[0], { label: 'Diced onions', show: 'A full tub of diced onions, lid on, labelled' })
+  assert.equal((await api('/api/setup/checklists')).json.length, before)
+
+  const wrong = new FormData()
+  wrong.append('file', new Blob(['not a photo'], { type: 'text/plain' }), 'list.txt')
+  assert.equal((await api('/api/setup/checklists/from-photo', { form: wrong })).status, 400)
+  assert.equal((await api('/api/setup/checklists/from-photo', { form, cookie: staffCookie })).status, 403)
+})
+
 test('a report is kept even when Muse Spark is down', async () => {
   mock.state.failSpark = true
   try {

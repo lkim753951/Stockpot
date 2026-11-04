@@ -1617,5 +1617,16 @@
   "{supplier} charged {amount} on {date}": "{supplier}: فاتورة بمبلغ {amount} في {date}",
   "{urgent} urgent": "عاجل: {urgent}",
   "{value} or above": "‎{value} أو أكثر",
-  "{value} or below": "‎{value} أو أقل"
+  "{value} or below": "‎{value} أو أقل",
+  "Add from a photo": "أضف من صورة",
+  "Reading the photo": "جارٍ قراءة الصورة",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "لم يجد Stockpot شيئًا للفحص في تلك الصورة. جرّب صورة أقرب إلى محطة العمل.",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "zero": "أُضيف {n} فحص من الصورة. راجعها قبل الحفظ.",
+    "one": "أُضيف فحص واحد ({n}) من الصورة. راجعه قبل الحفظ.",
+    "two": "أُضيف فحصان ({n}) من الصورة. راجعهما قبل الحفظ.",
+    "few": "أُضيفت {n} فحوصات من الصورة. راجعها قبل الحفظ.",
+    "many": "أُضيف {n} فحصًا من الصورة. راجعها قبل الحفظ.",
+    "other": "أُضيف {n} فحص من الصورة. راجعها قبل الحفظ."
+  }
 }

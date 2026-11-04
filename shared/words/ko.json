@@ -1522,5 +1522,11 @@
   "{supplier} charged {amount} on {date}": "{supplier}: {date}에 {amount} 청구",
   "{urgent} urgent": "긴급 {urgent}건",
   "{value} or above": "{value} 이상",
-  "{value} or below": "{value} 이하"
+  "{value} or below": "{value} 이하",
+  "Add from a photo": "사진으로 추가",
+  "Reading the photo": "사진 읽는 중",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "사진에서 점검할 항목을 찾지 못했어요. 스테이션을 더 가까이 찍어 보세요.",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "other": "사진에서 점검 {n}개를 추가했어요. 저장하기 전에 확인하세요."
+  }
 }

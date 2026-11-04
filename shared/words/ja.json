@@ -1432,5 +1432,11 @@
   "{supplier} charged {amount} on {date}": "{supplier}が{date}に{amount}を請求",
   "{urgent} urgent": "緊急{urgent}件",
   "{value} or above": "{value}以上",
-  "{value} or below": "{value}以下"
+  "{value} or below": "{value}以下",
+  "Add from a photo": "写真から追加",
+  "Reading the photo": "写真を読み取り中",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "写真から確認する項目が見つかりませんでした。持ち場にもっと近づいて撮ってください。",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "other": "写真から{n}件の確認項目を追加しました。保存する前に確認してください。"
+  }
 }

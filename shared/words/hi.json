@@ -1469,5 +1469,12 @@
   "{supplier} charged {amount} on {date}": "{supplier} ने {date} को {amount} लिए",
   "{urgent} urgent": "{urgent} अर्जेंट",
   "{value} or above": "{value} या उससे ज़्यादा",
-  "{value} or below": "{value} या उससे कम"
+  "{value} or below": "{value} या उससे कम",
+  "Add from a photo": "फ़ोटो से जोड़ें",
+  "Reading the photo": "फ़ोटो पढ़ी जा रही है",
+  "Stockpot found nothing to check in that photo. Try one closer to the station.": "Stockpot को उस फ़ोटो में जाँचने लायक कुछ नहीं मिला। स्टेशन के और पास से फ़ोटो लें।",
+  "Added {n} checks from the photo. Read them before you save.": {
+    "one": "फ़ोटो से {n} जाँच जोड़ी गई। सेव करने से पहले पढ़ लें।",
+    "other": "फ़ोटो से {n} जाँचें जोड़ी गईं। सेव करने से पहले पढ़ लें।"
+  }
 }

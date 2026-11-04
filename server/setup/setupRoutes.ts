@@ -21,6 +21,7 @@ import { imageAllowed, ingestAllowed, MAX_FILE_BYTES, menuAllowed, readIngest, r
 import type { IngestKind } from '../ai/prompts.ts'
 import { deleteDish, deleteSupplier, hasSampleData, listChecklists, changeItemUnit, listDishes, listSuppliers, restaurantName, retireChecklist, saveChecklist, saveDish, setDishPortions, saveRestaurant, saveSupplier, SetupError } from './setup.ts'
 import { estimateDish } from './estimate.ts'
+import { checksFromPhoto } from './checklistPhoto.ts'
 import { orderText, setItemSource, setWeeklyPortions, shoppingList, usePurchaseEstimate } from '../operations/shopping.ts'
 import { estimateDensities, saveStockCount, setDensity, stockView } from '../operations/stock.ts'
 import { changeStaff, whatsappReady } from '../integrations/whatsapp.ts'
@@ -197,6 +198,13 @@ export function setupRoutes(app: Express) {
     if (recipe) await run('UPDATE dishes SET recipe_file = ?, recipe_file_name = ? WHERE id = ?', recipe.filename, recipe.originalname.slice(0, 200), id(request))
     if (photo) await run('UPDATE dishes SET photo_file = ? WHERE id = ?', photo.filename, id(request))
     response.json({ recipeFile: recipe?.filename ?? null, photo: photo?.filename ?? null })
+  }))
+
+  /** A photo of a station or a prep list becomes checks in the form. Nothing is saved, and the photo is thrown away. */
+  app.post('/api/setup/checklists/from-photo', requireOwner, takeDocument, guarded(async (request, response) => {
+    const file = request.file
+    if (!file) throw new SetupError('Add a JPG, PNG or WEBP.')
+    response.json({ items: await droppingAfter(file, () => checksFromPhoto(file.filename, file.originalname)) })
   }))
 
   /** Reads one file into a preview. Nothing is saved, and the upload is thrown away afterwards. */
