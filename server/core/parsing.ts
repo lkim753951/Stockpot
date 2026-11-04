@@ -159,6 +159,24 @@ export function printedIn(value: number, numbers: Set<number>) {
   return numbers.has(Math.round(value * 1000) / 1000)
 }
 
+const NUMBER_WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty']
+const COUNT = `\\d{1,3}|${NUMBER_WORDS.join('|')}`
+const AMOUNT_UNIT = /^\s*(?:kg|kilos?|g|grams?|l|lit(?:er|re)s?|ml|tbsp|tsp|cups?|oz|lb)\b/i
+
+/** Every number of portions a recipe's text gives, however it's worded: "Serves 12", "Yield: twelve", "12 pax". */
+export function portionsIn(text: string) {
+  const found = new Set<number>()
+  const add = (word: string) => {
+    const value = /\d/.test(word) ? Number(word) : NUMBER_WORDS.indexOf(word.toLowerCase()) + 1
+    if (value > 1) found.add(value)
+  }
+  for (const match of text.matchAll(new RegExp(`\\b(?:serves?|servings?|portions?|yields?|makes?|pax|covers?|feeds?)\\b[\\s:=~-]*(?:about |approx\\.? |up to )?(${COUNT})\\b`, 'gi'))) {
+    if (!AMOUNT_UNIT.test(text.slice((match.index ?? 0) + match[0].length))) add(match[1])
+  }
+  for (const match of text.matchAll(new RegExp(`\\b(${COUNT})[\\s-]*(?:portions?|servings?|pax|covers|people|persons|plates)\\b`, 'gi'))) add(match[1])
+  return found
+}
+
 /** A name with case, spacing and punctuation taken out, so the same thing matches however it's written. */
 export const nameKey = (text: string) => text.toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, ' ').replace(/\s+/g, ' ').trim()
 

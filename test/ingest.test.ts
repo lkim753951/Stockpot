@@ -809,3 +809,30 @@ test('a recipe name in capitals becomes a normal dish name', async () => {
   assert.equal(plainName('CHICKEN BIRYANI'), 'Chicken biryani')
   assert.equal(plainName('Chicken Biryani'), 'Chicken Biryani')
 })
+
+test('a recipe file gives its portions however it words them', async () => {
+  const { portionsIn } = await import('../server/core/parsing.ts')
+  const found = (text: string) => [...portionsIn(text)]
+  assert.deepEqual(found('Chickpea curry. Serves 12'), [12])
+  assert.deepEqual(found('Yield: twelve'), [12])
+  assert.deepEqual(found('Batch for 12 pax'), [12])
+  assert.deepEqual(found('Makes 12 x 350 g'), [12])
+  assert.deepEqual(found('12 portions'), [12])
+  assert.deepEqual(found('Makes 2 kg of sauce. Cost per 1 portion.'), [])
+})
+
+test('setting the portions turns a whole batch into the amount for one portion', async () => {
+  const made = await call(owner, '/api/setup/dishes', 'POST', { name: 'Batch curry', pricePence: 1000, targetMargin: 70, lines: [{ name: 'Brown onions', quantity: 600, unit: 'g' }] })
+  assert.equal(made.status, 201)
+  const amount = async () => {
+    const dish = (await call(owner, '/api/setup/dishes', 'GET')).data.find((row: any) => row.id === made.data.id)
+    return [dish.portions, Math.round(dish.lines[0].quantity * 1000) / 1000]
+  }
+  const first = (await amount())[1] as number
+  assert.equal((await call(owner, `/api/setup/dishes/${made.data.id}/portions`, 'POST', { portions: 12 })).status, 200)
+  assert.deepEqual(await amount(), [12, Math.round((first / 12) * 1000) / 1000])
+  // Changing it again goes from the same batch, not from what is left after the first change.
+  assert.equal((await call(owner, `/api/setup/dishes/${made.data.id}/portions`, 'POST', { portions: 6 })).status, 200)
+  assert.deepEqual(await amount(), [6, Math.round((first / 6) * 1000) / 1000])
+  assert.equal((await call(owner, `/api/setup/dishes/${made.data.id}/portions`, 'POST', { portions: 0 })).status, 400)
+})

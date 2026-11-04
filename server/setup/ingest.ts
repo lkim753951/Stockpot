@@ -10,7 +10,7 @@ import { sparkJson, type ContentPart } from '../ai/meta.ts'
 import { nearly } from '../money/money.ts'
 import {
   minutesFrom, nameKey, numbersIn, parseAmount, parseDate, parseMoney, parseNumber, parsePack,
-  pricePrinted, printedIn, provenDayOrder, sameWords, toBase, type BaseUnit,
+  portionsIn, pricePrinted, printedIn, provenDayOrder, sameWords, toBase, type BaseUnit,
 } from '../core/parsing.ts'
 import {
   columnSchemas, columnsPrompt, menuPrompt, menuSchema, priceFilePrompt, priceFileSchema, recipeFilePrompt, recipeFileSchema, salesFilePrompt, salesFileSchema,
@@ -415,7 +415,10 @@ export const plainName = (name: string) => (/[A-Z]/.test(name) && !/[a-z]/.test(
 export async function draftRecipe(raw: ExtractedRecipe, text?: string) {
   const numbers = text === undefined ? null : numbersIn(text)
   const flags: Note[] = []
-  const portions = raw.portions !== null && Number.isInteger(raw.portions) && raw.portions > 0 && (!numbers || printedIn(raw.portions, numbers)) ? raw.portions : null
+  // The model can miss "Yield: twelve", so the file's own words are checked as well. A file that gives one number can only mean that one.
+  const stated = text === undefined ? new Set<number>() : portionsIn(text)
+  const said = raw.portions !== null && Number.isInteger(raw.portions) && raw.portions > 0 && (!numbers || printedIn(raw.portions, numbers) || stated.has(raw.portions)) ? raw.portions : null
+  const portions = said ?? (stated.size === 1 ? [...stated][0] : null)
   if (!portions) flags.push(note(tk("The file doesn't say how many portions this makes. Quantities are for the whole recipe until you add it.")))
   const match = await itemMatcher()
   const lines = await Promise.all(raw.ingredients.slice(0, 60).map(async (line) => {

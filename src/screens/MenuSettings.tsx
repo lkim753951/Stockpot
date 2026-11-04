@@ -60,7 +60,32 @@ function Changes({ changes }: { changes: any[] }) {
 }
 
 /** Margin moves as the owner types and nothing is saved. Every figure uses the same costing as the Dashboard. */
-function CostPanel({ dish, onUsePrice }: { dish: any; onUsePrice: (pence: number) => Promise<void> }) {
+function PortionsField({ dish, onSaved }: { dish: any; onSaved: () => void }) {
+  const [portions, setPortions] = useState(dish.portions ? String(dish.portions) : '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const changed = portions !== '' && Number(portions) !== Number(dish.portions)
+  const save = async () => {
+    setSaving(true)
+    setError(null)
+    try {
+      await api(`/api/setup/dishes/${dish.id}/portions`, { body: { portions: Number(portions) } })
+      onSaved()
+    } catch (problem) { setError((problem as Error).message) } finally { setSaving(false) }
+  }
+  return (
+    <div className="stack">
+      <div className="portions-field">
+        <label className="field">{t('Portions this recipe makes')}<input inputMode="numeric" className="num" value={portions} onChange={(event) => setPortions(event.target.value)} /></label>
+        <button className="btn small" type="button" disabled={!changed || saving} onClick={save}>{t('Save')}</button>
+      </div>
+      <p className="caption">{t('Each amount below is divided by this, so the cost is for one portion.')}</p>
+      <ErrorNote message={error} />
+    </div>
+  )
+}
+
+function CostPanel({ dish, onUsePrice, onChanged }: { dish: any; onUsePrice: (pence: number) => Promise<void>; onChanged: () => void }) {
   const [price, setPrice] = useState((dish.pricePence / 100).toFixed(2))
   const typed = Math.round(Number(price.replace(/[£\s]/g, '').replace(/,/g, '.')) * 100)
   const known = dish.exactCostPence !== null
@@ -73,6 +98,7 @@ function CostPanel({ dish, onUsePrice }: { dish: any; onUsePrice: (pence: number
         <Tile label={t('Food cost a portion')} value={known ? pounds(dish.costPence) : t('Incomplete')} note={!known && dish.knownCostPence ? t('At least {cost}', { cost: pounds(dish.knownCostPence) }) : undefined} />
         <Tile label={t('Margin')} value={margin === null ? t('Not known') : `${margin}%`} change={margin === null ? null : { text: t('Target {target}%', { target: dish.targetMargin }), good: margin >= dish.targetMargin, up: null, compare: '' }} />
       </div>
+      {dish.lines.length ? <PortionsField dish={dish} onSaved={onChanged} /> : null}
       <label className="field">{t('Try a menu price (£)')}<input inputMode="decimal" className="num" value={price} onChange={(event) => setPrice(event.target.value)} /></label>
       <ul className="list">
         <li><span>{t('Menu price to hit your target')}</span><strong className="num">{dish.pricePenceForTarget === null ? t('Not known') : pounds(dish.pricePenceForTarget)}</strong></li>
@@ -163,10 +189,13 @@ export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any
       return 'quantity' in change ? { ...next, batch: Number(next.quantity) * (Number(form.portions) || 1) } : next
     }),
   })
-  /** Quantities from a file are worked out per portion, so a change to the portions carries through. */
+  /** Quantities are kept per portion, so a change to the portions carries through. The batch stays put while the number is typed. */
   const setPortions = (portions: string) => {
-    const lines = form.reading && Number(portions) > 0
-      ? form.lines.map((row: any) => (row.batch ? { ...row, quantity: String(Number((row.batch / Number(portions)).toFixed(3))) } : row))
+    const lines = Number(portions) > 0
+      ? form.lines.map((row: any) => {
+        const batch = row.batch ?? (Number(row.quantity) || 0) * (Number(form.portions) || 1)
+        return batch ? { ...row, batch, quantity: String(Number((batch / Number(portions)).toFixed(4))) } : row
+      })
       : form.lines
     setForm({ ...form, portions, lines })
   }
@@ -211,7 +240,7 @@ export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any
   return (
     <Sheet title={form.id ? form.name : t('Add a dish')} onClose={onClose}>
       {form.id && !reading ? <Segment fill label={t('Dish')} value={tab} onChange={setTab} options={[{ value: 'cost', label: t('Cost and margin') }, { value: 'recipe', label: t('Recipe') }]} /> : null}
-      {tab === 'cost' ? <CostPanel key={`${dish?.id}-${dish?.pricePence}`} dish={dish} onUsePrice={usePrice} /> : (
+      {tab === 'cost' ? <CostPanel key={`${dish?.id}-${dish?.pricePence}-${dish?.portions}`} dish={dish} onUsePrice={usePrice} onChanged={() => onSaved(dish.id, true)} /> : (
         <>
           {reading ? (
             <>

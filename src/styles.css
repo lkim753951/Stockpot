@@ -857,6 +857,8 @@ a.card:hover, .report-list a:hover, .demo-link:hover, .tile-btn:hover { box-shad
 .split-side .quick-item:hover { background: none; color: var(--aubergine); }
 .split-side .demo-jump { padding-inline: 0; }
 
+.portions-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--space-2); }
+
 /*
  * Wide screens. Every page starts on the same left edge, with the page title level with the
  * top-right controls. A full-width button belongs to a phone: here it hugs its words.

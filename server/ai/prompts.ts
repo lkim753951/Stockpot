@@ -763,7 +763,7 @@ export interface ExtractedRecipes { recipes: ExtractedRecipe[]; unreadable: stri
 
 export const recipeFilePrompt = `Read this restaurant recipe file. List each recipe exactly as printed.
 - name: the dish.
-- portions: how many portions the recipe says it makes. Null if it doesn't say.
+- portions: how many portions, servings or covers the whole recipe makes, however it's worded, such as "Serves 12", "Yield: twelve", "12 pax", "makes 12 x 350 g" or "batch of 12". It can sit in a header, table or footer. Null if it doesn't say.
 - ingredients: each ingredient with the quantity and unit printed for the whole recipe. Don't convert, scale or add anything up. unit is the printed word, such as g, tbsp or bunch. Use null for a plain count, like 2 eggs. Use null for quantity if none is printed, like salt to taste.
 - method_steps: the cooking steps in order, in the file's words. Leave out any costs, prices, margins and supplier details.
 - prep_minutes: the preparation time printed for the whole recipe, in minutes. Don't add cooking time to it. Null if no preparation time is printed.

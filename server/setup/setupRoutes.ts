@@ -18,7 +18,7 @@ import { samFind } from '../ai/meta.ts'
 import { checkInbox, disconnectGmail, finishGmailLogin, gmailConfigured, gmailConnected, gmailLoginUrl, GmailError, sendMail } from '../integrations/gmail.ts'
 import { imageAllowed, ingestAllowed, MAX_FILE_BYTES, menuAllowed, readIngest, readMenu, readRecipeFile, recipeAllowed, saveIngest } from './ingest.ts'
 import type { IngestKind } from '../ai/prompts.ts'
-import { deleteDish, deleteSupplier, hasSampleData, listChecklists, changeItemUnit, listDishes, listSuppliers, restaurantName, retireChecklist, saveChecklist, saveDish, saveRestaurant, saveSupplier, SetupError } from './setup.ts'
+import { deleteDish, deleteSupplier, hasSampleData, listChecklists, changeItemUnit, listDishes, listSuppliers, restaurantName, retireChecklist, saveChecklist, saveDish, setDishPortions, saveRestaurant, saveSupplier, SetupError } from './setup.ts'
 import { estimateDish } from './estimate.ts'
 import { changeStaff, whatsappReady } from '../integrations/whatsapp.ts'
 import { crisisCard, crisisCards, isCrisisPhoto, resetCrisisCard, saveCrisisCard } from '../operations/crisisCards.ts'
@@ -126,6 +126,7 @@ export function setupRoutes(app: Express) {
   app.put('/api/setup/dishes/:id', requireOwner, guarded(async (request, response) => response.json({ id: await saveDish(request.body ?? {}, id(request)) })))
   app.delete('/api/setup/dishes/:id', requireOwner, guarded(async (request, response) => { await deleteDish(id(request)); response.json({ ok: true }) }))
   /** An estimate only: nothing is saved, so a real receipt price always takes over. */
+  app.post('/api/setup/dishes/:id/portions', requireOwner, guarded(async (request, response) => { await setDishPortions(id(request), request.body?.portions); response.json({ ok: true }) }))
   app.post('/api/setup/dishes/estimate', requireOwner, guarded(async (request, response) => response.json(await estimateDish(request.body ?? {}))))
   app.post('/api/setup/menu/read', requireOwner, takeMenu, guarded(async (request, response) => {
     const file = request.file

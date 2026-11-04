@@ -162,6 +162,22 @@ export async function saveDish(input: Record<string, any>, id?: number) {
   })
 }
 
+/**
+ * Saved amounts are for one portion, so a new number of portions rescales them. A recipe with none
+ * set counts as one portion, which turns whole-batch amounts from a file into the amount for one.
+ */
+export async function setDishPortions(id: number, value: unknown) {
+  const portions = optionalWhole(value, 1000, 'Portions has to be a whole number.')
+  if (!portions) throw new SetupError('Portions has to be a whole number.')
+  await transaction(async () => {
+    const dish = await get('SELECT portions FROM dishes WHERE id = ?', id)
+    if (!dish) throw new SetupError('That dish has gone.')
+    const before = Number(dish.portions) || 1
+    await run('UPDATE recipe_lines SET qty_base = qty_base * ? / ? WHERE dish_id = ?', before, portions, id)
+    await run('UPDATE dishes SET portions = ? WHERE id = ?', portions, id)
+  })
+}
+
 /** A recipe sheet can print its costing beside the method, so anything about money is taken out before staff see it. */
 const ABOUT_MONEY = /£|\bGBP\b|\b\d+(?:\.\d+)?\s?p\b|\b(?:cost|costs|costing|costed|price|prices|priced|margin|margins|gp|sell(?:s|ing)? (?:at|for))\b/i
 
