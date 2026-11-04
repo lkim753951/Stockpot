@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { CaretRight, ClipboardText, CookingPot, DownloadSimple, FileArrowUp, GlobeSimple, LinkSimple, PlugsConnected, Plus, Trash, Truck, UploadSimple, UsersThree, ChartBar } from '@phosphor-icons/react'
+import { SalesPreview } from './ImportSettings'
+import { readableImage } from '../lib/reading'
 import { api } from '../lib/api'
-import { t, tk, LANGUAGES } from '../lib/i18n'
+import { t, tk, tn, LANGUAGES } from '../lib/i18n'
 import { LanguagePicker } from '../components/Language'
 import { Mascot } from '../components/Mascot'
 import { Dock, Empty, ErrorNote, Loading, Screen, Sheet } from '../components/ui'
@@ -267,26 +269,53 @@ export function TeamSettings() {
 }
 
 export function SalesSettings() {
-  const [imported, setImported] = useState<any>(null)
+  const [preview, setPreview] = useState<any>(null)
+  const [done, setDone] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
+  /** Any till export works: Muse Spark finds the date, dish, quantity and net sales columns, and code reads every row. */
   const upload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const picked = event.target.files?.[0]
     event.target.value = ''
-    if (!file) return
+    if (!picked) return
     setError(null)
+    setDone(null)
+    setBusy(true)
     const form = new FormData()
-    form.append('file', file)
-    try { setImported(await api('/api/sales/import', { form })) } catch (problem) { setError((problem as Error).message) }
+    form.append('kind', 'sales')
+    form.append('file', await readableImage(picked))
+    try { setPreview({ ...await api('/api/ingest/read', { form }), file: picked.name }) } catch (problem) { setError((problem as Error).message) } finally { setBusy(false) }
+  }
+  const save = async (body: object) => {
+    setError(null)
+    try {
+      const result = await api('/api/ingest/save', { body })
+      setDone([
+        tn(result.saved, 'Saved {n} row.', 'Saved {n} rows.'),
+        result.skipped ? t('{skipped} rows were already saved, so they were skipped.', { skipped: result.skipped }) : '',
+        result.left ? t('{left} rows were left out because they failed a check.', { left: result.left }) : '',
+      ].filter(Boolean).join(' '))
+      setPreview(null)
+    } catch (problem) { setError((problem as Error).message) }
   }
   return (
-    <Screen title={t('Sales')} lead={t('Export a sales CSV from your till and import it here. Dish names need to match your menu.')}>
+    <Screen title={t('Sales')} lead={t('Upload the sales export from your till, in any layout: CSV, Excel, PDF or a photo. Stockpot finds the columns, and you check before anything is saved.')}>
       <ErrorNote message={error} />
-      {imported ? <p className="notice" role="status">{t('Imported {imported} rows.', { imported: imported.imported })}{imported.skipped ? ` ${t('{skipped} rows were already saved, so they were skipped.', { skipped: imported.skipped })}` : ''}{imported.problems.length ? ` ${imported.problems.join(' ')}` : ''}</p> : null}
-      <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={upload} />
-      <button className="btn primary block" type="button" onClick={() => input.current?.click()}><UploadSimple size={24} aria-hidden="true" />{t('Import sales CSV')}</button>
-      <a className="btn block" href="/api/sales/template.csv"><DownloadSimple size={24} aria-hidden="true" />{t('Download a template')}</a>
-      <a className="btn text block" href="#/settings/import">{t('Import any other file')}</a>
+      {done ? <p className="notice" role="status">{done}</p> : null}
+      {preview ? (
+        <section className="card arrive">
+          <h2>{preview.file}</h2>
+          {preview.checks.map((note: any, index: number) => <p className="notice" key={index}>{t(note.text, note.values)}</p>)}
+          <SalesPreview preview={preview} onSave={save} onCancel={() => setPreview(null)} />
+        </section>
+      ) : (
+        <>
+          <input ref={input} type="file" accept=".csv,.xlsx,.pdf,.txt,.docx,text/csv,image/jpeg,image/png,image/webp" hidden onChange={upload} />
+          <button className="btn primary block" type="button" disabled={busy} onClick={() => input.current?.click()}><UploadSimple size={24} aria-hidden="true" />{busy ? t('Reading') : t('Import sales')}</button>
+          <a className="btn text block" href="/api/sales/template.csv"><DownloadSimple size={24} aria-hidden="true" />{t('Download a template')}</a>
+        </>
+      )}
     </Screen>
   )
 }

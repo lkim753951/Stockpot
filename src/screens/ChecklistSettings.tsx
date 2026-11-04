@@ -129,7 +129,7 @@ export function ChecklistSettings() {
                 <ClipboardText size={24} aria-hidden="true" />
                 <strong>{t(list.name)}</strong>
                 <CaretRight className="note" size={20} aria-hidden="true" />
-                <small>{whenWords(list)}<br />{list.assignee ?? t('Everyone')}, {tn(list.items.length, '{n} check', '{n} checks')}</small>
+                <small>{whenWords(list)}<br />{list.assignee === 'Owner' ? t('Owner') : list.assignee ?? t('Everyone')}, {tn(list.items.length, '{n} check', '{n} checks')}</small>
               </button>
             </li>
           ))}
@@ -145,7 +145,8 @@ export function ChecklistSettings() {
           <label className="field">{t('Who does it?')}
             <select value={form.assignee} onChange={(event) => setForm({ ...form, assignee: event.target.value })}>
               <option value="">{t('Everyone')}</option>
-              {(setup?.people ?? []).map((person: any) => <option key={person.name} value={person.name}>{person.name}</option>)}
+              <option value="Owner">{t('Owner')}</option>
+              {(setup?.people ?? []).filter((person: any) => person.name !== 'Owner').map((person: any) => <option key={person.name} value={person.name}>{person.name}</option>)}
             </select>
           </label>
           <h3>{t('If it is not done')}</h3>

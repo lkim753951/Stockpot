@@ -4,7 +4,8 @@ import { CheckCircle, Circle, ClipboardText, Clock, Microphone, PhoneCall, Recei
 import { api, wholePounds } from '../lib/api'
 import { longToday } from '../lib/dates'
 import { Chip, Empty, ErrorNote, Sk, Tile, type TileChange } from '../components/ui'
-import { ActionCard, ToConfirm } from './ActionCard'
+import { ToConfirm } from './ActionCard'
+import { TaskTracker } from '../components/TaskTracker'
 
 const percentChange = (value: number | null): TileChange | null =>
   value === null ? null : { text: `${Math.abs(value)}%`, good: value === 0 ? null : value > 0, up: value === 0 ? null : value > 0, compare: '' }
@@ -45,7 +46,6 @@ export function Home({ sample, onClock }: { sample: boolean; onClock: () => void
   }
 
   const { tiles, actions, features, status, checkedAt } = data
-  const top = actions.slice(0, 3)
   const setupLeft = sample ? [] : data.setup.steps.filter((step: any) => !step.done)
   const food = tiles.foodCost
   const foodChange: TileChange | null = food.change === null ? null : {
@@ -83,7 +83,7 @@ export function Home({ sample, onClock }: { sample: boolean; onClock: () => void
               <h2>{t('Needs you')}</h2>
               {actions.length ? <a className="link-btn" href="#/actions">{t('See all {count}', { count: actions.length })}</a> : null}
             </div>
-            {top.length ? top.map((action: any, index: number) => <ActionCard key={action.id} action={action} lead={index === 0} compact line={index > 0} canSend={sample || data.teamLinked} onChange={load} />) : (
+            {actions.length || data.runs?.length ? <TaskTracker data={data} limit={3} canSend={sample || data.teamLinked} onChange={load} /> : (
               <Empty title={t('All clear.')}>
                 <p className="muted">{t('Checked at {checkedAt}.', { checkedAt })}</p>
                 {sample ? <p>{t('The day has just started. Switch to Staff and say a fridge reading, and it lands here.')}</p> : null}

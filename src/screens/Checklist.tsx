@@ -1,15 +1,29 @@
+import { Person } from '../components/TaskTracker'
 import { TrackedVideo } from '../components/Tracked'
 import { locale, t, tk } from '../lib/i18n'
 import { EvidenceSheet } from '../components/Evidence'
 import { evidenceForm } from '../lib/media'
 import { useEffect, useRef, useState } from 'react'
-import { Camera, CaretLeft, CaretRight, Check, CheckCircle, Microphone, PaperPlaneRight, Plus, Stop, WarningCircle, WhatsappLogo } from '@phosphor-icons/react'
+import { Camera, CaretLeft, CaretRight, Check, CheckCircle, ClipboardText, Microphone, PaperPlaneRight, Plus, Stop, WarningCircle, WhatsappLogo } from '@phosphor-icons/react'
 import { api, niceDate } from '../lib/api'
 import { atWords, clockWords, inSentence, momentWords } from '../lib/dates'
 import { useRecorder } from '../lib/recorder'
 import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Segment } from '../components/ui'
 
 const dueWords = (dueAt: string) => t('Due {when}', { when: inSentence(atWords(dueAt)) })
+
+/** The same red, yellow and grey groups as the task tracker on Home. */
+const RUN_LEVELS = [
+  { value: 'urgent', label: tk('Urgent') }, { value: 'soon', label: tk('Due today or tomorrow') },
+  { value: 'later', label: tk('Later') }, { value: 'done', label: tk('Done') },
+]
+
+function runLevel(run: any) {
+  if (run.state === 'done') return 'done'
+  if (run.state === 'overdue') return 'urgent'
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+  return String(run.dueAt).slice(0, 10) <= tomorrow ? 'soon' : 'later'
+}
 
 function RunChip({ state, done, total }: { state: string; done?: number; total?: number }) {
   if (state === 'done') return <Chip tone="good">{t('Done')}</Chip>
@@ -67,6 +81,7 @@ export function OwnerChecklists({ sample }: { sample: boolean }) {
   const [team, setTeam] = useState<any>(null)
   const [sending, setSending] = useState<number | null>(null)
   const [view, setView] = useState('today')
+  const [side, setSide] = useState<'owner' | 'staff'>('staff')
   const [error, setError] = useState<string | null>(null)
   const load = () => api('/api/team').then(setTeam).catch((e) => setError(e.message))
   useEffect(() => {
@@ -88,40 +103,67 @@ export function OwnerChecklists({ sample }: { sample: boolean }) {
   }
 
   const open = team.runs.filter((run: any) => run.state !== 'done').length
-  const people = [...new Set<string>(team.runs.map((run: any) => run.assignee ?? ''))].sort((a, b) => (a ? (b ? a.localeCompare(b) : -1) : 1))
   const line = (run: any) => (
-    <li className="run-line" key={run.id}>
-      <a href={`#/run/${run.id}`}>{t(run.name)}</a>
-      <RunChip state={run.state} done={run.done} total={run.total} />
-      <span className="when">{dueWords(run.dueAt)}{run.flagged ? t(', {flagged} flagged', { flagged: run.flagged }) : ''}</span>
-      {run.state === 'done' ? <span /> : run.sentAt
-        ? <span className="when">{t('Sent {sentAt}', { sentAt: clockWords(run.sentAt) })}</span>
-        : <button className="btn text small" type="button" disabled={sending === run.id || (!team.connected && !sample)} onClick={() => send(run.id)} aria-label={t('Send {name} on WhatsApp', { name: t(run.name) })}><WhatsappLogo size={20} aria-hidden="true" />{sending === run.id ? t('Sending') : t('Send')}</button>}
+    <li className="task-line" key={run.id}>
+      <div className="task-row with-send">
+        <ClipboardText className="task-mark" size={20} weight="fill" aria-hidden="true" />
+        <div className="task-text">
+          <a href={`#/run/${run.id}`}>{t(run.name)}</a>
+          <small>{t('{done} of {total}', { done: run.done, total: run.total })}{run.flagged ? t(', {flagged} flagged', { flagged: run.flagged }) : ''}</small>
+        </div>
+        <span className="task-when">{run.state === 'overdue' ? t('Overdue') : dueWords(run.dueAt)}</span>
+        {run.state === 'done' ? <span /> : run.sentAt
+          ? <span className="when">{t('Sent {sentAt}', { sentAt: clockWords(run.sentAt) })}</span>
+          : <button className="btn text small" type="button" disabled={sending === run.id || (!team.connected && !sample)} onClick={() => send(run.id)} aria-label={t('Send {name} on WhatsApp', { name: t(run.name) })}><WhatsappLogo size={20} aria-hidden="true" />{sending === run.id ? t('Sending') : t('Send')}</button>}
+      </div>
     </li>
   )
+  const groups = (runs: any[]) => RUN_LEVELS.map(({ value, label }) => {
+    const shown = runs.filter((run) => runLevel(run) === value)
+    if (!shown.length) return null
+    return (
+      <div className={`task-group ${value}`} key={value}>
+        <h4>{t(label)}<span className="num">{shown.length}</span></h4>
+        <ul className="task-list">{shown.map(line)}</ul>
+      </div>
+    )
+  })
+  const mine = team.runs.filter((run: any) => run.assignee === 'Owner')
+  const theirs = team.runs.filter((run: any) => run.assignee !== 'Owner')
+  const people = [...new Set<string>(theirs.map((run: any) => run.assignee ?? ''))].sort((a, b) => (a ? (b ? a.localeCompare(b) : -1) : 1))
 
   return (
     <Screen wide title={t('Checklists')} lead={open ? t('{open} to finish.', { open }) : t('All done for now.')}>
       <Segment label={t('View')} fill value={view} onChange={setView} options={[{ value: 'today', label: t('Today') }, { value: 'month', label: t('Calendar') }, { value: 'messages', label: t('Messages') }]} />
       <ErrorNote message={error} />
       {view === 'today' ? (
-        <>
-          {people.map((person) => {
-            const runs = team.runs.filter((run: any) => (run.assignee ?? '') === person)
-            const done = runs.reduce((sum: number, run: any) => sum + run.done, 0)
-            const total = runs.reduce((sum: number, run: any) => sum + run.total, 0)
-            return (
-              <section className="stack" key={person || 'everyone'}>
-                <div className="person-head">
-                  <h2>{person || t('Everyone')}</h2>
-                  <span className="num when">{t('{done} of {total}', { done, total })}</span>
-                  <i className="person-meter" aria-hidden="true"><b style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></i>
-                </div>
-                <ul className="feature-list">{runs.map(line)}</ul>
-              </section>
-            )
-          })}
-        </>
+        <section className="stack tracker" aria-label={t('Checklists')}>
+          <Segment label={t('Show')} fill value={side} onChange={setSide} options={[
+            { value: 'owner', label: `${t('Owner tasks')} ${mine.length}` },
+            { value: 'staff', label: `${t('Staff tasks')} ${theirs.length}` },
+          ]} />
+          {side === 'owner' ? (
+            mine.length ? <div className="task-sheet">{groups(mine)}</div> : <p className="muted">{t('Nothing for you right now.')}</p>
+          ) : people.length ? (
+            <div className="task-sheet">
+              {people.map((person) => {
+                const runs = theirs.filter((run: any) => (run.assignee ?? '') === person)
+                const done = runs.reduce((sum: number, run: any) => sum + run.done, 0)
+                const total = runs.reduce((sum: number, run: any) => sum + run.total, 0)
+                return (
+                  <div key={person || 'everyone'}>
+                    <div className="task-who">
+                      <Person name={person || 'Everyone'} />
+                      <strong>{person || t('Everyone')}</strong>
+                      <span className="meta">{t('{done} of {total}', { done, total })}</span>
+                    </div>
+                    {groups(runs)}
+                  </div>
+                )
+              })}
+            </div>
+          ) : <p className="muted">{t('Nothing waiting on staff right now.')}</p>}
+        </section>
       ) : null}
       {view === 'month' ? <MonthCalendar /> : null}
       {view === 'messages' ? (

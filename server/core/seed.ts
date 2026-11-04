@@ -130,7 +130,12 @@ export async function seedIfEmpty() {
   // Two instances can start at once, and only one of them should fill an empty database.
   await locked('seed', async () => {
     if (config.mode === 'live') await saveSetting('real_site', '1')
-    if (sample && !(await all('SELECT id FROM suppliers LIMIT 1')).length) await seedAll()
+    if (sample && !(await all('SELECT id FROM suppliers LIMIT 1')).length) {
+      await seedAll()
+      // Named people, so the staff tracker shows who has what.
+      await run(`UPDATE checklist_templates SET assignee = 'Maria' WHERE name IN ('Fridge and water checks', 'Opening checks')`)
+      await run(`UPDATE checklist_templates SET assignee = 'Dawid' WHERE name = 'Closing checks'`)
+    }
     else if (!(await all('SELECT id FROM checklist_templates LIMIT 1')).length) await seedChecklists()
   })
 }

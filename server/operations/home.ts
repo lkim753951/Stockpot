@@ -54,6 +54,8 @@ export async function homeView() {
     date: isoDate(),
     status: statusLine(actions, overdue),
     actions,
+    // Lists not done yet, for the staff tracker. A late one also has a card in actions, and the screen shows it once.
+    runs: runs.filter((run) => run.state !== 'done'),
     toConfirm: await listProposed(),
     doneToday: await listDoneToday(),
     tiles: {

@@ -16,9 +16,10 @@ import { checkProof } from '../money/proof.ts'
 import { countInVideo, phraseFor } from '../ai/countVideo.ts'
 import { samFind } from '../ai/meta.ts'
 import { checkInbox, disconnectGmail, finishGmailLogin, gmailConfigured, gmailConnected, gmailLoginUrl, GmailError, sendMail } from '../integrations/gmail.ts'
-import { imageAllowed, ingestAllowed, MAX_FILE_BYTES, readIngest, readRecipeFile, recipeAllowed, saveIngest } from './ingest.ts'
+import { imageAllowed, ingestAllowed, MAX_FILE_BYTES, menuAllowed, readIngest, readMenu, readRecipeFile, recipeAllowed, saveIngest } from './ingest.ts'
 import type { IngestKind } from '../ai/prompts.ts'
-import { deleteDish, deleteSupplier, hasSampleData, listChecklists, listDishes, listSuppliers, readMenu, restaurantName, retireChecklist, saveChecklist, saveDish, saveRestaurant, saveSupplier, SetupError } from './setup.ts'
+import { deleteDish, deleteSupplier, hasSampleData, listChecklists, changeItemUnit, listDishes, listSuppliers, restaurantName, retireChecklist, saveChecklist, saveDish, saveRestaurant, saveSupplier, SetupError } from './setup.ts'
+import { estimateDish } from './estimate.ts'
 import { changeStaff, whatsappReady } from '../integrations/whatsapp.ts'
 import { crisisCard, crisisCards, isCrisisPhoto, resetCrisisCard, saveCrisisCard } from '../operations/crisisCards.ts'
 import { saveSetting, setting } from '../core/db.ts'
@@ -54,6 +55,7 @@ const stored = (allowed: (field: string, name: string) => boolean, files: number
 
 const recipeField = (field: string, name: string) => (field === 'photo' ? imageAllowed(name) : recipeAllowed(name))
 const takeIngest = takeFile(stored((_field, name) => ingestAllowed(name), 1), 'file', { maxBytes: MAX_FILE_BYTES, allowed: (_field, name) => ingestAllowed(name) })
+const takeMenu = takeFile(stored((_field, name) => menuAllowed(name), 1), 'file', { maxBytes: MAX_FILE_BYTES, allowed: (_field, name) => menuAllowed(name) })
 const takeRecipe = takeFile(stored((_field, name) => recipeAllowed(name), 1), 'file', { maxBytes: MAX_FILE_BYTES, allowed: (_field, name) => recipeAllowed(name) })
 const takeDishFiles = takeFields(stored(recipeField, 2), [{ name: 'recipe', maxCount: 1 }, { name: 'photo', maxCount: 1 }], { maxBytes: MAX_FILE_BYTES, allowed: recipeField })
 
@@ -66,7 +68,9 @@ const takeEvidence = takeFields(evidence, EVIDENCE_FIELDS, { maxBytes: 120 * 102
 const guarded = (work: (request: Request, response: Response) => unknown) => async (request: Request, response: Response, next: NextFunction) => {
   try { await work(request, response) } catch (error) {
     if (error instanceof RefusedWipe) return void response.status(403).json({ error: error.message })
-    if (error instanceof SetupError || error instanceof GmailError) return void response.status(400).json({ error: error.message })
+    // error is filled in, so a page from before this change still names the ingredient. New pages translate the sentence.
+    if (error instanceof SetupError) return void response.status(400).json({ error: error.message, sentence: error.sentence, values: error.values })
+    if (error instanceof GmailError) return void response.status(400).json({ error: error.message })
     next(error)
   }
 }
@@ -103,7 +107,12 @@ export function setupRoutes(app: Express) {
     })
   })
   app.post('/api/setup/onboarded', requireOwner, async (_request, response) => { await saveSetting('onboarded', '1'); response.json({ ok: true }) })
-  app.post('/api/setup/restaurant', requireOwner, guarded(async (request, response) => { await saveRestaurant(request.body?.name); response.json({ ok: true }) }))
+  // Once the restaurant has a name, onboarding never starts over. Anything skipped stays on Home's setup list.
+  app.post('/api/setup/restaurant', requireOwner, guarded(async (request, response) => {
+    await saveRestaurant(request.body?.name)
+    if (await restaurantName()) await saveSetting('onboarded', '1')
+    response.json({ ok: true })
+  }))
   app.post('/api/setup/clear-sample', requireOwner, guarded(async (_request, response) => { await clearSampleData(); response.json({ ok: true }) }))
 
   app.get('/api/setup/suppliers', requireOwner, async (_request, response) => response.json(await listSuppliers()))
@@ -112,19 +121,22 @@ export function setupRoutes(app: Express) {
   app.delete('/api/setup/suppliers/:id', requireOwner, guarded(async (request, response) => { await deleteSupplier(id(request)); response.json({ ok: true }) }))
 
   app.get('/api/setup/dishes', requireOwner, async (_request, response) => response.json(await listDishes()))
+  app.post('/api/setup/items/unit', requireOwner, guarded(async (request, response) => { await changeItemUnit(String(request.body?.name ?? ''), String(request.body?.unit ?? '')); response.json({ ok: true }) }))
   app.post('/api/setup/dishes', requireOwner, guarded(async (request, response) => response.status(201).json({ id: await saveDish(request.body ?? {}) })))
   app.put('/api/setup/dishes/:id', requireOwner, guarded(async (request, response) => response.json({ id: await saveDish(request.body ?? {}, id(request)) })))
   app.delete('/api/setup/dishes/:id', requireOwner, guarded(async (request, response) => { await deleteDish(id(request)); response.json({ ok: true }) }))
-  app.post('/api/setup/menu/read', requireOwner, takeDocument, guarded(async (request, response) => {
+  /** An estimate only: nothing is saved, so a real receipt price always takes over. */
+  app.post('/api/setup/dishes/estimate', requireOwner, guarded(async (request, response) => response.json(await estimateDish(request.body ?? {}))))
+  app.post('/api/setup/menu/read', requireOwner, takeMenu, guarded(async (request, response) => {
     const file = request.file
-    if (!file) throw new SetupError('Add a JPG, PNG, WEBP or PDF.')
-    try { response.json(await readMenu(file.filename, file.originalname)) } finally { await dropFile(file) }
+    if (!file) throw new SetupError('Stockpot reads PDF, photo (JPG, PNG, WEBP), Word, text, CSV and Excel files. Save the menu as one of these and try again.')
+    response.json(await droppingAfter(file, () => readMenu(file.filename, file.originalname)))
   }))
 
   /** Reads a recipe and saves nothing. The browser holds on to the files until the owner confirms, so a change of mind leaves no trace. */
   app.post('/api/setup/recipes/read', requireOwner, takeRecipe, guarded(async (request, response) => {
     const file = request.file
-    if (!file) throw new SetupError('Add a PDF, a photo or a Word file.')
+    if (!file) throw new SetupError('Stockpot reads recipes from PDF, photo (JPG, PNG, WEBP), Word and text files. Save the recipe as one of these and try again.')
     const dishId = Number(request.body?.dishId) || undefined
     response.json(await droppingAfter(file, () => readRecipeFile(file.filename, file.originalname, dishId)))
   }))

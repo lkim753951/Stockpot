@@ -84,9 +84,20 @@ export async function refreshActions() {
 
 const view = async (row: Record<string, any>) => ({
   id: row.id, sourceType: row.source_type, urgency: row.urgency, urgencySet: !!row.urgency_set, title: tSaved(String(row.title)), detail: row.detail ? tSaved(String(row.detail)) : row.detail, dueDate: row.due_date,
-  createdAt: row.created_at, closedAt: row.closed_at, assignedTo: row.assigned_to, href: await linkFor(row), source: await sourceOf(row), suggested: await suggestionFor(row),
+  createdAt: row.created_at, closedAt: row.closed_at, assignedTo: row.assigned_to, person: await personFor(row), href: await linkFor(row), source: await sourceOf(row), suggested: await suggestionFor(row),
   closable: !['order', 'check', 'overdue', 'delivery'].includes(String(row.source_type)),
 })
+
+/**
+ * Whose job a card is, for the owner's and staff's trackers. A late checklist belongs to whoever the list is for, or the whole
+ * team. A card handed to someone is theirs. Everything else is the owner's: reviewing a photo or a report is the owner's call.
+ */
+async function personFor(row: Record<string, any>) {
+  if (row.assigned_to) return String(row.assigned_to)
+  if (row.source_type !== 'overdue') return 'Owner'
+  const list = await get('SELECT t.assignee FROM checklist_runs r JOIN checklist_templates t ON t.id = r.template_id WHERE r.id = ?', Number(row.source_id))
+  return list?.assignee ? String(list.assignee) : 'Everyone'
+}
 
 const byWhom = (name: unknown, how: unknown) => (how === 'whatsapp' ? t('{name} on WhatsApp', { name: String(name ?? t('Staff')) }) : String(name ?? t('Staff')))
 

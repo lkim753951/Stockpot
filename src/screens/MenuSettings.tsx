@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { Camera, CookingPot, FileText, Plus, Trash, UploadSimple } from '@phosphor-icons/react'
-import { marginPercent, prepPerPortion } from '../../shared/costing'
-import { api, niceDate, portionAmount, pounds } from '../lib/api'
+import { Camera, CookingPot, FileText, Plus, Sparkle, Trash, UploadSimple } from '@phosphor-icons/react'
+import { marginPercent, prepPerPortion, priceForMargin } from '../../shared/costing'
+import { api, ApiError, niceDate, portionAmount, pounds } from '../lib/api'
 import { t, tn } from '../lib/i18n'
 import { Chip, Dock, Empty, ErrorNote, Loading, Screen, Segment, Sheet, Tile } from '../components/ui'
+import { EstimatePanel, estimateDish, estimateLine } from '../components/Estimate'
+import { inTurns, MENU_FILES, mergeDishes, readableImage, readEach, readMenuFile, type FileProblem } from '../lib/reading'
 
 const BLANK = { name: '', pounds: '', targetMargin: '70', portions: '', prepMinutes: '', serviceMinutes: '', method: '', lines: [{ name: '', quantity: '', unit: 'g' }] }
 
@@ -58,7 +60,7 @@ function Changes({ changes }: { changes: any[] }) {
 }
 
 /** Margin moves as the owner types and nothing is saved. Every figure uses the same costing as the Dashboard. */
-function CostPanel({ dish }: { dish: any }) {
+function CostPanel({ dish, onUsePrice }: { dish: any; onUsePrice: (pence: number) => Promise<void> }) {
   const [price, setPrice] = useState((dish.pricePence / 100).toFixed(2))
   const typed = Math.round(Number(price.replace(/[£\s]/g, '').replace(/,/g, '.')) * 100)
   const known = dish.exactCostPence !== null
@@ -74,6 +76,7 @@ function CostPanel({ dish }: { dish: any }) {
       <label className="field">{t('Try a menu price (£)')}<input inputMode="decimal" className="num" value={price} onChange={(event) => setPrice(event.target.value)} /></label>
       <ul className="list">
         <li><span>{t('Menu price to hit your target')}</span><strong className="num">{dish.pricePenceForTarget === null ? t('Not known') : pounds(dish.pricePenceForTarget)}</strong></li>
+        {known && dish.targetMargin !== 80 ? <li><span>{t('Menu price for an {margin}% margin', { margin: 80 })}</span><strong className="num">{pounds(priceForMargin(dish.exactCostPence, 80))}</strong></li> : null}
         <li>
           <span>{t('Prep time')}{dish.prepPerPortion ? <span className="when"><br />{t('{minutes} min a portion', { minutes: dish.prepPerPortion })}</span> : null}</span>
           <strong className="num">{dish.prepMinutes ? t('{minutes} min', { minutes: dish.prepMinutes }) : t('Not set')}</strong>
@@ -94,13 +97,16 @@ function CostPanel({ dish }: { dish: any }) {
         </>
       ) : null}
       <p className="caption">{t("This uses your saved recipe and the newest price paid, the same as the Dashboard. Labour isn't included, because Stockpot has no wage data, so prep and service time don't change the cost. Waste and other costs aren't included either.")}</p>
+      {known ? null : <EstimatePanel dish={{ name: dish.name, pricePence: dish.pricePence, lines: dish.lines }} onUsePrice={onUsePrice} />}
     </section>
   )
 }
 
-const FILE_TYPES = 'application/pdf,image/jpeg,image/png,image/webp,.pdf,.docx,.jpg,.jpeg,.png,.webp'
+const FILE_TYPES = 'application/pdf,image/jpeg,image/png,image/webp,text/plain,.pdf,.docx,.txt,.jpg,.jpeg,.png,.webp'
+/** The recipe reader takes spreadsheets too, when they come in through Add a recipe. */
+const RECIPE_FILES = `${FILE_TYPES},.csv,.xlsx`
 
-export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any; setForm: (next: any) => void; onClose: () => void; onSaved: (id: number) => void; dish?: any }) {
+export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any; setForm: (next: any) => void; onClose: () => void; onSaved: (id: number, stay?: boolean) => void; dish?: any }) {
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState(form.id && !form.reading ? 'cost' : 'recipe')
   // Saving a file takes the owner from checking the recipe to seeing what it costs.
@@ -135,13 +141,19 @@ export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any
       setTab('recipe')
     } catch (problem) { setError((problem as Error).message) } finally { setBusy(false) }
   }
-  const pickFile = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = chosen(event)
-    if (!file) return
+  const pickFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const picked = chosen(event)
+    if (!picked) return
+    const file = await readableImage(picked)
     const data = new FormData()
     data.append('dishId', String(form.id))
     data.append('file', file)
     void read(() => api('/api/setup/recipes/read', { form: data }), file)
+  }
+  /** The suggested price, saved on the dish as it stands. The recipe and everything else stay the same. */
+  const usePrice = async (pence: number) => {
+    await api(`/api/setup/dishes/${dish.id}`, { method: 'PUT', body: { ...toBody(toForm(dish)), pricePence: pence } })
+    onSaved(dish.id, true)
   }
   const line = (index: number, change: object) => setForm({
     ...form,
@@ -158,8 +170,19 @@ export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any
       : form.lines
     setForm({ ...form, portions, lines })
   }
+  const [clash, setClash] = useState<{ name: string; to: string } | null>(null)
+  /** The owner chose to measure this ingredient the recipe's way. Stockpot refuses if it already has prices. */
+  const remeasure = async () => {
+    setError(null)
+    try {
+      await api('/api/setup/items/unit', { body: { name: clash!.name, unit: clash!.to } })
+      setClash(null)
+      await save()
+    } catch (problem) { setError((problem as Error).message) }
+  }
   const save = async () => {
     setError(null)
+    setClash(null)
     setBusy(true)
     try {
       const { id } = await api(form.id ? `/api/setup/dishes/${form.id}` : '/api/setup/dishes', { method: form.id ? 'PUT' : 'POST', body: toBody(form) })
@@ -171,7 +194,11 @@ export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any
         await api(`/api/setup/dishes/${id}/files`, { form: data })
       }
       onSaved(id)
-    } catch (problem) { setError((problem as Error).message) } finally { setBusy(false) }
+    } catch (problem) {
+      setError((problem as Error).message)
+      const values = (problem as ApiError).values
+      if (values?.clash) setClash({ name: String(values.clash), to: String(values.to) })
+    } finally { setBusy(false) }
   }
   const remove = async () => {
     setError(null)
@@ -184,7 +211,7 @@ export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any
   return (
     <Sheet title={form.id ? form.name : t('Add a dish')} onClose={onClose}>
       {form.id && !reading ? <Segment fill label={t('Dish')} value={tab} onChange={setTab} options={[{ value: 'cost', label: t('Cost and margin') }, { value: 'recipe', label: t('Recipe') }]} /> : null}
-      {tab === 'cost' ? <CostPanel key={`${dish?.id}-${dish?.pricePence}`} dish={dish} /> : (
+      {tab === 'cost' ? <CostPanel key={`${dish?.id}-${dish?.pricePence}`} dish={dish} onUsePrice={usePrice} /> : (
         <>
           {reading ? (
             <>
@@ -229,6 +256,13 @@ export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any
             ))}
           </ul>
           <button className="btn text small" type="button" onClick={() => setForm({ ...form, lines: [...form.lines, { name: '', quantity: '', unit: 'g' }] })}><Plus size={20} aria-hidden="true" />{t('Add an ingredient')}</button>
+          {form.id && !reading ? null : (
+            <EstimatePanel
+              dish={{ name: form.name, pricePence: Math.round(Number(String(form.pounds).replace(/[£\s]/g, '').replace(/,/g, '.')) * 100) || null, lines: form.lines }}
+              onUsePrice={(pence) => setForm({ ...form, pounds: (pence / 100).toFixed(2) })}
+              onUseRecipe={(lines) => setForm({ ...form, lines })}
+            />
+          )}
           <label className="field">{t('How to make it')}<textarea rows={5} placeholder={t('One step on each line. Staff can read this on their phones.')} value={form.method ?? ''} onChange={(event) => setForm({ ...form, method: event.target.value })} /></label>
           {photoSrc ? <img className="evidence dish-photo" src={photoSrc} alt={form.name} /> : null}
           <button className="btn text small" type="button" onClick={() => photoInput.current?.click()}><Camera size={20} aria-hidden="true" />{photoSrc ? t('Change photo') : t('Add a photo')}</button>
@@ -243,6 +277,7 @@ export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any
           ) : null}
           <input ref={fileInput} type="file" accept={FILE_TYPES} hidden onChange={pickFile} />
           <ErrorNote message={error} />
+          {clash ? <button className="btn block" type="button" disabled={busy} onClick={remeasure}>{t('Measure {name} in {units} from now on, and save', { name: clash.name, units: clash.to === 'each' ? t('each') : clash.to === 'kg' ? 'g / kg' : 'ml / l' })}</button> : null}
           <button className="btn primary block" type="button" disabled={busy} onClick={save}>{t('Save')}</button>
           {form.id ? <button className="btn text block" type="button" onClick={remove}>{t('Remove this dish')}</button> : null}
         </>
@@ -252,37 +287,112 @@ export function DishSheet({ form, setForm, onClose, onSaved, dish }: { form: any
   )
 }
 
-/** The owner's way in for a recipe file. The browser keeps the files, and they're only sent to be kept once the owner saves. */
-function AddRecipe({ sample, onRead, onClose }: { sample: boolean; onRead: (found: any, file: File, photo: File | null) => void; onClose: () => void }) {
-  const [file, setFile] = useState<File | null>(null)
+const needsWork = (recipe: any) => recipe.lines.some((line: any) => line.flags.length) || !recipe.lines.length
+
+/** Several recipes at once, from one file or many. Each can be checked on its own, and only ready ones are saved. */
+export function RecipePreview({ preview, onSave, onCancel, onChanged }: { preview: any; onSave: (body: object) => void; onCancel: () => void; onChanged: (recipes: any[]) => void }) {
+  const [prices, setPrices] = useState<Record<string, string>>({})
+  const [form, setForm] = useState<any>(null)
+  const [dishes, setDishes] = useState<any[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const priceOf = (recipe: any) => recipe.pricePence ?? Math.round(Number(prices[recipe.name] ?? 0) * 100)
+  const ready = preview.recipes.filter((recipe: any) => !needsWork(recipe) && priceOf(recipe) > 0)
+  const check = async (recipe: any) => {
+    setError(null)
+    try {
+      const rows = await api<any[]>('/api/setup/dishes')
+      setDishes(rows)
+      const dish = rows.find((row) => row.id === recipe.dishId)
+      setForm({ ...formFromRecipe(recipe, dish, { notes: [], changes: recipe.changes, more: 0 }), id: dish?.id, photo: dish?.photo, recipeFileName: dish?.recipeFileName, pounds: dish ? (dish.pricePence / 100).toFixed(2) : prices[recipe.name] ?? '', source: recipe.name })
+    } catch (problem) { setError((problem as Error).message) }
+  }
+  return (
+    <>
+      <ErrorNote message={error} />
+      <div className="stack">
+        {preview.recipes.map((recipe: any) => (
+          <article className="card" key={recipe.name}>
+            <div>
+              <strong>{recipe.name}</strong>
+              <p className="when">{recipe.portions ? tn(recipe.portions, 'Makes {n} portion', 'Makes {n} portions') : t('Portions not stated')}, {tn(recipe.lines.length, '{n} ingredient', '{n} ingredients')}</p>
+            </div>
+            <div className="card-actions">
+              <Chip tone={recipe.dishId ? 'neutral' : 'brand'}>{recipe.dishId ? tn(recipe.changes.length, '{n} change', '{n} changes') : t('New dish')}</Chip>
+              {needsWork(recipe) ? <Chip tone="attention">{t('Needs you')}</Chip> : null}
+            </div>
+            <Notes notes={recipe.flags} />
+            {recipe.dishId ? null : <label className="field">{t('Menu price (£)')}<input inputMode="decimal" className="num" value={prices[recipe.name] ?? ''} onChange={(event) => setPrices({ ...prices, [recipe.name]: event.target.value })} /></label>}
+            <button className="btn block" type="button" onClick={() => check(recipe)}>{t('Check this recipe')}</button>
+          </article>
+        ))}
+      </div>
+      <button className="btn primary block" type="button" disabled={!ready.length} onClick={() => onSave({ kind: 'recipes', recipes: ready.map((recipe: any) => ({ ...recipe, pricePence: priceOf(recipe) })) })}>{tn(ready.length, 'Save {n} recipe', 'Save {n} recipes')}</button>
+      <button className="btn text block" type="button" onClick={onCancel}>{t('Cancel')}</button>
+      {form ? <DishSheet form={form} setForm={setForm} dish={dishes.find((dish) => dish.id === form.id)} onClose={() => setForm(null)} onSaved={() => { onChanged(preview.recipes.filter((recipe: any) => recipe.name !== form.source)); setForm(null) }} /> : null}
+    </>
+  )
+}
+
+const Problems = ({ problems }: { problems: FileProblem[] }) => (problems.length ? (
+  <div className="error stack" role="alert">
+    {problems.map((problem, index) => <p key={index}><strong>{problem.file}</strong>: {problem.message}</p>)}
+  </div>
+) : null)
+
+/** Reads every file the owner picks. One recipe opens on its own, and several are shown together to check. */
+function AddRecipe({ sample, onRead, onMany, onClose }: { sample: boolean; onRead: (found: any, file: File, photo: File | null) => void; onMany: (preview: any) => void; onClose: () => void }) {
+  const [files, setFiles] = useState<File[]>([])
   const [photo, setPhoto] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [problems, setProblems] = useState<FileProblem[]>([])
   const fileInput = useRef<HTMLInputElement>(null)
   const photoInput = useRef<HTMLInputElement>(null)
-  const read = async (chosen: File, image: File | null) => {
-    const data = new FormData()
-    data.append('file', chosen)
-    onRead(await api('/api/setup/recipes/read', { form: data }), chosen, image)
+  const read = async (chosen: File[], image: File | null) => {
+    const { found, problems } = await readEach(chosen, (file) => {
+      const data = new FormData()
+      data.append('kind', 'recipes')
+      data.append('file', file)
+      return api('/api/ingest/read', { form: data }).then((preview) => ({ preview, file }))
+    })
+    setProblems(problems)
+    // The same dish in two files is shown once, as the last file has it.
+    const byName = new Map<string, any>()
+    for (const { result } of found) for (const recipe of result.preview.recipes) byName.set(recipe.name.trim().toLowerCase(), recipe)
+    const recipes = [...byName.values()]
+    const checks = found.flatMap(({ file, result }) => result.preview.checks.filter((note: any) => note.text !== 'Stockpot found nothing to import in this file.').map((note: any) => (found.length > 1 ? { ...note, text: `${file}: ${t(note.text, note.values)}`, values: undefined } : note)))
+    if (!recipes.length) {
+      if (!problems.length) setError(t('Stockpot found no recipe in that file.'))
+      return
+    }
+    if (recipes.length === 1 && found.length === 1 && !problems.length) {
+      const [recipe] = recipes
+      return onRead({ recipe, notes: checks, changes: recipe.changes, dishId: recipe.dishId, more: 0 }, found[0].result.file, image)
+    }
+    onMany({ recipes, checks, problems })
   }
   const go = async (work: () => Promise<void>) => {
     setBusy(true)
     setError(null)
+    setProblems([])
     try { await work() } catch (problem) { setError((problem as Error).message) } finally { setBusy(false) }
   }
   const trySample = () => go(async () => {
     const [pdf, png] = await Promise.all(['sample-recipe.pdf', 'sample-dish.png'].map(async (name) => new File([await (await fetch(`/samples/${name}`)).blob()], name)))
-    await read(pdf, png)
+    await read([pdf], png)
   })
+  const label = files.length === 1 ? files[0].name : t('Choose the recipe file')
   return (
     <Sheet title={t('Add a recipe')} onClose={onClose}>
-      <p className="muted">{t('Upload a PDF, a photo or a Word file. Stockpot reads it and you check it. Nothing is saved until you do.')}</p>
-      <button className="btn block" type="button" onClick={() => fileInput.current?.click()}><UploadSimple size={24} aria-hidden="true" />{file ? file.name : t('Choose the recipe file')}</button>
-      <button className="btn block" type="button" onClick={() => photoInput.current?.click()}><Camera size={24} aria-hidden="true" />{photo ? photo.name : t('Add a dish photo (optional)')}</button>
-      <input ref={fileInput} type="file" accept={FILE_TYPES} hidden onChange={(event) => { setFile(event.target.files?.[0] ?? null); event.target.value = '' }} />
+      <p className="muted">{t('Upload PDFs, photos, Word or text files. You can choose several at once. Stockpot reads them and you check them. Nothing is saved until you do.')}</p>
+      <button className="btn block" type="button" onClick={() => fileInput.current?.click()}><UploadSimple size={24} aria-hidden="true" />{label}</button>
+      {files.length > 1 ? <ul className="list">{files.map((file, index) => <li key={index}><span>{file.name}</span><button className="icon-btn" type="button" aria-label={t('Remove {name}', { name: file.name })} onClick={() => setFiles(files.filter((_, at) => at !== index))}><Trash size={20} aria-hidden="true" /></button></li>)}</ul> : null}
+      {files.length > 1 ? null : <button className="btn block" type="button" onClick={() => photoInput.current?.click()}><Camera size={24} aria-hidden="true" />{photo ? photo.name : t('Add a dish photo (optional)')}</button>}
+      <input ref={fileInput} type="file" multiple accept={RECIPE_FILES} hidden onChange={(event) => { const picked = [...(event.target.files ?? [])]; setFiles(picked.length ? [...files, ...picked].slice(0, 20) : files); event.target.value = '' }} />
       <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { setPhoto(event.target.files?.[0] ?? null); event.target.value = '' }} />
       <ErrorNote message={error} />
-      <button className="btn primary block" type="button" disabled={!file || busy} onClick={() => go(() => read(file!, photo))}>{busy ? t('Reading') : t('Read the recipe')}</button>
+      <Problems problems={problems} />
+      <button className="btn primary block" type="button" disabled={!files.length || busy} onClick={() => go(() => read(files, files.length > 1 ? null : photo))}>{busy ? t('Reading') : files.length > 1 ? t('Read the recipes') : t('Read the recipe')}</button>
       {sample ? <button className="btn text block" type="button" disabled={busy} onClick={trySample}>{t('Try the sample recipe')}</button> : null}
     </Sheet>
   )
@@ -293,6 +403,11 @@ export function MenuSettings({ sample = false }: { sample?: boolean }) {
   const [form, setForm] = useState<any>(null)
   const [adding, setAdding] = useState(false)
   const [read, setRead] = useState<any[] | null>(null)
+  const [many, setMany] = useState<any>(null)
+  const [problems, setProblems] = useState<FileProblem[]>([])
+  const [done, setDone] = useState<string | null>(null)
+  const [estimates, setEstimates] = useState<Record<number, any>>({})
+  const [estimating, setEstimating] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
@@ -300,26 +415,31 @@ export function MenuSettings({ sample = false }: { sample?: boolean }) {
   useEffect(() => { void load() }, [])
 
   const upload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const files = [...(event.target.files ?? [])].slice(0, 20)
     event.target.value = ''
-    if (!file) return
+    if (!files.length) return
     setBusy(true)
     setError(null)
-    const data = new FormData()
-    data.append('file', file)
-    try {
-      const found = await api<any[]>('/api/setup/menu/read', { form: data })
-      setRead(found.map((dish) => ({ ...dish, pounds: dish.pricePence === null ? '' : (dish.pricePence / 100).toFixed(2), targetMargin: '70', portions: '', prepMinutes: '', serviceMinutes: '' })))
-    } catch (problem) { setError((problem as Error).message) } finally { setBusy(false) }
+    setDone(null)
+    const { found, problems } = await readEach(files, readMenuFile)
+    setProblems(problems)
+    const dishesRead = found.flatMap(({ result }) => result)
+    if (found.length && !dishesRead.length) setError(t('Stockpot found no dishes in that menu.'))
+    if (dishesRead.length) setRead(mergeDishes(read ?? [], dishesRead.map((dish) => ({ ...dish, pounds: dish.pricePence === null ? '' : (dish.pricePence / 100).toFixed(2), targetMargin: '70', portions: '', prepMinutes: '', serviceMinutes: '' }))))
+    setBusy(false)
   }
 
+  /** Each dish is saved on its own. One that can't be saved stays on the list with the reason, and the rest go in. */
   const saveRead = async () => {
     setError(null)
-    try {
-      for (const dish of read!) await api('/api/setup/dishes', { body: toBody({ ...dish, lines: dish.lines.filter((line: any) => line.quantity !== null) }) })
-      setRead(null)
-      await load()
-    } catch (problem) { setError((problem as Error).message); await load() }
+    setBusy(true)
+    const left: any[] = []
+    for (const dish of read!) {
+      try { await api('/api/setup/dishes', { body: toBody({ ...dish, lines: dish.lines.filter((line: any) => line.quantity !== null) }) }) } catch (problem) { left.push({ ...dish, problem: (problem as Error).message }) }
+    }
+    setRead(left.length ? left : null)
+    await load()
+    setBusy(false)
   }
 
   const recipeRead = (found: any, file: File, photo: File | null) => {
@@ -328,17 +448,40 @@ export function MenuSettings({ sample = false }: { sample?: boolean }) {
     setAdding(false)
   }
 
-  /** After a file is saved, the owner lands on the cost, which is why they added it. */
-  const saved = async (id: number) => {
+  const saveMany = async (body: object) => {
+    setError(null)
+    try {
+      const result = await api('/api/ingest/save', { body })
+      setDone(`${tn(result.saved, 'Saved {n} recipe.', 'Saved {n} recipes.')}${result.problems?.length ? ` ${result.problems.map((problem: any) => `${problem.name}: ${t(problem.message, problem.values)}`).join(' ')}` : ''}`)
+      setMany(null)
+      await load()
+    } catch (problem) { setError((problem as Error).message) }
+  }
+
+  /** After a file is saved, the owner lands on the cost, which is why they added it. A new price keeps the dish open. */
+  const saved = async (id: number, stay = false) => {
     const fromFile = !!form?.reading
     const rows = await load()
     const dish = rows.find((row) => row.id === id)
-    setForm(fromFile && dish ? toForm(dish) : null)
+    setEstimates((current) => { const { [id]: _gone, ...rest } = current; return rest })
+    setForm((fromFile || stay) && dish ? toForm(dish) : null)
+  }
+
+  const missing = (dishes ?? []).filter((dish) => dish.marginPercent === null)
+  const estimateAll = async () => {
+    setEstimating(true)
+    await inTurns(missing, async (dish) => {
+      const result = await estimateDish({ name: dish.name, pricePence: dish.pricePence, lines: dish.lines }).catch((problem) => ({ error: (problem as Error).message }))
+      setEstimates((current) => ({ ...current, [dish.id]: result }))
+    })
+    setEstimating(false)
   }
 
   return (
     <Screen title={t('Menu and recipes')} lead={t('Recipes turn your supplier prices into food cost and margin.')}>
       {!form ? <ErrorNote message={error} /> : null}
+      <Problems problems={problems} />
+      {done ? <p className="notice" role="status">{done}</p> : null}
       {!dishes && !error ? <Loading /> : null}
       {read ? (
         <section className="card arrive">
@@ -347,17 +490,34 @@ export function MenuSettings({ sample = false }: { sample?: boolean }) {
           <ul className="read-menu">
             {read.map((dish, index) => (
               <li key={index}>
-                <input aria-label={t('Dish')} value={dish.name} onChange={(event) => setRead(read.map((row, at) => (at === index ? { ...row, name: event.target.value } : row)))} />
-                <input aria-label={t('Menu price (£)')} placeholder="£" inputMode="decimal" className="num" value={dish.pounds} onChange={(event) => setRead(read.map((row, at) => (at === index ? { ...row, pounds: event.target.value } : row)))} />
+                <input aria-label={t('Dish')} value={dish.name} onChange={(event) => setRead(read.map((row, at) => (at === index ? { ...row, name: event.target.value, problem: null } : row)))} />
+                <input aria-label={t('Menu price (£)')} placeholder="£" inputMode="decimal" className="num" value={dish.pounds} onChange={(event) => setRead(read.map((row, at) => (at === index ? { ...row, pounds: event.target.value, problem: null } : row)))} />
+                {dish.notes?.length || dish.problem ? (
+                  <div className="line-note">
+                    {dish.notes?.map((note: any, at: number) => <p className="caption" key={at}>{t(note.text, note.values)}</p>)}
+                    {dish.problem ? <p className="error" role="alert">{dish.problem}</p> : null}
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
-          <button className="btn primary block" type="button" onClick={saveRead}>{t('Save these dishes')}</button>
+          <button className="btn primary block" type="button" disabled={busy} onClick={saveRead}>{t('Save these dishes')}</button>
           <button className="btn text block" type="button" onClick={() => setRead(null)}>{t('Cancel')}</button>
+        </section>
+      ) : null}
+      {many ? (
+        <section className="card arrive">
+          <h2>{t('Check these recipes')}</h2>
+          <Notes notes={many.checks} />
+          <Problems problems={many.problems} />
+          <RecipePreview preview={many} onSave={saveMany} onCancel={() => setMany(null)} onChanged={(recipes) => { setMany(recipes.length ? { ...many, recipes } : null); void load() }} />
         </section>
       ) : null}
       <button className="btn primary block" type="button" onClick={() => setAdding(true)}><FileText size={24} aria-hidden="true" />{t('Add a recipe')}</button>
       {dishes?.length === 0 && !read ? <Empty title={t('No dishes yet.')}><p className="muted">{t('Upload your menu, or add dishes one at a time.')}</p></Empty> : null}
+      {missing.length ? (
+        <button className="btn block" type="button" disabled={estimating} onClick={estimateAll}><Sparkle size={24} aria-hidden="true" />{estimating ? t('Estimating') : t('Estimate costs and prices with AI')}</button>
+      ) : null}
       {dishes?.length ? (
         <ul className="feature-list">
           {dishes.map((dish) => (
@@ -369,18 +529,19 @@ export function MenuSettings({ sample = false }: { sample?: boolean }) {
                 <small>
                   {dish.marginPercent !== null ? t('{margin}% margin, target {target}%', { margin: dish.marginPercent, target: dish.targetMargin })
                     : dish.lines.length ? t('Needs a price for {items}. It comes from your next receipt.', { items: dish.unpriced.join(', ') }) : t('No recipe yet.')}
+                  {estimates[dish.id] ? <><br />{estimates[dish.id].error ?? estimateLine(estimates[dish.id])}</> : null}
                 </small>
               </button>
             </li>
           ))}
         </ul>
       ) : null}
-      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" hidden onChange={upload} />
+      <input ref={input} type="file" multiple accept={MENU_FILES} hidden onChange={upload} />
       <Dock pair>
         <button className="btn block" type="button" disabled={busy} onClick={() => input.current?.click()}><FileText size={24} aria-hidden="true" />{busy ? t('Reading') : t('Upload menu')}</button>
         <button className="btn block" type="button" onClick={() => setForm({ ...BLANK })}><Plus size={24} aria-hidden="true" />{t('Add a dish')}</button>
       </Dock>
-      {adding ? <AddRecipe sample={sample} onRead={recipeRead} onClose={() => setAdding(false)} /> : null}
+      {adding ? <AddRecipe sample={sample} onRead={recipeRead} onMany={(preview) => { setMany(preview); setAdding(false) }} onClose={() => setAdding(false)} /> : null}
       {form ? <DishSheet form={form} setForm={setForm} dish={dishes?.find((dish) => dish.id === form.id)} onClose={() => setForm(null)} onSaved={saved} /> : null}
     </Screen>
   )

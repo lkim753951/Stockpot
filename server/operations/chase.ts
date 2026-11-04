@@ -5,7 +5,7 @@ import { sparkJson } from '../ai/meta.ts'
 import { reminderCallPrompt, reminderCallSchema } from '../ai/prompts.ts'
 import { runView } from './checklists.ts'
 import { ownerPhone, placeCall, spokenLanguage } from '../integrations/phone.ts'
-import { sendToPerson, team, whatsappReady, type Contact } from '../integrations/whatsapp.ts'
+import { assigneesFor, sendToPerson, team, whatsappReady, type Contact } from '../integrations/whatsapp.ts'
 
 /**
  * A check that isn't finished. Each list chases once, at the time the owner chose, from an hour before
@@ -24,7 +24,7 @@ const later = (stamp: string, minutes: number) => new Date(Date.parse(`${stamp}:
 const languageFor = async (person: { name: string; language?: string | null }) => await setting(`language:${person.name}`) ?? person.language ?? 'en'
 
 /** Calls need only Twilio, so a late list can ring someone before WhatsApp is connected. */
-const toRing = (assignee: unknown) => team().filter((person) => !assignee || person.name === assignee)
+const toRing = (assignee: unknown) => assigneesFor(assignee)
 
 async function message(person: Pick<Contact, 'name' | 'number' | 'language'>, words: () => string) {
   await inLanguage(await languageFor(person), () => sendToPerson({ to: person, text: words() }))
@@ -45,7 +45,7 @@ export async function chaseLate() {
     const name = String(row.name)
     const time = String(row.due_at).slice(11, 16)
     const chaseAt = Number(row.chase_after)
-    const people = whatsappReady() ? team().filter((person) => !row.assignee || person.name === row.assignee) : []
+    const people = whatsappReady() ? assigneesFor(row.assignee) : []
 
     if (minutes <= 0) {
       if (chaseAt >= 0 || minutes < chaseAt) continue

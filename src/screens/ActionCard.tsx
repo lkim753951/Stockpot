@@ -1,5 +1,5 @@
 import { t, tk } from '../lib/i18n'
-import { DotsThree } from '@phosphor-icons/react'
+import { DotsThree, PhoneCall } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { api } from '../lib/api'
 import { dayWords, inSentence, whenWords } from '../lib/dates'
@@ -84,23 +84,23 @@ function ConfirmCard({ action, onChange }: { action: any; onChange: () => void }
     } catch (problem) { setError((problem as Error).message) }
   }
   return (
-    <Reveal closed={leaving}>
-      <article className="card action compact">
-        <div className="card-top">{chipFor(action)}<span className="meta">{t('{source}, {when}', { source: action.source, when: whenWords(action.createdAt) })}</span></div>
-        <div className="action-main no-tick">
-          <div>
-            <h3>{action.href ? <a className="action-title" href={action.href}>{action.title}</a> : <span className="action-title">{action.title}</span>}</h3>
-            {action.detail ? <p>{action.detail}</p> : null}
+    <li>
+      <Reveal closed={leaving}>
+        <div className="confirm-row">
+          <div className="task-text">
+            {action.href ? <a href={action.href}>{action.title}</a> : <span>{action.title}</span>}
+            {action.detail ? <p className="task-note">{action.detail}</p> : null}
+            <small>{action.urgency === 'now' ? <><b>{t('Urgent')}</b>, </> : null}{t('{source}, {when}', { source: action.source, when: whenWords(action.createdAt) })}</small>
+          </div>
+          <div className="confirm-actions">
+            <button className="btn primary small" type="button" onClick={() => decide('confirm')}>{t('Confirm')}</button>
+            <button className="btn text small" type="button" onClick={() => decide('dismiss')}>{t('Dismiss')}</button>
+            {action.suggested?.href?.startsWith('tel:') ? <a className="btn text small confirm-call" href={action.suggested.href}><PhoneCall size={18} aria-hidden="true" />{action.suggested.label}</a> : null}
           </div>
         </div>
         <ErrorNote message={error} />
-        <div className="card-actions">
-          <button className="btn primary small" type="button" onClick={() => decide('confirm')}>{t('Confirm')}</button>
-          {action.suggested?.href?.startsWith('tel:') ? <a className="btn small" href={action.suggested.href}>{action.suggested.label}</a> : null}
-          <button className="btn text small" type="button" onClick={() => decide('dismiss')}>{t('Dismiss')}</button>
-        </div>
-      </article>
-    </Reveal>
+      </Reveal>
+    </li>
   )
 }
 
@@ -110,7 +110,9 @@ export function ToConfirm({ actions, onChange }: { actions: any[]; onChange: () 
   return (
     <section className="stack" aria-label={t('To confirm')}>
       <div className="section-head"><h2>{t('To confirm')}</h2></div>
-      {actions.map((action) => <ConfirmCard key={action.id} action={action} onChange={onChange} />)}
+      <ul className="task-sheet">
+        {actions.map((action) => <ConfirmCard key={action.id} action={action} onChange={onChange} />)}
+      </ul>
     </section>
   )
 }

@@ -17,7 +17,7 @@ import { checkProof } from '../money/proof.ts'
 import { joinByInvite } from './invites.ts'
 import { crisisCard } from './crisisCards.ts'
 import { voiceNoteToWav } from '../ai/voicenote.ts'
-import { contactFor, downloadMedia, loadStaff, markDelivery, sendToPerson, signatureValid, team, whatsappReady, type Contact } from '../integrations/whatsapp.ts'
+import { assigneesFor, contactFor, downloadMedia, loadStaff, markDelivery, sendToPerson, signatureValid, team, whatsappReady, type Contact } from '../integrations/whatsapp.ts'
 import { teamReplyPrompt, teamReplySchema, thermometerPrompt, thermometerSchema, type ExtractedTeamReply, type ExtractedThermometer } from '../ai/prompts.ts'
 
 /**
@@ -83,7 +83,7 @@ export async function sendChecklist(runId: number) {
   const view = await runView(runId)
   if (!view) return { ok: false, detail: 'That checklist has gone.' }
   if (!whatsappReady() && config.mode !== 'sample') return { ok: false, detail: 'WhatsApp is not connected yet.' }
-  const assigned = view.assignee ? team().filter((person) => person.name === view.assignee) : []
+  const assigned = view.assignee ? assigneesFor(view.assignee) : []
   const people = !whatsappReady() ? [{ name: String(view.assignee ?? 'Maria') }] : assigned.length ? assigned : team()
   const results = await Promise.all(people.map(async (person) => inLanguage(await languageFor(person), async () => sendToPerson({ to: person, text: await checklistMessage(runId), runId }))))
   const failed = results.find((result) => !result.ok)

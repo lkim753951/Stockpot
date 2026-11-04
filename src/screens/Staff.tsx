@@ -24,12 +24,18 @@ export function StaffList() {
       <ErrorNote message={error} />
       {!orders && !error ? <Loading /> : null}
       {orders?.length === 0 ? <Empty title={t('No deliveries due.')} /> : null}
-      {orders?.map((order) => (
-        <a className="card" key={order.id} href={`#/staff/${order.id}`}>
-          <div className="row between"><strong>{order.supplier}</strong><Chip tone={order.status === 'done' ? 'good' : 'due'}>{order.status === 'done' ? t('Checked in') : t('To check in')}</Chip></div>
-          <p className="caption">{niceDate(order.deliveryDate)}</p>
-        </a>
-      ))}
+      {orders?.length ? (
+        <ul className="feature-list">
+          {orders.map((order) => (
+            <li key={order.id}>
+              <a className="staff-run" href={`#/staff/${order.id}`}>
+                <span><strong>{order.supplier}</strong><span className="when">{niceDate(order.deliveryDate)}</span></span>
+                <Chip tone={order.status === 'done' ? 'good' : 'due'}>{order.status === 'done' ? t('Checked in') : t('To check in')}</Chip>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </Screen>
   )
 }

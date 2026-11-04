@@ -119,8 +119,10 @@ export function CrisisCardView({ cardKey, base, owner = false }: { cardKey: stri
       <ol className="crisis-steps">
         {card.steps.map((step) => <li key={step.text}><span>{t(step.text)}{step.photo ? <img className="evidence" src={`/api/crisis/photo/${step.photo}`} alt="" /> : null}</span></li>)}
       </ol>
-      {owner ? <button className="btn block" type="button" onClick={() => setEditing(true)}><PencilSimple size={22} aria-hidden="true" />{t('Edit this card')}</button> : null}
-      <a className="btn block" href={base}>{t('All cards')}</a>
+      <div className="actions">
+        {owner ? <button className="btn block" type="button" onClick={() => setEditing(true)}><PencilSimple size={22} aria-hidden="true" />{t('Edit this card')}</button> : null}
+        <a className="btn block" href={base}>{t('All cards')}</a>
+      </div>
       {currentLanguage() === 'en' || card.edited || card.custom ? null : <p className="notice">{t('This card was translated by AI. Ask someone to check it before you rely on it.')}</p>}
       {card.edited || card.custom ? <p className="caption">{t('Written by the owner.')}</p> : <p className="caption">{t('Sample wording. Get these cards checked by a qualified person before real use.')}</p>}
       {editing ? <CardEditor card={card} onClose={() => setEditing(false)} onDone={() => { setEditing(false); void load() }} /> : null}

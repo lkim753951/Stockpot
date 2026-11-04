@@ -61,7 +61,13 @@ function sampleReads() {
   }
   return reads
 }
-const sampleRead = (text: string) => sampleReads().get(text.match(/^File name: (.+)$/m)?.[1]?.trim() ?? '') ?? null
+/** The browser sends a photo as a JPEG, so a sample PNG is found by its name without the ending too. */
+const sampleRead = (text: string) => {
+  const name = text.match(/^File name: (.+)$/m)?.[1]?.trim() ?? ''
+  const reads = sampleReads()
+  const stem = (file: string) => file.replace(/\.(png|jpe?g|webp)$/i, '')
+  return reads.get(name) ?? [...reads].find(([file]) => /\.(png|jpe?g|webp)$/i.test(file) && stem(file) === stem(name))?.[1] ?? null
+}
 
 const COLUMN_WORDS: Record<string, Array<[string, RegExp]>> = {
   sales: [['date', /date|^day/i], ['dish', /dish|menu item|^item|^product/i], ['quantity', /qty|quantity|sold|portions/i], ['net_sales', /\bnet\b|ex vat|^sales$|revenue/i]],
@@ -92,6 +98,25 @@ function columnReply(kind: string, text: string) {
   }
 }
 
+/** Typical catering prices, so the sample can show an estimate for any dish. Pence a kg, a litre or an item. */
+const TYPICAL: Array<[RegExp, number]> = [
+  [/lamb/i, 1100], [/beef|steak/i, 1000], [/chicken/i, 650], [/salmon|fish|cod|haddock/i, 1400], [/prawn/i, 1600],
+  [/cheese|feta|halloumi|paneer/i, 900], [/butter|ghee/i, 700], [/oil/i, 300], [/cream|yogh?urt|milk/i, 250],
+  [/rice/i, 180], [/chickpea|lentil|bean|dal/i, 220], [/flour|pasta|noodle/i, 120], [/onion|potato|carrot/i, 90],
+  [/tomato/i, 220], [/garlic|ginger|chilli|herb|coriander|parsley|mint/i, 900], [/spice|cumin|turmeric|garam|paprika/i, 1500],
+  [/bread|bun|wrap|flatbread|naan|pitta/i, 35], [/egg/i, 25], [/lemon|lime/i, 30],
+]
+const typical = (name: string, unit: string) => TYPICAL.find(([pattern]) => pattern.test(name))?.[1] ?? (unit === 'each' ? 40 : 350)
+
+function estimateReply(text: string) {
+  const listed = [...text.matchAll(/^\d+\. (.+): ([\d.]+) (g|ml|each)$/gm)]
+  if (listed.length) return { ingredients: listed.map(([, name, quantity, unit]) => ({ name, quantity: Number(quantity), unit, pence_per_unit: typical(name, unit) })) }
+  const dish = text.match(/^Dish: (.+)$/m)?.[1] ?? ''
+  const main = /lamb/i.test(dish) ? 'Lamb mince' : /chicken/i.test(dish) ? 'Chicken thighs' : /dal|lentil/i.test(dish) ? 'Red lentils' : /chickpea/i.test(dish) ? 'Chickpeas' : /fish|cod/i.test(dish) ? 'Cod fillet' : 'Mixed vegetables'
+  const rows: Array<[string, number, string]> = [[main, 160, 'g'], ['Onions', 60, 'g'], ['Chopped tomatoes', 80, 'g'], ['Garlic and ginger', 10, 'g'], ['Spices', 4, 'g'], ['Rapeseed oil', 15, 'ml'], ['Basmati rice', 90, 'g']]
+  return { ingredients: rows.map(([name, quantity, unit]) => ({ name, quantity, unit, pence_per_unit: typical(name, unit) })) }
+}
+
 function replyFor(name: string, system: string, text: string) {
   if (name.startsWith('ingest_columns_')) return columnReply(name.replace('ingest_columns_', ''), text)
   if (['ingest_sales', 'ingest_prices', 'ingest_recipes'].includes(name)) {
@@ -101,6 +126,7 @@ function replyFor(name: string, system: string, text: string) {
   }
   if (name === 'proof_target') return { target: 'fryer' }
   if (name === 'call_script_words') return { opening: `Hi ${text.match(/Contact: ([^.]+)\./)?.[1] ?? 'there'}, it's about our last delivery. Have you got a minute?`, ask: 'Could you send the rest over, or put a credit note through, please?', pushback: 'No problem, I can send you the photos and the invoice now.' }
+  if (name === 'dish_estimate') return estimateReply(text)
   if (name === 'menu') {
     return { dishes: [
       { name: 'Lamb kofta', price_pence: 1250, ingredients: [{ name: 'Lamb mince', quantity: 180, unit: 'g' }, { name: 'Flatbread', quantity: 1, unit: 'each' }] },

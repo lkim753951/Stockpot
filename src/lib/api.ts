@@ -1,7 +1,7 @@
 import { currentLanguage, locale, t } from './i18n'
 
 export class ApiError extends Error {
-  constructor(message: string, readonly status: number) { super(message) }
+  constructor(message: string, readonly status: number, readonly values?: Record<string, string | number>) { super(message) }
 }
 
 /** Vercel refuses a request over 4.5 MB, so a form stays a little under that. */
@@ -40,7 +40,7 @@ export async function api<T = any>(url: string, options: { method?: string; body
   })
   const payload = await response.json().catch(() => null)
   if (response.status === 413) throw new ApiError(t('That file is too large.'), response.status)
-  if (!response.ok) throw new ApiError(t(payload?.error ?? "That didn't work. Try again."), response.status)
+  if (!response.ok) throw new ApiError(payload?.error ? t(payload.sentence ?? payload.error, payload.values) : t("That didn't work. Try again."), response.status, payload?.values)
   return payload as T
 }
 

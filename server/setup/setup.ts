@@ -2,18 +2,20 @@ import { CALL_LANGUAGES } from '../../shared/lang.ts'
 import { all, get, insert, priceOn, run, saveSetting, setting, transaction } from '../core/db.ts'
 import { config } from '../core/config.ts'
 import { localTime } from '../core/clock.ts'
-import { sparkJson } from '../ai/meta.ts'
 import { nameKey } from '../core/parsing.ts'
-import { documentPart } from './documents.ts'
 import { proofTargetFor } from '../money/proof.ts'
 import { EARLIEST_CHASE } from '../operations/chase.ts'
 import { cleanSchedule, frequencyOf, scheduleFor, type Schedule } from '../core/schedule.ts'
-import { menuPrompt, menuSchema, type ExtractedMenu } from '../ai/prompts.ts'
 import { marginPercent, prepPerPortion, priceForMargin } from '../../shared/costing.ts'
 
 /** Everything the owner adds about their own restaurant: suppliers, the menu and their checklists. */
 
-export class SetupError extends Error {}
+/** A rule the owner can fix. Values fill the {marks}, so the browser can translate the sentence and still name the ingredient. */
+export class SetupError extends Error {
+  constructor(readonly sentence: string, readonly values?: Record<string, string | number>) {
+    super(Object.entries(values ?? {}).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), sentence))
+  }
+}
 
 const text = (value: unknown, limit = 120) => (typeof value === 'string' ? value.trim().slice(0, limit) : '')
 
@@ -41,7 +43,7 @@ export async function deleteSupplier(id: number) {
   await run('DELETE FROM suppliers WHERE id = ?', id)
 }
 
-const TO_BASE: Record<string, { base: string; factor: number }> = {
+export const TO_BASE: Record<string, { base: string; factor: number }> = {
   g: { base: 'kg', factor: 0.001 }, kg: { base: 'kg', factor: 1 }, ml: { base: 'l', factor: 0.001 }, l: { base: 'l', factor: 1 }, each: { base: 'each', factor: 1 },
 }
 
@@ -55,10 +57,36 @@ export async function itemMatcher() {
   }
 }
 
+/** The units the owner can pick for an ingredient, by how it is saved. */
+export const UNITS_FOR: Record<string, string> = { kg: 'g / kg', l: 'ml / l', each: 'each' }
+
+/** Says which unit to pick, instead of naming the saved unit the owner never sees. */
+export function unitClash(name: string, saved: string, given: string) {
+  const values = { name, units: UNITS_FOR[saved] ?? saved, given, clash: name, to: TO_BASE[given]?.base ?? given }
+  if (saved === 'each') return new SetupError('{name} is counted one at a time in your stock, but this recipe gives it in {given}. Change its unit to each.', values)
+  if (saved === 'kg') return new SetupError('{name} is weighed in your stock, but this recipe gives it in {given}. Change its unit to {units}.', values)
+  return new SetupError('{name} is measured by volume in your stock, but this recipe gives it in {given}. Change its unit to {units}.', values)
+}
+
+/**
+ * One ingredient is measured one way, so its prices and recipes add up. A unit picked up from a single call or invoice
+ * can be wrong, so the owner may change it until the ingredient has a price: after that, prices in the old unit would mislead.
+ */
+export async function changeItemUnit(name: string, unit: string) {
+  const known = (await itemMatcher())(text(name))
+  const base = TO_BASE[unit]?.base
+  if (!known || !base) throw new SetupError('Choose a unit for {name}.', { name: text(name) })
+  if (known.base_unit === base) return
+  if (await get('SELECT 1 AS priced FROM price_history WHERE item_id = ? LIMIT 1', known.id)) {
+    throw new SetupError('{name} already has prices in {units}, so it stays that way. Change the recipe to {units}.', { name: String(known.name), units: UNITS_FOR[String(known.base_unit)] ?? String(known.base_unit) })
+  }
+  await run('UPDATE items SET base_unit = ? WHERE id = ?', base, known.id)
+}
+
 export async function itemFor(name: string, unit: string) {
   const known = (await itemMatcher())(name)
   const { base, factor } = TO_BASE[unit] ?? TO_BASE.each
-  if (known && known.base_unit !== base) throw new SetupError(`${known.base_unit === 'each' ? 'Count' : `Weigh or measure`} ${known.name} the way it is saved, in ${known.base_unit}.`)
+  if (known && known.base_unit !== base) throw unitClash(String(known.name), String(known.base_unit), unit)
   return { id: known ? Number(known.id) : await insert('INSERT INTO items (name, base_unit) VALUES (?, ?)', name, base), factor }
 }
 
@@ -112,8 +140,8 @@ export async function saveDish(input: Record<string, any>, id?: number) {
   const service = optionalWhole(input.serviceMinutes, 1440, 'Service time has to be a whole number of minutes.')
   const lines = (Array.isArray(input.lines) ? input.lines : []).filter((line: any) => text(line?.name))
   for (const line of lines) {
-    if (!(Number(line.quantity) > 0)) throw new SetupError(`Add a quantity for ${text(line.name)}.`)
-    if (line.unit !== undefined && line.unit !== null && !(line.unit in TO_BASE)) throw new SetupError(`Choose a unit for ${text(line.name)}.`)
+    if (!(Number(line.quantity) > 0)) throw new SetupError('Add a quantity for {name}.', { name: text(line.name) })
+    if (line.unit !== undefined && line.unit !== null && !(line.unit in TO_BASE)) throw new SetupError('Choose a unit for {name}.', { name: text(line.name) })
   }
   const method = text(input.method, 8000) || null
   return transaction(async () => {
@@ -155,18 +183,6 @@ export async function deleteDish(id: number) {
   if (await get('SELECT 1 AS used FROM sales WHERE dish_id = ? LIMIT 1', id)) throw new SetupError('This dish has sales, so it stays on your records. Change its name or price instead.')
   await run('DELETE FROM recipe_lines WHERE dish_id = ?', id)
   await run('DELETE FROM dishes WHERE id = ?', id)
-}
-
-/** Reads a menu or recipe sheet. Nothing is saved until the owner has checked it. */
-export async function readMenu(file: string, name: string) {
-  const menu = await sparkJson<ExtractedMenu>({
-    name: 'menu', schema: menuSchema, system: menuPrompt, effort: 'medium', timeoutMs: 90000,
-    content: [{ type: 'text', text: `File name: ${name}` }, await documentPart(file, name)],
-  })
-  return menu.dishes.slice(0, 80).map((dish) => ({
-    name: dish.name.slice(0, 120), pricePence: dish.price_pence,
-    lines: dish.ingredients.slice(0, 30).map((line) => ({ name: line.name.slice(0, 120), quantity: line.quantity, unit: line.unit ?? 'g' })),
-  }))
 }
 
 export async function listChecklists() {

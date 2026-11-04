@@ -22,6 +22,15 @@ export function team(): Contact[] {
   return config.whatsapp.ownerNumber ? [{ name: 'Owner', number: config.whatsapp.ownerNumber, role: 'owner' }] : []
 }
 
+/** Who a checklist goes to. Nobody named means the whole team. "Owner" means the owner's own WhatsApp. */
+export function assigneesFor(assignee: unknown): Contact[] {
+  if (!assignee) return team()
+  if (assignee === OWNER) return config.whatsapp.ownerNumber ? [{ name: OWNER, number: config.whatsapp.ownerNumber, role: 'owner' }] : []
+  return team().filter((person) => person.name === assignee)
+}
+
+export const OWNER = 'Owner'
+
 export function contactFor(number: string): Contact | null {
   if (number && number === config.whatsapp.ownerNumber) return { name: 'Owner', number, role: 'owner' }
   return team().find((person) => person.number === number) ?? null

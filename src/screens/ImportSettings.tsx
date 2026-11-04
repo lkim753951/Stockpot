@@ -3,7 +3,7 @@ import { UploadSimple } from '@phosphor-icons/react'
 import { api, niceDate, pounds } from '../lib/api'
 import { t, tn } from '../lib/i18n'
 import { Chip, Dock, ErrorNote, Screen, Segment } from '../components/ui'
-import { DishSheet, formFromRecipe } from './MenuSettings'
+import { RecipePreview } from './MenuSettings'
 
 const SHOWN = 12
 const FILES = '.csv,.xlsx,.pdf,.docx,.txt,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp'
@@ -18,9 +18,16 @@ function problemCounts(rows: any[]) {
   return [...counts]
 }
 
-function SalesPreview({ preview, onSave, onCancel }: { preview: any; onSave: (body: object) => void; onCancel: () => void }) {
+export function SalesPreview({ preview, onSave, onCancel }: { preview: any; onSave: (body: object) => void; onCancel: () => void }) {
   const { summary, ready, problems } = preview
+  const fresh: any[] = preview.newDishes ?? []
+  // New dishes start ticked with the average price paid. The owner can untick a row such as Staff meal.
+  const [chosen, setChosen] = useState<Record<string, string | null>>(() => Object.fromEntries(fresh.map((dish) => [dish.name, dish.pricePence ? (dish.pricePence / 100).toFixed(2) : ''])))
+  const adding = fresh.filter((dish) => chosen[dish.name] !== null && Number(chosen[dish.name]) > 0)
   const toSave = ready.filter((row: any) => row.status !== 'same')
+  const listed = new Set(fresh.flatMap((dish) => dish.rows.map((row: any) => row.dish)))
+  const others = problems.filter((row: any) => !(row.flags.length === 1 && row.flags[0].text === 'Not on your menu: {name}' && listed.has(row.dish)))
+  const rowsToSave = [...toSave.map(({ date, dish, quantity, netPence }: any) => ({ date, dish, quantity, netPence })), ...adding.flatMap((dish) => dish.rows)]
   return (
     <>
       <p>{tn(summary.rows, '{n} row read, with {sold} sold and {net} net.', '{n} rows read, with {sold} sold and {net} net.', { sold: summary.quantity, net: pounds(summary.netPence) })}</p>
@@ -28,13 +35,30 @@ function SalesPreview({ preview, onSave, onCancel }: { preview: any; onSave: (bo
         <li><span>{t('New')}</span><strong className="num">{summary.new}</strong></li>
         {summary.replace ? <li><span>{t('Replaces what is saved')}</span><strong className="num">{summary.replace}</strong></li> : null}
         {summary.same ? <li><span>{t('Already saved, so skipped')}</span><strong className="num">{summary.same}</strong></li> : null}
-        {summary.problems ? <li><span>{t('Flagged and left out')}</span><strong className="num">{summary.problems}</strong></li> : null}
+        {others.length ? <li><span>{t('Flagged and left out')}</span><strong className="num">{others.length}</strong></li> : null}
       </ul>
-      {problems.length ? (
+      {fresh.length ? (
+        <section className="stack">
+          <h3>{t('Dishes not on your menu yet')}</h3>
+          <p className="caption">{t('Tick the ones to add. The price is the average paid before VAT in this file, and you can change it. Their sales are saved too.')}</p>
+          <ul className="list">
+            {fresh.map((dish) => (
+              <li key={dish.name}>
+                <label className="check" style={{ flex: 1 }}>
+                  <input type="checkbox" checked={chosen[dish.name] !== null} onChange={(event) => setChosen({ ...chosen, [dish.name]: event.target.checked ? (dish.pricePence ? (dish.pricePence / 100).toFixed(2) : '') : null })} />
+                  <span>{dish.name}<span className="when"><br />{tn(dish.rows.length, '{n} day of sales', '{n} days of sales')}</span></span>
+                </label>
+                {chosen[dish.name] !== null ? <input aria-label={t('Menu price (£)')} className="num input" style={{ width: 88 }} inputMode="decimal" value={chosen[dish.name] ?? ''} onChange={(event) => setChosen({ ...chosen, [dish.name]: event.target.value })} /> : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {others.length ? (
         <section className="stack">
           <h3>{t('Check these')}</h3>
           <ul className="list">
-            {problemCounts(problems).slice(0, SHOWN).map(([problem, rows]) => <li key={problem}><span>{problem}</span><span className="when num">{tn(rows, '{n} row', '{n} rows')}</span></li>)}
+            {problemCounts(others).slice(0, SHOWN).map(([problem, rows]) => <li key={problem}><span>{problem}</span><span className="when num">{tn(rows, '{n} row', '{n} rows')}</span></li>)}
           </ul>
         </section>
       ) : null}
@@ -45,7 +69,7 @@ function SalesPreview({ preview, onSave, onCancel }: { preview: any; onSave: (bo
         </ul>
         {ready.length > SHOWN ? <p className="caption">{t('And {more} more.', { more: ready.length - SHOWN })}</p> : null}
       </details>
-      <button className="btn primary block" type="button" disabled={!toSave.length} onClick={() => onSave({ kind: 'sales', rows: toSave.map(({ date, dish, quantity, netPence }: any) => ({ date, dish, quantity, netPence })) })}>{tn(toSave.length, 'Save {n} row', 'Save {n} rows')}</button>
+      <button className="btn primary block" type="button" disabled={!rowsToSave.length} onClick={() => onSave({ kind: 'sales', rows: rowsToSave, addDishes: adding.map((dish) => ({ name: dish.name, pricePence: Math.round(Number(chosen[dish.name]) * 100) })) })}>{tn(rowsToSave.length, 'Save {n} row', 'Save {n} rows')}</button>
       <button className="btn text block" type="button" onClick={onCancel}>{t('Cancel')}</button>
     </>
   )
@@ -93,51 +117,6 @@ function PricePreview({ preview, onSave, onCancel }: { preview: any; onSave: (bo
   )
 }
 
-const needsWork = (recipe: any) => recipe.lines.some((line: any) => line.flags.length) || !recipe.lines.length
-
-function RecipePreview({ preview, onSave, onCancel, onChanged }: { preview: any; onSave: (body: object) => void; onCancel: () => void; onChanged: (recipes: any[]) => void }) {
-  const [prices, setPrices] = useState<Record<string, string>>({})
-  const [form, setForm] = useState<any>(null)
-  const [dishes, setDishes] = useState<any[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const priceOf = (recipe: any) => recipe.pricePence ?? Math.round(Number(prices[recipe.name] ?? 0) * 100)
-  const ready = preview.recipes.filter((recipe: any) => !needsWork(recipe) && priceOf(recipe) > 0)
-  const check = async (recipe: any) => {
-    setError(null)
-    try {
-      const rows = await api<any[]>('/api/setup/dishes')
-      setDishes(rows)
-      const dish = rows.find((row) => row.id === recipe.dishId)
-      setForm({ ...formFromRecipe(recipe, dish, { notes: [], changes: recipe.changes, more: 0 }), id: dish?.id, photo: dish?.photo, recipeFileName: dish?.recipeFileName, pounds: dish ? (dish.pricePence / 100).toFixed(2) : prices[recipe.name] ?? '', source: recipe.name })
-    } catch (problem) { setError((problem as Error).message) }
-  }
-  return (
-    <>
-      <ErrorNote message={error} />
-      <div className="stack">
-        {preview.recipes.map((recipe: any) => (
-          <article className="card" key={recipe.name}>
-            <div>
-              <strong>{recipe.name}</strong>
-              <p className="when">{recipe.portions ? tn(recipe.portions, 'Makes {n} portion', 'Makes {n} portions') : t('Portions not stated')}, {tn(recipe.lines.length, '{n} ingredient', '{n} ingredients')}</p>
-            </div>
-            <div className="card-actions">
-              <Chip tone={recipe.dishId ? 'neutral' : 'brand'}>{recipe.dishId ? tn(recipe.changes.length, '{n} change', '{n} changes') : t('New dish')}</Chip>
-              {needsWork(recipe) ? <Chip tone="attention">{t('Needs you')}</Chip> : null}
-            </div>
-            <Notes notes={recipe.flags} />
-            {recipe.dishId ? null : <label className="field">{t('Menu price (£)')}<input inputMode="decimal" className="num" value={prices[recipe.name] ?? ''} onChange={(event) => setPrices({ ...prices, [recipe.name]: event.target.value })} /></label>}
-            <button className="btn block" type="button" onClick={() => check(recipe)}>{t('Check this recipe')}</button>
-          </article>
-        ))}
-      </div>
-      <button className="btn primary block" type="button" disabled={!ready.length} onClick={() => onSave({ kind: 'recipes', recipes: ready.map((recipe: any) => ({ ...recipe, pricePence: priceOf(recipe) })) })}>{tn(ready.length, 'Save {n} recipe', 'Save {n} recipes')}</button>
-      <button className="btn text block" type="button" onClick={onCancel}>{t('Cancel')}</button>
-      {form ? <DishSheet form={form} setForm={setForm} dish={dishes.find((dish) => dish.id === form.id)} onClose={() => setForm(null)} onSaved={() => { onChanged(preview.recipes.filter((recipe: any) => recipe.name !== form.source)); setForm(null) }} /> : null}
-    </>
-  )
-}
-
 /** One way in for what a restaurant keeps in files. A preview is all that happens until the owner confirms. */
 export function ImportSettings() {
   const [kind, setKind] = useState('sales')
@@ -176,7 +155,7 @@ export function ImportSettings() {
     setBusy(true)
     try {
       const result = await api('/api/ingest/save', { body })
-      setDone(`${words(result)}${result.problems?.length ? ` ${result.problems.map((problem: any) => `${problem.name}: ${t(problem.message)}`).join(' ')}` : ''}`)
+      setDone(`${words(result)}${result.problems?.length ? ` ${result.problems.map((problem: any) => `${problem.name}: ${t(problem.message, problem.values)}`).join(' ')}` : ''}`)
       setPreview(null)
     } catch (problem) { setError((problem as Error).message) } finally { setBusy(false) }
   }

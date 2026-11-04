@@ -51,7 +51,7 @@ const { buildApp } = await import('../server/app.ts')
 const { readSamBoxes, readSamFrames } = await import('../server/ai/meta.ts')
 const { mp4FrameCount, summariseTrack } = await import('../server/money/proof.ts')
 const { priceCheck } = await import('../server/money/priceCheck.ts')
-const { insert, run } = await import('../server/core/db.ts')
+const { get, insert, run } = await import('../server/core/db.ts')
 const { countObjects, phraseFor } = await import('../server/ai/countVideo.ts')
 const { translateCount, translateSaved } = await import('../shared/lang.ts')
 
@@ -101,6 +101,29 @@ test('a real install starts with no sample restaurant and tells the owner what t
   assert.equal(data.setup.steps[0].done, false)
 })
 
+test('naming the restaurant ends onboarding for good, so switching views never sends the owner back to it', async () => {
+  assert.equal((await call(owner, '/api/session')).data.onboarded, false)
+  await call(owner, '/api/setup/restaurant', 'POST', { name: '' })
+  assert.equal((await call(owner, '/api/session')).data.onboarded, false)
+  await call(owner, '/api/setup/restaurant', 'POST', { name: 'Test Kitchen' })
+  assert.equal((await call(owner, '/api/session')).data.onboarded, true)
+})
+
+test('a checklist can be the owner\'s own, and goes to the owner\'s WhatsApp', async () => {
+  const { assigneesFor } = await import('../server/integrations/whatsapp.ts')
+  const { config } = await import('../server/core/config.ts')
+  const saved = { ...config.whatsapp }
+  config.whatsapp = { ...config.whatsapp, ownerNumber: '441234000000', staff: [{ name: 'SJ', number: '447700900000', language: null }] }
+  try {
+    assert.deepEqual(assigneesFor('Owner').map((person) => [person.name, person.number, person.role]), [['Owner', '441234000000', 'owner']])
+    assert.deepEqual(assigneesFor('SJ').map((person) => person.name), ['SJ'])
+    assert.deepEqual(assigneesFor(null).map((person) => person.name), ['SJ'])
+  } finally { config.whatsapp = saved }
+  const list = await call(owner, '/api/setup/checklists', 'POST', { name: 'Owner close', dueTime: '22:00', assignee: 'Owner', schedule: { kind: 'days', days: [1] }, items: [{ label: 'Till counted', type: 'tick' }] })
+  assert.equal(list.status, 201)
+  assert.equal((await call(owner, '/api/setup/checklists')).data.find((row: any) => row.id === list.data.id).assignee, 'Owner')
+})
+
 test('the owner adds, changes and removes a supplier, and bad details are refused', async () => {
   assert.equal((await call(owner, '/api/setup/suppliers', 'POST', { name: '' })).status, 400)
   assert.equal((await call(owner, '/api/setup/suppliers', 'POST', { name: 'Brook Farm', email: 'not an email' })).status, 400)
@@ -126,6 +149,72 @@ test('a dish keeps its recipe in base units, and a printed menu needs a check be
   assert.equal(read.data[0].name, 'Lamb kofta')
   assert.equal(read.data[1].pricePence, null)
   assert.equal((await call(owner, '/api/setup/dishes')).data.length, before)
+})
+
+test('a menu leaves out an ingredient saved another way, and says so, so Save never meets a unit clash', async () => {
+  await call(owner, '/api/setup/dishes', 'POST', { name: 'Wrap plate', pricePence: 900, lines: [{ name: 'Flatbread', quantity: 90, unit: 'g' }] })
+  const read = await upload(owner, '/api/setup/menu/read', {}, 'file', 'menu.png')
+  assert.equal(read.status, 200)
+  const kofta = read.data.find((dish: any) => dish.name === 'Lamb kofta')
+  assert.deepEqual(kofta.lines.map((line: any) => line.name), ['Lamb mince'])
+  assert.equal(kofta.notes.length, 1)
+  assert.deepEqual(kofta.notes[0].values, { name: 'Flatbread', dish: 'Lamb kofta', given: 'each', units: 'g / kg' })
+  const saved = await call(owner, '/api/setup/dishes', 'POST', { name: 'Lamb kofta', pricePence: 1250, lines: kofta.lines })
+  assert.equal(saved.status, 201)
+
+  const clash = await call(owner, '/api/setup/dishes', 'POST', { name: 'Odd wrap', pricePence: 500, lines: [{ name: 'Flatbread', quantity: 1, unit: 'each' }] })
+  assert.equal(clash.status, 400)
+  assert.equal(clash.data.sentence, '{name} is weighed in your stock, but this recipe gives it in {given}. Change its unit to {units}.')
+  assert.equal(clash.data.error, 'Flatbread is weighed in your stock, but this recipe gives it in each. Change its unit to g / kg.')
+  assert.deepEqual(clash.data.values, { name: 'Flatbread', units: 'g / kg', given: 'each', clash: 'Flatbread', to: 'each' })
+
+  // Flatbread has no price yet, so the owner can switch how it is measured, and the recipe then saves.
+  assert.equal((await call(owner, '/api/setup/items/unit', 'POST', { name: 'Flatbread', unit: 'each' })).status, 200)
+  assert.equal((await call(owner, '/api/setup/dishes', 'POST', { name: 'Odd wrap', pricePence: 500, lines: [{ name: 'Flatbread', quantity: 1, unit: 'each' }] })).status, 201)
+  const priced = (await call(owner, '/api/setup/suppliers', 'POST', { name: 'Bread Co' })).data.id
+  await insert('INSERT INTO price_history (item_id, supplier_id, date, price_p) VALUES ((SELECT id FROM items WHERE name = ?), ?, ?, ?)', 'Flatbread', priced, '2026-01-01', 40)
+  const locked = await call(owner, '/api/setup/items/unit', 'POST', { name: 'Flatbread', unit: 'g' })
+  assert.equal(locked.status, 400)
+  assert.match(locked.data.error, /already has prices/)
+
+  const form = new FormData()
+  form.append('file', new Blob(['Lunch menu\nDal of the day £9.50\n']), 'menu.txt')
+  assert.equal((await fetch(`${base}/api/setup/menu/read`, { method: 'POST', headers: { Cookie: owner }, body: form })).status, 200)
+  const odd = new FormData()
+  odd.append('file', new Blob(['x']), 'menu.pages')
+  const refused = await fetch(`${base}/api/setup/menu/read`, { method: 'POST', headers: { Cookie: owner }, body: odd })
+  assert.equal(refused.status, 400)
+  assert.match((await refused.json()).error, /PDF, photo/)
+})
+
+test('an AI estimate uses a price paid first, guesses the rest, suggests an 80% price and saves nothing', async () => {
+  const { data } = await call(owner, '/api/setup/dishes', 'POST', { name: 'Chickpea curry', pricePence: 1000, lines: [{ name: 'Chickpeas', quantity: 150, unit: 'g' }, { name: 'Basmati rice', quantity: 90, unit: 'g' }] })
+  const chickpeas = (await call(owner, '/api/setup/dishes')).data.find((dish: any) => dish.id === data.id)
+  const itemId = Number((await get("SELECT id FROM items WHERE name = 'Chickpeas'"))?.id)
+  const supplier = (await call(owner, '/api/setup/suppliers', 'POST', { name: 'Pulse Wholesale' })).data.id
+  await insert('INSERT INTO price_history (item_id, supplier_id, date, price_p) VALUES (?, ?, ?, ?)', itemId, supplier, '2026-01-01', 300)
+  const before = await call(owner, '/api/setup/dishes')
+  const estimate = await call(owner, '/api/setup/dishes/estimate', 'POST', { name: chickpeas.name, pricePence: chickpeas.pricePence, lines: chickpeas.lines })
+  assert.equal(estimate.status, 200)
+  const paid = estimate.data.lines.find((line: any) => line.name === 'Chickpeas')
+  const guessed = estimate.data.lines.find((line: any) => line.name === 'Basmati rice')
+  assert.equal(paid.source, 'paid')
+  assert.equal(paid.costPence, 45)
+  assert.equal(guessed.source, 'estimate')
+  assert.equal(guessed.pencePerUnit, 180)
+  assert.equal(estimate.data.costPence, Math.round(45 + 0.09 * 180))
+  assert.equal(estimate.data.suggestedMargin, 80)
+  assert.equal(estimate.data.suggestedPricePence, Math.ceil((45 + 0.09 * 180) / 0.2))
+  assert.equal(estimate.data.marginPercent, Math.round(((1000 - (45 + 0.09 * 180)) / 1000) * 1000) / 10)
+  assert.deepEqual((await call(owner, '/api/setup/dishes')).data, before.data)
+
+  const fresh = await call(owner, '/api/setup/dishes/estimate', 'POST', { name: 'Lentil dal', pricePence: 1100, lines: [] })
+  assert.equal(fresh.data.suggestedRecipe, true)
+  assert.ok(fresh.data.lines.length > 2)
+  assert.ok(fresh.data.lines.every((line: any) => line.source === 'estimate' && ['g', 'ml', 'each'].includes(line.unit)))
+  assert.ok(fresh.data.suggestedPricePence > fresh.data.costPence)
+  assert.equal((await call(owner, '/api/setup/dishes/estimate', 'POST', { name: '' })).status, 400)
+  assert.equal((await call(staff, '/api/setup/dishes/estimate', 'POST', { name: 'Dal' })).status, 403)
 })
 
 test('a new checklist reaches staff, and a removed check keeps its past records', async () => {

@@ -18,6 +18,16 @@ export function Chip({ tone, children }: { tone: ChipTone; children: ReactNode }
   return <span className={`chip ${tone}`}>{Icon ? <Icon size={16} aria-hidden="true" /> : null}{children}</span>
 }
 
+/** The light and dark versions are both on the page, and the stylesheet shows the one that suits the chosen colours. */
+export function Brand({ kind = 'logo', width, height }: { kind?: 'logo' | 'mark'; width: number; height: number }) {
+  return (
+    <span className="brand">
+      <img className="on-light" src={`/brand/stockpot-${kind}.svg`} alt="Stockpot" width={width} height={height} />
+      <img className="on-dark" src={`/brand/stockpot-${kind}-reversed.svg`} alt="" width={width} height={height} />
+    </span>
+  )
+}
+
 /** One fixed icon for each feature, used everywhere that feature appears. */
 export const FEATURE_ICONS: Record<string, Icon> = {
   receipts: Receipt, calls: PhoneCall, checklists: ClipboardText, reports: ChatTeardropDots, deliveries: Truck, crisis: Siren,
@@ -103,10 +113,14 @@ export function Sheet({ title, onClose, children, className = '' }: { title: str
   const dialog = useRef<HTMLDialogElement>(null)
   useEffect(() => {
     const element = dialog.current
-    if (element && !element.open) element.showModal()
+    if (element && !element.open) {
+      element.showModal()
+      // Focus sits on the sheet itself, so the close button doesn't open with a ring round it.
+      element.focus()
+    }
   }, [])
   return (
-    <dialog ref={dialog} className={`sheet-dialog ${className}`} aria-label={title} onClose={onClose}>
+    <dialog ref={dialog} className={`sheet-dialog ${className}`} aria-label={title} tabIndex={-1} onClose={onClose}>
       <div className="sheet-body">
         <div className="sheet-head">
           <h2>{title}</h2>

@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { ArrowRight } from '@phosphor-icons/react'
 import { t } from '../lib/i18n'
 import type { Role } from '../App'
-import { Sk } from '../components/ui'
+import { Brand, Sk } from '../components/ui'
 
 // The demos carry the Stageshow kit, so they load on their own and never slow the app itself.
 const Stories = lazy(() => import('../demo/Stories').then((module) => ({ default: module.Stories })))
@@ -15,10 +15,7 @@ export function Welcome({ onChoose, sample, otherSite }: { onChoose: (role: Role
     {sample ? <div className="banner solo"><span className="sample-label">{t('SAMPLE DATA')}</span></div> : null}
     <main className="welcome">
       <div className="row between">
-        <picture>
-          <source srcSet="/brand/stockpot-logo-reversed.svg" media="(prefers-color-scheme: dark)" />
-          <img src="/brand/stockpot-logo.svg" alt="Stockpot" width="137" height="32" />
-        </picture>
+        <Brand width={128} height={30} />
         <LanguageButton />
       </div>
       <div className="welcome-hero">

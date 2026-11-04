@@ -1,9 +1,10 @@
 import { t, tk } from './lib/i18n'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { Bell, BellRinging, ChartLineUp, CookingPot, ChatCircleText, ClipboardText, GearSix, House, SignOut, Siren, SquaresFour, Tray, Truck } from '@phosphor-icons/react'
+import { Bell, BellRinging, ChartLineUp, CookingPot, ChatCircleText, ClipboardText, GearSix, House, Moon, SignOut, Siren, SquaresFour, Sun, Tray, Truck } from '@phosphor-icons/react'
 import { api } from './lib/api'
+import { useTheme } from './lib/theme'
 import { alertPermission, alertsSupported, useAlerts, AlertToasts } from './components/alerts'
-import { Segment } from './components/ui'
+import { Brand, Segment } from './components/ui'
 import { Home } from './screens/Home'
 import { Actions } from './screens/Actions'
 import { Features } from './screens/Features'
@@ -128,6 +129,12 @@ function PotButton({ onOpen }: { onOpen: () => void }) {
   )
 }
 
+function ThemeButton() {
+  const { theme, toggle } = useTheme()
+  const dark = theme === 'dark'
+  return <button className="icon-btn" type="button" aria-label={dark ? t('Switch to light mode') : t('Switch to dark mode')} onClick={toggle}>{dark ? <Sun size={24} aria-hidden="true" /> : <Moon size={24} aria-hidden="true" />}</button>
+}
+
 function AlertBell({ urgent }: { urgent: number }) {
   const [permission, setPermission] = useState(alertPermission)
   const ask = async () => {
@@ -160,10 +167,13 @@ export function App() {
   const staffView = screen === 'staff' || session?.role === 'staff'
   const alerts = useAlerts(session?.role === 'owner')
 
-  const open = (role: Role) => {
+  /** Asks the server each time, because a session read before onboarding finished would send the owner back to it. */
+  const open = async (role: Role) => {
     markSeen()
     setSeen(true)
-    window.location.hash = role === 'staff' ? '#/staff' : session?.mode === 'live' && !session.onboarded ? '#/start' : '#/home'
+    const fresh = role === 'owner' ? await api<Session>('/api/session').catch(() => session) : session
+    if (fresh) setSession(fresh)
+    window.location.hash = role === 'staff' ? '#/staff' : fresh?.mode === 'live' && !fresh.onboarded ? '#/start' : '#/home'
   }
 
   const choose = async (role: Role) => {
@@ -174,7 +184,7 @@ export function App() {
       return
     }
     setSignIn(null)
-    open(role)
+    await open(role)
   }
 
   const signOut = async () => {
@@ -197,11 +207,11 @@ export function App() {
 
   if (!session.role) {
     return signIn
-      ? <Login role={signIn} onRole={setSignIn} onDone={async () => { await refresh(); open(signIn) }} onBack={() => setSignIn(null)} />
+      ? <Login role={signIn} onRole={setSignIn} onDone={async () => { await refresh(); await open(signIn) }} onBack={() => setSignIn(null)} />
       : <Welcome onChoose={choose} sample={session.mode === 'sample'} otherSite={session.otherSite} />
   }
   if (screen === 'welcome' || (!seen && !window.location.hash)) return <Welcome onChoose={choose} sample={session.mode === 'sample'} otherSite={session.otherSite} />
-  if (screen === 'start') return <Onboarding />
+  if (screen === 'start') return <Onboarding onDone={refresh} />
 
   const sample = session.mode === 'sample'
   const liveCall = screen === 'call'
@@ -217,10 +227,7 @@ export function App() {
   }
 
   const logo = (
-    <picture>
-      <source srcSet="/brand/stockpot-logo-reversed.svg" media="(prefers-color-scheme: dark)" />
-      <img src="/brand/stockpot-logo.svg" alt="Stockpot" width="128" height="30" loading="lazy" />
-    </picture>
+    <Brand width={128} height={30} />
   )
 
   return (
@@ -234,14 +241,12 @@ export function App() {
       {liveCall ? null : (
         <header className="topbar">
           <a href="#/welcome" aria-label={t('About Stockpot')}>
-            <picture>
-              <source srcSet="/brand/stockpot-mark-reversed.svg" media="(prefers-color-scheme: dark)" />
-              <img src="/brand/stockpot-mark.svg" alt="Stockpot" width="32" height="32" />
-            </picture>
+            <Brand kind="mark" width={32} height={32} />
           </a>
           <div className="topbar-actions">
             <Segment label={t('View as')} value={staffView ? 'staff' : 'owner'} options={[{ value: 'owner', label: t('Owner') }, { value: 'staff', label: t('Staff') }]} onChange={(role) => void choose(role as Role)} />
             {staffView ? <LanguageButton /> : <AlertBell urgent={alerts.count} />}
+            <ThemeButton />
             {staffView ? null : <a className="icon-btn" href="#/settings" aria-label={t('Settings')}><GearSix size={24} aria-hidden="true" /></a>}
             {session.needsPasscode ? <button className="icon-btn" type="button" aria-label={t('Sign out')} onClick={signOut}><SignOut size={22} aria-hidden="true" /></button> : null}
           </div>

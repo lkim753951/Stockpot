@@ -3,7 +3,7 @@ import { LanguageButton } from '../components/Language'
 import { useState, type FormEvent } from 'react'
 import { api } from '../lib/api'
 import type { Role } from '../App'
-import { ErrorNote, Segment } from '../components/ui'
+import { Brand, ErrorNote, Segment } from '../components/ui'
 
 export function Login({ role, onRole, onDone, onBack }: { role: Role; onRole: (role: Role) => void; onDone: () => void; onBack: () => void }) {
   const [passcode, setPasscode] = useState('')
@@ -24,10 +24,7 @@ export function Login({ role, onRole, onDone, onBack }: { role: Role; onRole: (r
   return (
     <main className="screen" style={{ paddingTop: 48 }}>
       <div className="row between">
-        <picture>
-          <source srcSet="/brand/stockpot-logo-reversed.svg" media="(prefers-color-scheme: dark)" />
-          <img src="/brand/stockpot-logo.svg" alt="Stockpot" width="171" height="40" style={{ display: 'block' }} />
-        </picture>
+        <Brand width={128} height={30} />
         <LanguageButton />
       </div>
       <Segment label={t('Sign in as')} value={role} options={[{ value: 'owner', label: t('Owner') }, { value: 'staff', label: t('Staff') }]} onChange={(value) => { setError(null); onRole(value as Role) }} />

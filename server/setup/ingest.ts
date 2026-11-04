@@ -13,11 +13,11 @@ import {
   pricePrinted, printedIn, provenDayOrder, sameWords, toBase, type BaseUnit,
 } from '../core/parsing.ts'
 import {
-  columnSchemas, columnsPrompt, priceFilePrompt, priceFileSchema, recipeFilePrompt, recipeFileSchema, salesFilePrompt, salesFileSchema,
-  type ExtractedColumns, type ExtractedPrices, type ExtractedRecipe, type ExtractedRecipes, type ExtractedSales, type IngestKind,
+  columnSchemas, columnsPrompt, menuPrompt, menuSchema, priceFilePrompt, priceFileSchema, recipeFilePrompt, recipeFileSchema, salesFilePrompt, salesFileSchema,
+  type ExtractedColumns, type ExtractedMenu, type ExtractedPrices, type ExtractedRecipe, type ExtractedRecipes, type ExtractedSales, type IngestKind,
 } from '../ai/prompts.ts'
 import { dishIds, savedSales, writeSales } from '../money/sales.ts'
-import { itemFor, itemMatcher, saveDish, saveSupplier, SetupError, stepsOf } from './setup.ts'
+import { itemFor, itemMatcher, saveDish, saveSupplier, SetupError, stepsOf, TO_BASE, UNITS_FOR } from './setup.ts'
 import { prepPerPortion } from '../../shared/costing.ts'
 
 /**
@@ -40,7 +40,7 @@ const IMAGES = ['.jpg', '.jpeg', '.png', '.webp']
 
 const extensionOf = (name: string) => path.extname(name).toLowerCase()
 export const ingestAllowed = (name: string) => [...TABLES, ...TEXTS, ...IMAGES, '.pdf'].includes(extensionOf(name))
-export const recipeAllowed = (name: string) => ['.docx', ...IMAGES, '.pdf'].includes(extensionOf(name))
+export const recipeAllowed = (name: string) => [...TEXTS, ...IMAGES, '.pdf'].includes(extensionOf(name))
 export const imageAllowed = (name: string) => IMAGES.includes(extensionOf(name))
 
 /** Marks a sentence for the translation files. The browser translates it when it draws. */
@@ -253,7 +253,32 @@ async function previewSales(raws: RawSale[], printed: { quantity: number | null;
       replace: ready.filter((row) => row.status === 'replace').length, problems: rows.filter((row) => row.flags.length).length,
     },
     ready, problems: rows.filter((row) => row.flags.length).map(({ row, date, dish, flags }) => ({ row, date, dish, flags })),
+    newDishes: newDishesIn(rows),
   }
+}
+
+/**
+ * A new restaurant's till sells dishes Stockpot hasn't met yet. Rows whose only problem is that are grouped by dish,
+ * with the average price paid before VAT, so the owner can add the dishes and keep their sales in one step.
+ */
+function newDishesIn(rows: Array<RawSale & { flags: Note[] }>) {
+  const grouped = new Map<string, { name: string; quantity: number; netPence: number; days: Map<string, { quantity: number; netPence: number }> }>()
+  for (const row of rows) {
+    if (row.flags.length !== 1 || row.flags[0].text !== 'Not on your menu: {name}' || !row.date || !row.dish.trim()) continue
+    const key = nameKey(row.dish)
+    const dish = grouped.get(key) ?? { name: row.dish.trim(), quantity: 0, netPence: 0, days: new Map() }
+    grouped.set(key, dish)
+    if (!(Number.isInteger(row.quantity) && row.quantity! >= 0 && Number.isInteger(row.netPence) && row.netPence! >= 0)) continue
+    dish.quantity += row.quantity!
+    dish.netPence += row.netPence!
+    const day = dish.days.get(row.date) ?? { quantity: 0, netPence: 0 }
+    dish.days.set(row.date, { quantity: day.quantity + row.quantity!, netPence: day.netPence + row.netPence! })
+  }
+  return [...grouped.values()].filter((dish) => dish.days.size).slice(0, 80).map((dish) => ({
+    name: plainName(dish.name).slice(0, 120),
+    pricePence: dish.quantity ? Math.round(dish.netPence / dish.quantity) : null,
+    rows: [...dish.days].map(([date, day]) => ({ date, dish: dish.name, quantity: day.quantity, netPence: day.netPence })),
+  }))
 }
 
 const pounds = (pence: number) => `£${(pence / 100).toFixed(2)}`
@@ -527,6 +552,12 @@ const asRows = (value: unknown) => (Array.isArray(value) ? value : []).slice(0, 
 
 /** Saves what the owner confirmed. The browser held the preview, so every row is checked again here. */
 async function saveSales(body: Record<string, any>) {
+  // Dishes the owner chose to add from this file go on the menu first, so their sales have somewhere to go.
+  for (const dish of asRows(body.addDishes).slice(0, 80)) {
+    const name = String(dish?.name ?? '').trim().slice(0, 120)
+    if (!name || (await dishIds()).has(nameKey(name))) continue
+    await saveDish({ name, pricePence: Math.max(1, Math.round(Number(dish?.pricePence) || 0)), targetMargin: 70, lines: [] })
+  }
   const dishes = await dishIds()
   const today = localTime().date
   const left: string[] = []
@@ -539,7 +570,14 @@ async function saveSales(body: Record<string, any>) {
     if (!valid) left.push(String(row?.dish ?? ''))
     return valid ? [{ date, dishId, quantity, netPence }] : []
   })
-  const counts = await writeSales(rows)
+  // One sale a dish a day: rows for the same day, such as dine in and takeaway, are added together.
+  const combined = new Map<string, (typeof rows)[number]>()
+  for (const row of rows) {
+    const key = `${row.date}|${row.dishId}`
+    const seen = combined.get(key)
+    combined.set(key, seen ? { ...seen, quantity: seen.quantity + row.quantity, netPence: seen.netPence + row.netPence } : row)
+  }
+  const counts = await writeSales([...combined.values()])
   return { kind: 'sales', saved: counts.added + counts.replaced, ...counts, left: left.length }
 }
 
@@ -571,7 +609,7 @@ async function savePrices(body: Record<string, any>) {
 async function saveRecipes(body: Record<string, any>) {
   const dishes = await dishIds()
   let saved = 0
-  const problems: Array<{ name: string; message: string }> = []
+  const problems: Array<{ name: string; message: string; values?: Record<string, string | number> }> = []
   for (const recipe of asRows(body.recipes)) {
     const dishId = dishes.get(nameKey(String(recipe?.name ?? '')))
     const dish = dishId ? await get('SELECT price_p, target_margin, method FROM dishes WHERE id = ?', dishId) : undefined
@@ -585,7 +623,7 @@ async function saveRecipes(body: Record<string, any>) {
       saved += 1
     } catch (error) {
       if (!(error instanceof SetupError)) throw error
-      problems.push({ name: String(recipe?.name ?? ''), message: error.message })
+      problems.push({ name: String(recipe?.name ?? ''), message: error.sentence, values: error.values })
     }
   }
   return { kind: 'recipes', saved, problems }
@@ -596,4 +634,38 @@ export function saveIngest(body: Record<string, any>) {
   if (body.kind === 'ingredients') return savePrices(body)
   if (body.kind === 'recipes') return saveRecipes(body)
   throw new SetupError('Choose what this file holds.')
+}
+
+/** What a menu file can be: anything the import screen reads. */
+export const menuAllowed = ingestAllowed
+
+/**
+ * Reads a menu. Nothing is saved until the owner has checked it. An ingredient already saved in another kind of unit
+ * is left out with a note, so the owner never meets a unit clash when they press Save.
+ */
+export function readMenu(file: string, name: string) {
+  return readable(async () => {
+    const source = await extractFile(file, name)
+    const content: ContentPart = source.kind === 'table'
+      ? { type: 'text', text: fence(source.rows.filter((row) => row.some(Boolean)).slice(0, 400).map((row) => row.join(' | ')).join('\n')) }
+      : asContent(source)
+    const menu = await sparkJson<ExtractedMenu>({ name: 'menu', schema: menuSchema, system: menuPrompt, effort: 'medium', timeoutMs: 120000, content: [{ type: 'text', text: `File name: ${name}` }, content] })
+    const match = await itemMatcher()
+    return menu.dishes.slice(0, 80).map((dish) => {
+      const dishName = plainName(fileText(dish.name))
+      const notes: Note[] = []
+      const lines = dish.ingredients.slice(0, 30).flatMap((line) => {
+        const ingredient = fileText(line.name)
+        const known = match(ingredient)
+        // No printed unit means a plain count, such as 2 eggs, unless the ingredient is already saved another way.
+        const unit = line.unit ?? (known ? { kg: 'g', l: 'ml', each: 'each' }[String(known.base_unit)] ?? 'each' : 'each')
+        if (known && TO_BASE[unit]?.base !== known.base_unit) {
+          notes.push(note(tk('{name} was left out of {dish}. The menu gives it in {given}, but it is saved in {units}. Add it on the recipe.'), { name: String(known.name), dish: dishName, given: unit, units: UNITS_FOR[String(known.base_unit)] ?? String(known.base_unit) }))
+          return []
+        }
+        return [{ name: known ? String(known.name) : ingredient, quantity: line.quantity, unit }]
+      })
+      return { name: dishName, pricePence: dish.price_pence, lines, notes }
+    })
+  })
 }

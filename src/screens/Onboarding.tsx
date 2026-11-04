@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
-import { ArrowRight, CheckCircle, FileText, GoogleLogo, Plus } from '@phosphor-icons/react'
+import { ArrowRight, CheckCircle, FileText, GoogleLogo, Plus, Sparkle } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { t, tn } from '../lib/i18n'
 import { Mascot } from '../components/Mascot'
 import { LanguageButton } from '../components/Language'
 import { InviteForm } from './Settings'
 import { ErrorNote } from '../components/ui'
+import { estimateDish, estimateLine } from '../components/Estimate'
+import { inTurns, MENU_FILES, mergeDishes, readEach, readMenuFile, type FileProblem } from '../lib/reading'
 
 const STEPS = 5
 
@@ -32,12 +34,16 @@ function Step({ number, say, children, onNext, nextLabel, canSkip = true }: { nu
 }
 
 /** Five short questions from Stockpot. Each answer is saved as real setup, so there is nothing to redo. */
-export function Onboarding() {
+export function Onboarding({ onDone }: { onDone?: () => Promise<unknown> }) {
   const [step, setStep] = useState(1)
   const [restaurant, setRestaurant] = useState('')
   const [suppliers, setSuppliers] = useState([{ name: '', email: '' }])
   const [dishes, setDishes] = useState<any[] | null>(null)
   const [reading, setReading] = useState(false)
+  const [problems, setProblems] = useState<FileProblem[]>([])
+  const [estimates, setEstimates] = useState<Record<number, any>>({})
+  const [estimating, setEstimating] = useState(false)
+  const [menuSaved, setMenuSaved] = useState(false)
   const [gmail, setGmail] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
@@ -63,25 +69,49 @@ export function Onboarding() {
   }
 
   const upload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const files = [...(event.target.files ?? [])].slice(0, 20)
     event.target.value = ''
-    if (!file) return
+    if (!files.length) return
     setReading(true)
     setError(null)
-    const form = new FormData()
-    form.append('file', file)
-    try { setDishes(await api('/api/setup/menu/read', { form })) } catch (problem) { setError((problem as Error).message) } finally { setReading(false) }
+    const { found, problems } = await readEach(files, readMenuFile)
+    setProblems(problems)
+    const read = found.flatMap(({ result }) => result)
+    if (found.length && !read.length) setError(t('Stockpot found no dishes in that menu.'))
+    if (read.length) { setDishes(mergeDishes(dishes ?? [], read)); setEstimates({}) }
+    setReading(false)
   }
 
+  const estimateAll = async () => {
+    setEstimating(true)
+    await inTurns((dishes ?? []).map((dish, index) => ({ dish, index })), async ({ dish, index }) => {
+      const result = await estimateDish({ name: dish.name, pricePence: dish.pricePence, lines: dish.lines.filter((line: any) => line.quantity !== null) }).catch((problem) => ({ error: (problem as Error).message }))
+      setEstimates((current) => ({ ...current, [index]: result }))
+    })
+    setEstimating(false)
+  }
+
+  /** Every dish with a price is saved on its own. Any that can't be are named, and the owner can carry on and fix them later. */
   const saveMenu = async () => {
-    for (const dish of (dishes ?? []).filter((row) => row.pricePence)) {
-      await api('/api/setup/dishes', { body: { name: dish.name, pricePence: dish.pricePence, targetMargin: 70, lines: dish.lines.filter((line: any) => line.quantity !== null) } }).catch(() => undefined)
+    if (menuSaved || !dishes?.length) return next()
+    setError(null)
+    const failed: string[] = []
+    for (const dish of dishes.filter((row) => row.pricePence)) {
+      await api('/api/setup/dishes', { body: { name: dish.name, pricePence: dish.pricePence, targetMargin: 70, lines: dish.lines.filter((line: any) => line.quantity !== null) } })
+        .catch((problem) => failed.push(`${dish.name}: ${(problem as Error).message}`))
     }
-    next()
+    const unpriced = dishes.filter((row) => !row.pricePence).length
+    if (!failed.length && !unpriced) return next()
+    setMenuSaved(true)
+    setError([
+      ...failed,
+      unpriced ? t('Dishes with no price were not saved. Add them in Settings, Menu and recipes.') : '',
+    ].filter(Boolean).join('\n'))
   }
 
   const finish = async () => {
     await api('/api/setup/onboarded', { method: 'POST' })
+    await onDone?.()
     window.location.hash = '#/home'
   }
 
@@ -109,16 +139,28 @@ export function Onboarding() {
   }
   if (step === 3) {
     return (
-      <Step number={3} say={t('Show me your menu.')} onNext={saveMenu} nextLabel={dishes?.length ? t('Save and continue') : t('Next')}>
-        <p className="muted">{t('A photo or a PDF is fine. Then I can work out your costs.')}</p>
-        <input ref={input} type="file" accept="image/*,application/pdf" hidden onChange={upload} />
+      <Step number={3} say={t('Show me your menu.')} onNext={saveMenu} nextLabel={menuSaved ? t('Next') : dishes?.length ? t('Save and continue') : t('Next')}>
+        <p className="muted">{t('Photos, PDFs, Word or text files are fine, and you can choose several. Then I can work out your costs.')}</p>
+        <input ref={input} type="file" multiple accept={MENU_FILES} hidden onChange={upload} />
         {dishes ? (
           <ul className="list">
-            {dishes.map((dish, index) => <li key={index}><span>{dish.name}</span><span className="num">{dish.pricePence === null ? t('No price') : `£${(dish.pricePence / 100).toFixed(2)}`}</span></li>)}
+            {dishes.map((dish, index) => (
+              <li key={index}>
+                <span>{dish.name}
+                  {dish.notes?.map((note: any, at: number) => <span className="when" key={at}><br />{t(note.text, note.values)}</span>)}
+                  {estimates[index] ? <span className="when"><br />{estimates[index].error ?? estimateLine(estimates[index])}</span> : null}
+                </span>
+                <span className="num">{dish.pricePence === null ? t('No price') : `£${(dish.pricePence / 100).toFixed(2)}`}</span>
+              </li>
+            ))}
           </ul>
-        ) : <button className="btn block" type="button" disabled={reading} onClick={() => input.current?.click()}><FileText size={24} aria-hidden="true" />{reading ? t('Reading your menu') : t('Upload menu')}</button>}
+        ) : null}
         {dishes ? <p className="notice">{tn(dishes.length, 'I found {n} dish.', 'I found {n} dishes.')}</p> : null}
-        <ErrorNote message={error} />
+        {dishes?.length ? <button className="btn block" type="button" disabled={estimating} onClick={estimateAll}><Sparkle size={24} aria-hidden="true" />{estimating ? t('Estimating') : t('Estimate costs and prices with AI')}</button> : null}
+        {dishes?.length && !estimating && Object.keys(estimates).length ? <p className="caption">{t('AI estimates use typical UK wholesale prices before VAT. They are a guide, and they are never saved. Prices from your receipts replace them.')}</p> : null}
+        <button className="btn block" type="button" disabled={reading || menuSaved} onClick={() => input.current?.click()}><FileText size={24} aria-hidden="true" />{reading ? t('Reading your menu') : t('Upload menu')}</button>
+        {problems.map((problem, index) => <p className="error" role="alert" key={index}><strong>{problem.file}</strong>: {problem.message}</p>)}
+        {error ? error.split('\n').map((line, index) => <ErrorNote key={index} message={line} />) : null}
       </Step>
     )
   }

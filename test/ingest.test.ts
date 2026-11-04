@@ -552,6 +552,39 @@ test('the server checks every row again on save, because the browser held the pr
   assert.equal((await call(owner, '/api/ingest/save', 'POST', { kind: 'nonsense' })).status, 400)
 })
 
+test('a recipe can come as plain text, and a file it cannot take says what it can', async () => {
+  mock.state.ingestReply = { recipes: [{ name: 'Lentil dal', portions: 4, ingredients: [{ name: 'Red lentils', quantity: 400, unit: 'g' }], method_steps: ['Simmer the lentils.'], prep_minutes: null, prep_quote: null, service_minutes: null, service_quote: null }], unreadable: [] }
+  const text = 'Lentil dal\nServes 4\n400 g red lentils\nSimmer the lentils.'
+  const read = await send(owner, '/api/setup/recipes/read', [['file', text, 'dal.txt']])
+  mock.state.ingestReply = null
+  assert.equal(read.status, 200)
+  assert.equal(read.data.recipe.name, 'Lentil dal')
+  assert.equal(read.data.recipe.lines[0].quantity, 100)
+  const refused = await send(owner, '/api/setup/recipes/read', [['file', 'x', 'dal.pages']])
+  assert.equal(refused.status, 400)
+  assert.match(refused.data.error, /PDF, photo .* Word and text files/)
+})
+
+test('a till export in any layout loads, and a dish not on the menu can be added with its sales in one step', async () => {
+  const csv = [
+    'Trading Date,Menu Item,Channel,Qty Sold,Gross £,VAT £,Net £',
+    '01/08/2026,Mango lassi,Dine in,4,19.20,3.20,16.00',
+    '01/08/2026,Mango lassi,Takeaway,2,9.60,1.60,8.00',
+    '02/08/2026,Mango lassi,Dine in,3,14.40,2.40,12.00',
+  ].join('\n')
+  const { status, data } = await readFile('sales', 'till-export.csv', csv)
+  assert.equal(status, 200)
+  const lassi = data.newDishes.find((dish: any) => dish.name === 'Mango lassi')
+  assert.equal(lassi.pricePence, 400)
+  assert.deepEqual(lassi.rows.map((row: any) => [row.date, row.quantity, row.netPence]), [['2026-08-01', 6, 2400], ['2026-08-02', 3, 1200]])
+  const saved = await call(owner, '/api/ingest/save', 'POST', { kind: 'sales', rows: [...lassi.rows, { date: '2026-08-01', dish: 'Mango lassi', quantity: 1, netPence: 400 }], addDishes: [{ name: 'Mango lassi', pricePence: 450 }] })
+  assert.equal(saved.data.saved, 2)
+  const dish = (await call(owner, '/api/setup/dishes')).data.find((row: any) => row.name === 'Mango lassi')
+  assert.equal(dish.pricePence, 450)
+  const sold = await get("SELECT qty, net_p FROM sales WHERE dish_id = ? AND date = '2026-08-01'", dish.id)
+  assert.deepEqual([Number(sold!.qty), Number(sold!.net_p)], [7, 2800])
+})
+
 test('Muse Spark failing gives a plain message, with no error text', async () => {
   mock.state.failSpark = true
   const { status, data } = await send(owner, '/api/setup/recipes/read', [['file', fs.readFileSync(entry('recipe-cards.pdf').full), 'recipe-cards.pdf']])
