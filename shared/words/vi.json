@@ -1391,5 +1391,14 @@
   "Weighed": "Cân",
   "Weighed or measured": "Cân hoặc đong",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "Email cho {name}",
+  "Give to staff": "Giao cho nhân viên",
+  "Message {name}": "Nhắn {name}",
+  "No supplier is set for {item} yet.": "Chưa có nhà cung cấp cho {item}.",
+  "Order {amount} of {item} from {supplier} today": "Đặt {amount} {item} từ {supplier} hôm nay",
+  "Order {item} from {supplier} today": "Đặt {item} từ {supplier} hôm nay",
+  "Set a supplier": "Chọn nhà cung cấp",
+  "WhatsApp a supplier": "WhatsApp nhà cung cấp",
+  "WhatsApp {name}": "WhatsApp cho {name}"
 }

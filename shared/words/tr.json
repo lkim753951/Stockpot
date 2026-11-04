@@ -1428,5 +1428,14 @@
   "Weighed": "Tartıyla",
   "Weighed or measured": "Tartıyla veya hacimle",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "{name} adresine e-posta",
+  "Give to staff": "Personele ver",
+  "Message {name}": "{name} adlı kişiye mesaj",
+  "No supplier is set for {item} yet.": "{item} için henüz tedarikçi yok.",
+  "Order {amount} of {item} from {supplier} today": "Bugün {supplier} firmasından {amount} {item} sipariş et",
+  "Order {item} from {supplier} today": "Bugün {supplier} firmasından {item} sipariş et",
+  "Set a supplier": "Tedarikçi seç",
+  "WhatsApp a supplier": "Bir tedarikçiye WhatsApp",
+  "WhatsApp {name}": "{name} adlı kişiye WhatsApp"
 }

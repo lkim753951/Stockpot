@@ -1428,5 +1428,14 @@
   "Weighed": "تول کر",
   "Weighed or measured": "تول کر یا ناپ کر",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "{name} کو ای میل",
+  "Give to staff": "عملے کو دیں",
+  "Message {name}": "{name} کو پیغام",
+  "No supplier is set for {item} yet.": "{item} کے لیے ابھی کوئی سپلائر طے نہیں۔",
+  "Order {amount} of {item} from {supplier} today": "آج {supplier} سے {amount} {item} منگوائیں",
+  "Order {item} from {supplier} today": "آج {supplier} سے {item} منگوائیں",
+  "Set a supplier": "سپلائر چنیں",
+  "WhatsApp a supplier": "کسی سپلائر کو WhatsApp",
+  "WhatsApp {name}": "{name} کو WhatsApp"
 }

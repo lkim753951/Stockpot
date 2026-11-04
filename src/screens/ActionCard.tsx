@@ -1,5 +1,5 @@
 import { t, tk } from '../lib/i18n'
-import { DotsThree, PhoneCall } from '@phosphor-icons/react'
+import { DotsThree, EnvelopeSimple, PhoneCall, Storefront, UserPlus, WhatsappLogo, type Icon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { api } from '../lib/api'
 import { dayWords, inSentence, whenWords } from '../lib/dates'
@@ -47,6 +47,35 @@ const calendarLink = (action: any) =>
 /** With WhatsApp not linked, this opens WhatsApp with the words ready, and the owner picks who gets it. */
 const shareLink = (action: any) => `https://wa.me/?text=${encodeURIComponent([action.title, action.detail].filter(Boolean).join('\n'))}`
 
+const RESPONSE_ICONS: Record<string, Icon> = { whatsapp: WhatsappLogo, call: PhoneCall, email: EnvelopeSimple, link: Storefront }
+
+/**
+ * The crisis buttons on a staff report or a low stock check: message or call the supplier with the order already written,
+ * call back whoever reported it, or hand the job to someone. One press, and the owner's own phone does the rest.
+ */
+function Responses({ action, onPress, onGive }: { action: any; onPress?: () => void; onGive: () => void }) {
+  const help = action.help
+  if (!help && action.sourceType !== 'report') return null
+  return (
+    <div className="respond">
+      {help?.note ? <p className="respond-note">{help.note}</p> : null}
+      <div className="respond-buttons">
+        {(help?.responses ?? []).map((response: any, index: number) => {
+          const Mark = RESPONSE_ICONS[response.kind] ?? Storefront
+          const outside = response.href.startsWith('http')
+          return (
+            <a key={response.href} className={`btn small${index === 0 ? ' primary' : ''} respond-${response.kind}`} href={response.href} onClick={onPress}
+              {...(outside ? { target: '_blank', rel: 'noreferrer' } : {})}>
+              <Mark size={18} weight={response.kind === 'whatsapp' ? 'fill' : 'regular'} aria-hidden="true" />{response.label}
+            </a>
+          )
+        })}
+        <button className="btn small" type="button" onClick={onGive}><UserPlus size={18} aria-hidden="true" />{t('Give to staff')}</button>
+      </div>
+    </div>
+  )
+}
+
 function AssignSheet({ action, onClose, onDone }: { action: any; onClose: () => void; onDone: () => void }) {
   const [people, setPeople] = useState<string[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -72,9 +101,17 @@ function AssignSheet({ action, onClose, onDone }: { action: any; onClose: () => 
 const SWIPE_TO_FINISH = 96
 
 /** New work from a call, a report or a delivery check. Nothing joins the list until the owner says yes. */
-function ConfirmCard({ action, onChange }: { action: any; onChange: () => void }) {
+function ConfirmCard({ action, canSend, onChange }: { action: any; canSend: boolean; onChange: () => void }) {
   const [leaving, setLeaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [giving, setGiving] = useState(false)
+  // Pressing a crisis button is a yes: the card moves into the tasks, urgent, so it can be ticked off once it's sorted.
+  const confirmQuietly = () => { void api(`/api/actions/${action.id}/confirm`, { method: 'POST' }).then(() => setTimeout(onChange, 1500)).catch(() => {}) }
+  const give = () => {
+    if (canSend) { setGiving(true); return }
+    confirmQuietly()
+    window.open(shareLink(action), '_blank', 'noreferrer')
+  }
   const decide = async (choice: 'confirm' | 'dismiss') => {
     setError(null)
     try {
@@ -91,27 +128,29 @@ function ConfirmCard({ action, onChange }: { action: any; onChange: () => void }
             {action.href ? <a href={action.href}>{action.title}</a> : <span>{action.title}</span>}
             {action.detail ? <p className="task-note">{action.detail}</p> : null}
             <small>{action.urgency === 'now' ? <><b>{t('Urgent')}</b>, </> : null}{t('{source}, {when}', { source: action.source, when: whenWords(action.createdAt) })}</small>
+            <Responses action={action} onPress={confirmQuietly} onGive={give} />
           </div>
           <div className="confirm-actions">
-            <button className="btn primary small" type="button" onClick={() => decide('confirm')}>{t('Confirm')}</button>
+            <button className={`btn small${action.help?.responses?.length ? '' : ' primary'}`} type="button" onClick={() => decide('confirm')}>{t('Confirm')}</button>
             <button className="btn text small" type="button" onClick={() => decide('dismiss')}>{t('Dismiss')}</button>
             {action.suggested?.href?.startsWith('tel:') ? <a className="btn text small confirm-call" href={action.suggested.href}><PhoneCall size={18} aria-hidden="true" />{action.suggested.label}</a> : null}
           </div>
         </div>
         <ErrorNote message={error} />
+        {giving ? <AssignSheet action={action} onClose={() => setGiving(false)} onDone={() => { setGiving(false); confirmQuietly() }} /> : null}
       </Reveal>
     </li>
   )
 }
 
 /** Sits at the top of Tasks and Home. It takes no room when there's nothing to decide. */
-export function ToConfirm({ actions, onChange }: { actions: any[]; onChange: () => void }) {
+export function ToConfirm({ actions, canSend = false, onChange }: { actions: any[]; canSend?: boolean; onChange: () => void }) {
   if (!actions.length) return null
   return (
     <section className="stack" aria-label={t('To confirm')}>
       <div className="section-head"><h2>{t('To confirm')}</h2></div>
       <ul className="task-sheet">
-        {actions.map((action) => <ConfirmCard key={action.id} action={action} onChange={onChange} />)}
+        {actions.map((action) => <ConfirmCard key={action.id} action={action} canSend={canSend} onChange={onChange} />)}
       </ul>
     </section>
   )
@@ -180,6 +219,7 @@ export function ActionCard({ action, lead = false, compact = false, line = false
           {action.detail ? <p>{action.detail}</p> : null}
         </div>
       </div>
+      <Responses action={action} onGive={() => (canSend ? setAssigning(true) : window.open(shareLink(action), '_blank', 'noreferrer'))} />
       <div className="card-actions">
         {action.suggested ? <a className={`btn small${lead ? ' primary' : ''}`} href={action.suggested.href}>{action.suggested.label}</a> : null}
         {['problem', 'delivery'].includes(action.sourceType) && action.href ? <a className="btn text small" href={`${action.href}/say`}>{t('What to say')}</a> : null}

@@ -1428,5 +1428,14 @@
   "Weighed": "ওজন করে",
   "Weighed or measured": "ওজন করে বা মেপে",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "{name}-কে ইমেল",
+  "Give to staff": "স্টাফকে দিন",
+  "Message {name}": "{name}-কে মেসেজ",
+  "No supplier is set for {item} yet.": "{item}-এর জন্য এখনো কোনো সাপ্লায়ার ঠিক হয়নি।",
+  "Order {amount} of {item} from {supplier} today": "আজ {supplier} থেকে {amount} {item} অর্ডার করুন",
+  "Order {item} from {supplier} today": "আজ {supplier} থেকে {item} অর্ডার করুন",
+  "Set a supplier": "সাপ্লায়ার ঠিক করুন",
+  "WhatsApp a supplier": "কোনো সাপ্লায়ারকে WhatsApp",
+  "WhatsApp {name}": "{name}-কে WhatsApp"
 }

@@ -1481,5 +1481,14 @@
   "Weighed": "무게로",
   "Weighed or measured": "무게 또는 부피로",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "{name}에 이메일",
+  "Give to staff": "직원에게 맡기기",
+  "Message {name}": "{name}에게 메시지",
+  "No supplier is set for {item} yet.": "{item}의 공급업체가 아직 정해지지 않았어요.",
+  "Order {amount} of {item} from {supplier} today": "오늘 {supplier}에서 {item} {amount} 주문",
+  "Order {item} from {supplier} today": "오늘 {supplier}에서 {item} 주문",
+  "Set a supplier": "공급업체 정하기",
+  "WhatsApp a supplier": "공급업체에 WhatsApp",
+  "WhatsApp {name}": "{name}에 WhatsApp"
 }

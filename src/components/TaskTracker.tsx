@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CaretDown, CaretUp, ChatTeardropDots, ClipboardText, Package, Thermometer, Tray, Truck, UsersThree, type Icon } from '@phosphor-icons/react'
+import { CaretDown, CaretUp, ChatTeardropDots, ClipboardText, EnvelopeSimple, Package, PhoneCall, Storefront, Thermometer, Tray, Truck, UsersThree, WhatsappLogo, type Icon } from '@phosphor-icons/react'
 import { api } from '../lib/api'
 import { t, tk, tn } from '../lib/i18n'
 import { dayWords } from '../lib/dates'
@@ -31,6 +31,8 @@ interface Row {
 const MARKS: Record<string, Icon> = {
   delivery: Truck, problem: Truck, order: Package, check: Package, overdue: ClipboardText, reading: Thermometer, report: ChatTeardropDots,
 }
+
+const QUICK_MARKS: Record<string, Icon> = { whatsapp: WhatsappLogo, call: PhoneCall, email: EnvelopeSimple, link: Storefront }
 
 const OWNER = 'Owner'
 const EVERYONE = 'Everyone'
@@ -68,6 +70,9 @@ function TaskLine({ row, canSend, onChange }: { row: Row; canSend: boolean; onCh
   const [open, setOpen] = useState(false)
   const [gone, setGone] = useState(false)
   const action = row.action
+  // A crisis line carries its first fix right on the row: message or call the supplier without opening anything.
+  const quick = action?.help?.responses?.[0] ?? null
+  const QuickMark = quick ? QUICK_MARKS[quick.kind] ?? Storefront : Storefront
   const finish = async () => {
     setGone(true)
     await api(`/api/actions/${action.id}/done`, { method: 'POST' })
@@ -76,13 +81,18 @@ function TaskLine({ row, canSend, onChange }: { row: Row; canSend: boolean; onCh
   if (gone) return null
   return (
     <li className={`task-line ${row.level}`}>
-      <div className="task-row">
+      <div className={`task-row${quick ? ' with-quick' : ''}`}>
         {action?.closable ? <input type="checkbox" className="task-tick" aria-label={t('Mark done: {title}', { title: row.title })} onChange={finish} /> : <row.Mark className="task-mark" size={20} weight="fill" aria-hidden="true" />}
         <div className="task-text">
           {row.href ? <a href={row.href}>{row.title}</a> : <span>{row.title}</span>}
           <small>{row.meta}</small>
         </div>
         <span className="task-when">{row.when}</span>
+        {quick ? (
+          <a className={`icon-btn task-quick ${quick.kind}`} href={quick.href} aria-label={quick.label} title={quick.label} {...(quick.href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}>
+            <QuickMark size={20} weight="fill" aria-hidden="true" />
+          </a>
+        ) : null}
         {action ? (
           <button className="icon-btn" type="button" aria-expanded={open} aria-label={t('More for {title}', { title: row.title })} onClick={() => setOpen(!open)}>
             {open ? <CaretUp size={20} aria-hidden="true" /> : <CaretDown size={20} aria-hidden="true" />}

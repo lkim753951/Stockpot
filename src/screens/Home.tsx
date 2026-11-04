@@ -77,7 +77,7 @@ export function Home({ sample, onClock }: { sample: boolean; onClock: () => void
 
       <div className="split">
         <div className="split-main">
-          <ToConfirm actions={data.toConfirm} onChange={load} />
+          <ToConfirm actions={data.toConfirm} canSend={sample || data.teamLinked} onChange={load} />
           <section className="stack" aria-label={t('Needs you')}>
             <div className="section-head">
               <h2>{t('Needs you')}</h2>

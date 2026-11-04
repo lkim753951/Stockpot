@@ -5,6 +5,7 @@ import { listChecks } from './checks.ts'
 import { formatPounds } from '../money/money.ts'
 import { sendWhatsAppAlert } from '../integrations/whatsapp.ts'
 import { t, tSaved } from '../core/lang.ts'
+import { responsesFor } from './emergency.ts'
 
 export type Urgency = 'now' | 'today' | 'soon'
 
@@ -84,7 +85,7 @@ export async function refreshActions() {
 
 const view = async (row: Record<string, any>) => ({
   id: row.id, sourceType: row.source_type, urgency: row.urgency, urgencySet: !!row.urgency_set, title: tSaved(String(row.title)), detail: row.detail ? tSaved(String(row.detail)) : row.detail, dueDate: row.due_date,
-  createdAt: row.created_at, closedAt: row.closed_at, assignedTo: row.assigned_to, person: await personFor(row), href: await linkFor(row), source: await sourceOf(row), suggested: await suggestionFor(row),
+  createdAt: row.created_at, closedAt: row.closed_at, assignedTo: row.assigned_to, person: await personFor(row), href: await linkFor(row), source: await sourceOf(row), suggested: await suggestionFor(row), help: await responsesFor(row),
   closable: !['order', 'check', 'overdue', 'delivery'].includes(String(row.source_type)),
 })
 
@@ -198,8 +199,13 @@ export async function listProposed() {
   return Promise.all(rows.map(view))
 }
 
+/** A yes to "we've run out" makes it an urgent job straight away: the kitchen can't wait for the weekly order. */
 export async function confirmAction(id: number) {
-  return (await run(`UPDATE actions SET status = 'open' WHERE id = ? AND status = 'proposed'`, id)).changes > 0
+  const row = await get(`SELECT * FROM actions WHERE id = ? AND status = 'proposed'`, id)
+  if (!row) return false
+  const outOfStock = !!(await responsesFor(row))?.note
+  await run(`UPDATE actions SET status = 'open', urgency = CASE WHEN ? = 1 AND urgency_set = 0 THEN 'now' ELSE urgency END WHERE id = ?`, outOfStock ? 1 : 0, id)
+  return true
 }
 
 /** Gone for good. The row stays as dismissed, which is what stops a refresh from suggesting it again. */

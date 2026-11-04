@@ -173,6 +173,29 @@ test('a spoken Polish report becomes an English task, and the original stays', a
   assert.equal(task.href, `#/report/${filed.json.id}`)
 })
 
+test('staff saying something ran out gives the owner the supplier, the order and one-press buttons', async () => {
+  const filed = await staff('/api/staff/reports', { body: { text: 'Ran out: onions' } })
+  assert.equal(filed.status, 201)
+  const card = (await api('/api/home')).json.toConfirm.find((action: any) => action.sourceType === 'report' && /onions/i.test(action.title))
+  assert.ok(card, 'the report waits for a yes')
+  assert.match(card.help.note, /Brown onions from Northgate/)
+  const whatsapp = card.help.responses.find((response: any) => response.kind === 'whatsapp')
+  assert.match(whatsapp.href, /^https:\/\/wa\.me\/\d+\?text=/)
+  assert.match(decodeURIComponent(whatsapp.href), /run out of brown onions\. Could you deliver [\d.]+ kg of brown onions today/)
+  assert.ok(card.help.responses.some((response: any) => response.kind === 'call' && response.href.startsWith('tel:+')))
+
+  assert.equal((await api(`/api/actions/${card.id}/confirm`, { method: 'POST' })).status, 200)
+  const task = (await inbox()).find((action) => action.id === card.id)
+  assert.equal(task.urgency, 'now', 'a yes to "ran out" is urgent')
+  assert.ok(task.help.responses.length)
+})
+
+test('a report about something else still gets no supplier buttons', async () => {
+  const filed = await staff('/api/staff/reports', { body: { text: 'The till printer is jammed' } })
+  const card = (await api('/api/home')).json.toConfirm.find((action: any) => action.href === `#/report/${filed.json.id}`)
+  assert.equal(card.help, null)
+})
+
 test('a report is kept even when Muse Spark is down', async () => {
   mock.state.failSpark = true
   try {

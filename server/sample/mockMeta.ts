@@ -244,6 +244,11 @@ function replyFor(name: string, system: string, text: string) {
       }
     }
     if (/burn|cut my|allergy|exposed wire/i.test(text)) return { language: 'English', english_text: text, title: 'Someone could get hurt', category: 'staff', urgency: 'now', safety: true, crisis_key: null }
+    const out = text.match(/^(?:ran out|run out|out of)[:\s]+(.+)$/i) ?? text.match(/(?:ran|run) out of (.+?)(?:[.!]|$)/i)
+    if (out) {
+      const what = out[1].trim().replace(/[.!]+$/, '')
+      return { language: 'English', english_text: `We have run out of ${what}.`, title: `Out of ${what}`, category: 'stock', urgency: 'today', safety: false, crisis_key: null }
+    }
     if (/undercooked|off smell|cross contamination/i.test(text)) return { language: 'English', english_text: text, title: 'Food safety problem', category: 'food-safety', urgency: 'now', safety: false, crisis_key: null }
     return { language: 'English', english_text: text, title: 'Staff report', category: 'other', urgency: 'soon', safety: false, crisis_key: null }
   }

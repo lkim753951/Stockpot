@@ -50,7 +50,7 @@ export function Actions({ sample }: { sample: boolean }) {
 
   return (
     <Screen title={t('Tasks')} lead={t('{count} open. Checked at {checkedAt}.', { count: data.actions.length, checkedAt: data.checkedAt })}>
-      <ToConfirm actions={data.toConfirm} onChange={load} />
+      <ToConfirm actions={data.toConfirm} canSend={sample || data.teamLinked} onChange={load} />
       <TaskTracker data={data} canSend={sample || data.teamLinked} onChange={load} />
       {data.doneToday.length ? (
         <section className="stack">
