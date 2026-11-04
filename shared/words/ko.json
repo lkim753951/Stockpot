@@ -1505,5 +1505,19 @@
   "{supplier} charged {amount} on {date}": "{supplier}: {date}에 {amount} 청구",
   "{urgent} urgent": "긴급 {urgent}건",
   "{value} or above": "{value} 이상",
-  "{value} or below": "{value} 이하"
+  "{value} or below": "{value} 이하",
+  "Crisis communication.": "위기 소통.",
+  "On the call": "통화에서",
+  "On the receipt": "영수증에서",
+  "Ran out of onions": "양파가 떨어졌어요",
+  "Recipes and sales add up to each supplier's weekly order.": "레시피와 판매량으로 공급업체별 주간 주문이 정리돼요.",
+  "Send order": "주문 보내기",
+  "Sent to {name}": "{name}에 보냄",
+  "Shopping list.": "장보기 목록.",
+  "Staff run out of onions. You order more in one tap.": "양파가 떨어졌다는 직원 보고, 탭 한 번으로 주문해요.",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "직원은 자기 언어로 뭐가 떨어졌는지 말하고, 사장님은 탭 한 번으로 공급업체에 메시지나 전화를 해요.",
+  "The week's shopping list writes itself, in Polish too.": "이번 주 장보기 목록이 저절로, 폴란드어로도.",
+  "Tomatoes": "토마토",
+  "What one order saved, from the call and the receipt.": "주문 하나로 아낀 돈: 통화와 영수증에서.",
+  "saved on one order": "주문 하나로 절약"
 }

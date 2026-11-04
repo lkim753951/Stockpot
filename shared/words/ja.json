@@ -1415,5 +1415,19 @@
   "{supplier} charged {amount} on {date}": "{supplier}が{date}に{amount}を請求",
   "{urgent} urgent": "緊急{urgent}件",
   "{value} or above": "{value}以上",
-  "{value} or below": "{value}以下"
+  "{value} or below": "{value}以下",
+  "Crisis communication.": "緊急時の連絡。",
+  "On the call": "電話で",
+  "On the receipt": "レシートで",
+  "Ran out of onions": "玉ねぎが切れました",
+  "Recipes and sales add up to each supplier's weekly order.": "レシピと売上から仕入れ先ごとの週の注文がまとまります。",
+  "Send order": "注文を送る",
+  "Sent to {name}": "{name}に送信済み",
+  "Shopping list.": "買い物リスト。",
+  "Staff run out of onions. You order more in one tap.": "玉ねぎが切れたら、ワンタップで追加注文。",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "スタッフは自分の言葉で何が切れたかを伝え、あなたはワンタップで仕入れ先にメッセージか電話。",
+  "The week's shopping list writes itself, in Polish too.": "今週の買い物リストが自動で、ポーランド語でも。",
+  "Tomatoes": "トマト",
+  "What one order saved, from the call and the receipt.": "1回の注文で節約できた額：電話とレシートから。",
+  "saved on one order": "1回の注文で節約"
 }

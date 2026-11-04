@@ -1579,5 +1579,19 @@
   "{supplier} charged {amount} on {date}": "{supplier} cobró {amount} el {date}",
   "{urgent} urgent": "Urgentes: {urgent}",
   "{value} or above": "{value} o más",
-  "{value} or below": "{value} o menos"
+  "{value} or below": "{value} o menos",
+  "Crisis communication.": "Comunicación en crisis.",
+  "On the call": "En la llamada",
+  "On the receipt": "En el recibo",
+  "Ran out of onions": "Se acabó la cebolla",
+  "Recipes and sales add up to each supplier's weekly order.": "Recetas y ventas suman el pedido semanal de cada proveedor.",
+  "Send order": "Enviar pedido",
+  "Sent to {name}": "Enviado a {name}",
+  "Shopping list.": "Lista de la compra.",
+  "Staff run out of onions. You order more in one tap.": "Se acaba la cebolla. Pides más con un toque.",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "El personal dice qué se acabó en su idioma. Tú escribes o llamas al proveedor con un toque.",
+  "The week's shopping list writes itself, in Polish too.": "La lista de la compra de la semana se hace sola, también en polaco.",
+  "Tomatoes": "Tomates",
+  "What one order saved, from the call and the receipt.": "Lo que ahorró un pedido, en la llamada y en el recibo.",
+  "saved on one order": "ahorrado en un pedido"
 }

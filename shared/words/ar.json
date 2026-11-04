@@ -1600,5 +1600,19 @@
   "{supplier} charged {amount} on {date}": "{supplier}: فاتورة بمبلغ {amount} في {date}",
   "{urgent} urgent": "عاجل: {urgent}",
   "{value} or above": "‎{value} أو أكثر",
-  "{value} or below": "‎{value} أو أقل"
+  "{value} or below": "‎{value} أو أقل",
+  "Crisis communication.": "التواصل في الأزمات.",
+  "On the call": "في المكالمة",
+  "On the receipt": "في الإيصال",
+  "Ran out of onions": "نفد البصل",
+  "Recipes and sales add up to each supplier's weekly order.": "الوصفات والمبيعات تصنع الطلب الأسبوعي لكل مورّد.",
+  "Send order": "أرسل الطلب",
+  "Sent to {name}": "أُرسل إلى {name}",
+  "Shopping list.": "قائمة المشتريات.",
+  "Staff run out of onions. You order more in one tap.": "نفد البصل لدى الموظفين. تطلب المزيد بلمسة واحدة.",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "يقول الموظفون ما نفد بلغتهم. وأنت تراسل المورّد أو تتصل به بلمسة واحدة.",
+  "The week's shopping list writes itself, in Polish too.": "قائمة مشتريات الأسبوع تُكتب وحدها، وبالبولندية أيضًا.",
+  "Tomatoes": "طماطم",
+  "What one order saved, from the call and the receipt.": "ما وفّره طلب واحد، في المكالمة والإيصال.",
+  "saved on one order": "تم توفيره في طلب واحد"
 }

@@ -1,9 +1,9 @@
 import { t } from '../lib/i18n'
 import { Bar, Bubble, Count, Stage, States, Text, Thread, type Act } from '../kit'
-import { Siren } from '@phosphor-icons/react'
+import { PhoneCall, UserPlus, WhatsappLogo } from '@phosphor-icons/react'
 import './feature-grid.css'
 
-// A bento of the five features, hero and strip: the call is the one idea no till
+// A bento of the six features, hero and strip: the call is the one idea no till
 // has, so it leads. Only about half the tiles are UI, each picture is its own
 // Stage, the copy is page type outside it, and no string appears twice.
 
@@ -82,6 +82,51 @@ export function ReceiptPicture() {
   )
 }
 
+export function ShoppingPicture() {
+  return (
+    <Stage width={358} height={190} compact={{ below: 300, width: 234, height: 190 }} initial={{}} className="fg-shop">
+      {() => (
+        <div className="fg-sheet">
+          <Text className="fg-supplier">Northgate Wholesale</Text>
+          <div className="fg-line"><Text>{t('Brown onions')}</Text><Text>12 kg</Text></div>
+          <div className="fg-line"><Text>{t('Tomatoes')}</Text><Text>8 kg</Text></div>
+          <div className="fg-line"><Bar w={88} h={8} r={4} tone={3} /><Bar w={28} h={8} r={4} tone={3} /></div>
+          <span className="fg-send">{t('Send order')}</span>
+        </div>
+      )}
+    </Stage>
+  )
+}
+
+type Crisis = { sent: boolean }
+
+const crisisScript = async (a: Act<Crisis>) => {
+  await a.wait(1800)
+  a.mark('sent')
+  a.set({ sent: true })
+  await a.wait(1600)
+}
+
+export function CrisisPicture() {
+  return (
+    <Stage<Crisis> width={520} height={168} compact={{ below: 480, width: 326, height: 236 }} initial={{ sent: false }} poster={{ sent: true }} script={crisisScript} play="once" className="fg-crisis">
+      {(s) => (
+        <div className="fg-card">
+          <Text className="fg-card-title">{t('Ran out of onions')}</Text>
+          <Text className="fg-card-note">{t('Order {amount} of {item} from {supplier} today', { amount: '7 kg', item: t('Brown onions'), supplier: 'Fresh Fields Produce' })}</Text>
+          <div className="fg-card-buttons">
+            <span className="fg-wa" data-sent={s.sent || undefined}>
+              <States value={s.sent ? 'sent' : 'send'} states={{ send: <><WhatsappLogo size={18} weight="fill" />WhatsApp</>, sent: t('Sent') }} />
+            </span>
+            <span className="fg-ghost"><PhoneCall size={18} />{t('Call')}</span>
+            <span className="fg-ghost"><UserPlus size={18} />{t('Give to staff')}</span>
+          </div>
+        </div>
+      )}
+    </Stage>
+  )
+}
+
 export function FeatureGrid() {
   return (
     <section className="fg" aria-label={t('What Stockpot does')}>
@@ -103,11 +148,13 @@ export function FeatureGrid() {
         <div aria-hidden="true"><ChatPicture /></div>
         <p className="fg-copy"><strong>{t('Checklists.')}</strong>{' '}{t('Staff answer on WhatsApp, in any language.')}</p>
       </article>
-      <article className="fg-tile fg-tile--alarm">
-        <Siren size={40} aria-hidden="true" />
-        <p className="fg-big">{t('Gas smell')}</p>
-        <p className="fg-step">{t('1. Open windows and doors.')}</p>
-        <p className="fg-copy"><strong>{t('Crisis cards.')}</strong>{' '}{t('The right steps in two taps, with no signal.')}</p>
+      <article className="fg-tile fg-tile--picture">
+        <div aria-hidden="true"><ShoppingPicture /></div>
+        <p className="fg-copy"><strong>{t('Shopping list.')}</strong>{' '}{t('Recipes and sales add up to each supplier\'s weekly order.')}</p>
+      </article>
+      <article className="fg-tile fg-tile--full fg-tile--alarm">
+        <div aria-hidden="true"><CrisisPicture /></div>
+        <p className="fg-copy"><strong>{t('Crisis communication.')}</strong>{' '}{t('Staff say what ran out in their own language. You message or call the supplier in one tap.')}</p>
       </article>
     </section>
   )

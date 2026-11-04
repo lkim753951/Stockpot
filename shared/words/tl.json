@@ -1452,5 +1452,19 @@
   "{supplier} charged {amount} on {date}": "Naningil ang {supplier} ng {amount} noong {date}",
   "{urgent} urgent": "{urgent} urgent",
   "{value} or above": "{value} pataas",
-  "{value} or below": "{value} pababa"
+  "{value} or below": "{value} pababa",
+  "Crisis communication.": "Komunikasyon sa krisis.",
+  "On the call": "Sa tawag",
+  "On the receipt": "Sa resibo",
+  "Ran out of onions": "Naubos ang sibuyas",
+  "Recipes and sales add up to each supplier's weekly order.": "Ang mga recipe at benta ang bumubuo sa lingguhang order sa bawat supplier.",
+  "Send order": "Ipadala ang order",
+  "Sent to {name}": "Naipadala kay {name}",
+  "Shopping list.": "Listahan ng bibilhin.",
+  "Staff run out of onions. You order more in one tap.": "Naubusan ng sibuyas ang staff. Umorder ka sa isang tap.",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "Sinasabi ng staff kung ano ang naubos sa sarili nilang wika. Mag-message o tumawag ka sa supplier sa isang tap.",
+  "The week's shopping list writes itself, in Polish too.": "Kusa nang nabubuo ang listahan ng bibilhin ngayong linggo, pati sa Polish.",
+  "Tomatoes": "Kamatis",
+  "What one order saved, from the call and the receipt.": "Natipid sa isang order, mula sa tawag at sa resibo.",
+  "saved on one order": "natipid sa isang order"
 }
