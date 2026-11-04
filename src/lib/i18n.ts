@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { LANGUAGES, isLang, isRightToLeft, languageOf, pickLanguage, translate, translateCount, translateSaved, type Lang, type Values, type Words } from '../../shared/lang'
 
 const CHOICE = 'stockpot-language'
-const files = import.meta.glob<{ default: Words }>(['../shared/words/*.json', '!../shared/words/english.json'])
+const files = import.meta.glob<{ default: Words }>(['../../shared/words/*.json', '!../../shared/words/english.json'])
 
 function firstLanguage(): Lang {
   try {
@@ -18,7 +18,7 @@ const listeners = new Set<() => void>()
 
 async function load(code: Lang) {
   // With no signal and no saved copy, English still works, so a crisis card always opens.
-  words = code === 'en' ? {} : await files[`../shared/words/${code}.json`]().then((file) => file.default).catch(() => ({}))
+  words = code === 'en' ? {} : await files[`../../shared/words/${code}.json`]().then((file) => file.default).catch(() => ({}))
   language = code
   document.documentElement.lang = code
   document.documentElement.dir = isRightToLeft(code) ? 'rtl' : 'ltr'
