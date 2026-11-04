@@ -1428,5 +1428,14 @@
   "Weighed": "Tinitimbang",
   "Weighed or measured": "Tinitimbang o sinusukat",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "I-email si {name}",
+  "Give to staff": "Ibigay sa staff",
+  "Message {name}": "Mag-message kay {name}",
+  "No supplier is set for {item} yet.": "Wala pang supplier para sa {item}.",
+  "Order {amount} of {item} from {supplier} today": "Umorder ng {amount} na {item} mula sa {supplier} ngayon",
+  "Order {item} from {supplier} today": "Umorder ng {item} mula sa {supplier} ngayon",
+  "Set a supplier": "Pumili ng supplier",
+  "WhatsApp a supplier": "I-WhatsApp ang isang supplier",
+  "WhatsApp {name}": "I-WhatsApp si {name}"
 }

@@ -1391,5 +1391,14 @@
   "Weighed": "按重量",
   "Weighed or measured": "按重量或体积",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "给 {name} 发邮件",
+  "Give to staff": "交给员工",
+  "Message {name}": "给 {name} 发消息",
+  "No supplier is set for {item} yet.": "{item} 还没有设置供应商。",
+  "Order {amount} of {item} from {supplier} today": "今天向 {supplier} 订 {amount} {item}",
+  "Order {item} from {supplier} today": "今天向 {supplier} 订 {item}",
+  "Set a supplier": "设置供应商",
+  "WhatsApp a supplier": "WhatsApp 联系供应商",
+  "WhatsApp {name}": "WhatsApp 联系 {name}"
 }

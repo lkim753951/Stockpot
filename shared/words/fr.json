@@ -1465,5 +1465,14 @@
   "Weighed": "Au poids",
   "Weighed or measured": "Au poids ou au volume",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "Écrire à {name}",
+  "Give to staff": "Confier à l'équipe",
+  "Message {name}": "Message à {name}",
+  "No supplier is set for {item} yet.": "Aucun fournisseur n'est défini pour {item}.",
+  "Order {amount} of {item} from {supplier} today": "Commander {amount} de {item} chez {supplier} aujourd'hui",
+  "Order {item} from {supplier} today": "Commander {item} chez {supplier} aujourd'hui",
+  "Set a supplier": "Choisir un fournisseur",
+  "WhatsApp a supplier": "WhatsApp à un fournisseur",
+  "WhatsApp {name}": "WhatsApp à {name}"
 }

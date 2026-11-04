@@ -1391,5 +1391,14 @@
   "Weighed": "重さで",
   "Weighed or measured": "重さまたは容量で",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "{name}にメール",
+  "Give to staff": "スタッフに任せる",
+  "Message {name}": "{name}にメッセージ",
+  "No supplier is set for {item} yet.": "{item}の仕入れ先がまだ決まっていません。",
+  "Order {amount} of {item} from {supplier} today": "今日{supplier}に{item}を{amount}注文",
+  "Order {item} from {supplier} today": "今日{supplier}に{item}を注文",
+  "Set a supplier": "仕入れ先を決める",
+  "WhatsApp a supplier": "仕入れ先にWhatsApp",
+  "WhatsApp {name}": "{name}にWhatsApp"
 }

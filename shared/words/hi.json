@@ -1428,5 +1428,14 @@
   "Weighed": "तौलकर",
   "Weighed or measured": "तौलकर या नापकर",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "{name} को ईमेल",
+  "Give to staff": "स्टाफ़ को सौंपें",
+  "Message {name}": "{name} को संदेश",
+  "No supplier is set for {item} yet.": "{item} के लिए अभी कोई सप्लायर तय नहीं है।",
+  "Order {amount} of {item} from {supplier} today": "आज {supplier} से {amount} {item} मँगाएँ",
+  "Order {item} from {supplier} today": "आज {supplier} से {item} मँगाएँ",
+  "Set a supplier": "सप्लायर चुनें",
+  "WhatsApp a supplier": "किसी सप्लायर को WhatsApp",
+  "WhatsApp {name}": "{name} को WhatsApp"
 }

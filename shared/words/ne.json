@@ -1428,5 +1428,14 @@
   "Weighed": "तौलेर",
   "Weighed or measured": "तौलेर वा नापेर",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "{name}लाई इमेल",
+  "Give to staff": "स्टाफलाई दिनुहोस्",
+  "Message {name}": "{name}लाई सन्देश",
+  "No supplier is set for {item} yet.": "{item}को लागि अझै सप्लायर तोकिएको छैन।",
+  "Order {amount} of {item} from {supplier} today": "आज {supplier}बाट {amount} {item} अर्डर गर्नुहोस्",
+  "Order {item} from {supplier} today": "आज {supplier}बाट {item} अर्डर गर्नुहोस्",
+  "Set a supplier": "सप्लायर छान्नुहोस्",
+  "WhatsApp a supplier": "सप्लायरलाई WhatsApp",
+  "WhatsApp {name}": "{name}लाई WhatsApp"
 }

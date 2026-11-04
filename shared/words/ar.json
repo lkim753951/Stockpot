@@ -1576,5 +1576,14 @@
   "Weighed": "بالوزن",
   "Weighed or measured": "بالوزن أو بالحجم",
   "{count} × {pack} = {litres}": "{count} × {pack} = {litres}",
-  "{count} × {pack}, {date}": "{count} × {pack}, {date}"
+  "{count} × {pack}, {date}": "{count} × {pack}, {date}",
+  "Email {name}": "راسل {name}",
+  "Give to staff": "سلّمها للموظفين",
+  "Message {name}": "أرسل رسالة إلى {name}",
+  "No supplier is set for {item} yet.": "لم يُحدَّد مورّد لـ {item} بعد.",
+  "Order {amount} of {item} from {supplier} today": "اطلب {amount} من {item} من {supplier} اليوم",
+  "Order {item} from {supplier} today": "اطلب {item} من {supplier} اليوم",
+  "Set a supplier": "اختر مورّدًا",
+  "WhatsApp a supplier": "واتساب لمورّد",
+  "WhatsApp {name}": "واتساب إلى {name}"
 }

@@ -446,6 +446,7 @@ export const reportPrompt = `A restaurant worker has reported a problem to the o
 - urgency is now for anything unsafe or stopping service, today for anything needing action today, and soon for the rest.
 - safety is true if someone could be hurt or made ill, such as a burn, a fall, a fire risk, an allergy mistake or unsafe food. Otherwise false.
 - crisis_key is set only if this is a power, water, gas, fridge or wifi failure. Otherwise use null.
+- category is stock when an ingredient or supply has run out or is about to. Name the ingredient in the title, such as "Out of onions", and use the same word for it in english_text.
 
 ${SAFETY}`
 

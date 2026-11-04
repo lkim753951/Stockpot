@@ -963,3 +963,22 @@ a.card:hover, .report-list a:hover, .demo-link:hover, .tile-btn:hover { box-shad
   .nav-item, .staff .nav-item { font-size: 11.5px; letter-spacing: -0.01em; }
   .nav-item .pill { width: 48px; }
 }
+
+/* Crisis buttons on a staff report or low stock check: what to order, then message, call or hand it on. */
+.respond { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
+.confirm-row .respond { margin-top: var(--space-2); }
+.card .respond { margin-top: 0; }
+.respond-note { margin: 0; padding: var(--space-2) var(--space-3); border-left: 3px solid var(--chilli); background: var(--chilli-soft); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-weight: 650; font-size: 15px; line-height: 20px; }
+.respond-buttons { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.respond-buttons .btn { flex: 1 1 auto; }
+.respond-buttons .respond-whatsapp:not(.primary) svg { color: var(--herb); }
+.task-quick { color: var(--on-aubergine); background: var(--aubergine); border-radius: var(--radius-pill); }
+.task-quick.whatsapp { background: var(--herb); color: var(--surface-raised); }
+.task-row.with-quick { grid-template-columns: 24px minmax(0, 1fr) auto 40px 32px; }
+.task-row .task-quick { width: 40px; height: 40px; color: var(--on-aubergine); }
+.task-row .task-quick.whatsapp { color: var(--surface-raised); }
+@media (max-width: 560px) {
+  .task-row.with-quick { grid-template-columns: 24px minmax(0, 1fr) 40px 40px; }
+  .task-row.with-quick .task-quick { grid-column: 3; }
+  .task-row.with-quick .icon-btn:not(.task-quick) { grid-column: 4; }
+}
