@@ -114,6 +114,8 @@
 .sc-lang[data-on]::before { transform: translateX(36px); }
 .sc-lang b:first-child, .sc-lang[data-on] b:last-child { color: #fff; }
 .sc-lang[data-on] b:first-child { color: #625c69; }
+.sc-langs { display: inline-flex; align-items: center; gap: 6px; }
+.sc-langs em { font: 800 13px/18px var(--font-text); font-style: normal; color: #22704a; }
 .sc-group { display: flex; flex-direction: column; }
 .sc-supplier { margin: 8px 0 2px; font: 700 13px/18px var(--font-text); color: #625c69; }
 .sc-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; height: 40px; border-top: 1px solid #eef0ec; font: 600 17px/22px var(--font-text); opacity: 0; transform: translateY(6px); transition: opacity 220ms ease-out, transform 280ms ease-out; }

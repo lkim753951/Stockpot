@@ -183,7 +183,7 @@ function ListScene() {
           <div className="sc-sheet">
             <div className="sc-sheet-head">
               <States align="start" className="sc-sheet-title" value={s.polish ? 'pl' : 'en'} states={{ en: 'This week', pl: 'Ten tydzień' }} />
-              <span className="sc-lang" data-on={s.polish || undefined}><b>EN</b><b>PL</b></span>
+              <span className="sc-langs"><span className="sc-lang" data-on={s.polish || undefined}><b>EN</b><b>PL</b></span><em>+16</em></span>
             </div>
             {LIST.map((group) => (
               <div className="sc-group" key={group.supplier}>
@@ -321,7 +321,7 @@ const STORIES = [
   { title: tk("It's 11pm. The receipts are still in a shoebox."), seconds: 6, ground: 'ink', saved: null, picture: () => <PileScene /> },
   { title: tk('Dave puts the price up. Stockpot catches it.'), seconds: 7, ground: 'plum', saved: TALKED_DOWN, picture: () => <CallScene /> },
   { title: tk('Maria films the delivery. Stockpot counts the boxes.'), seconds: 8, ground: 'saffron', saved: TALKED_DOWN, picture: () => <FilmScene /> },
-  { title: tk("The week's shopping list writes itself, in Polish too."), seconds: 8, ground: 'mint', saved: TALKED_DOWN, picture: () => <ListScene /> },
+  { title: tk('Your shopping list writes itself, in 18 languages.'), seconds: 8, ground: 'mint', saved: TALKED_DOWN, picture: () => <ListScene /> },
   { title: tk('The invoice still bills the full 20 kg.'), seconds: 7, ground: 'cream', saved: TOTAL, picture: () => <PaperScene /> },
   { title: tk('What one order saved, from the call and the receipt.'), seconds: 7, ground: 'herb', saved: null, picture: () => <PayoffScene /> },
   { title: tk('Staff run out of onions. You order more in one tap.'), seconds: 9, ground: 'chilli', saved: null, picture: () => <CrisisScene /> },
