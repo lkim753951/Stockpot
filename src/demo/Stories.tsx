@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { CaretLeft, CaretRight, Microphone, PhoneCall, Siren } from '@phosphor-icons/react'
+import { CaretLeft, CaretRight, Checks, Microphone, PhoneCall, Receipt, UserPlus, WhatsappLogo } from '@phosphor-icons/react'
 import { Count, Phone, Stage, States, type Act } from '../kit'
 import { t, tk } from '../lib/i18n'
 import { Mascot } from '../components/Mascot'
@@ -45,6 +45,7 @@ function PileScene() {
       {(s) => (
         <div className="sc-pile">
           <p className="sc-clock">23:07</p>
+          <Owner frantic={s.slips >= 3} />
           {SLIPS.map(([name, total, turn, left, top], index) => (
             <div className="sc-slip" key={index} data-show={s.slips > index || undefined} style={{ left, top, ['--turn' as string]: `${turn}deg` }}>
               <b>{name}</b><i /><i /><i /><span>{total}</span>
@@ -53,6 +54,33 @@ function PileScene() {
         </div>
       )}
     </Scene>
+  )
+}
+
+/**
+ * The owner at the end of a long night, drawn flat in the app's own colours: hands on their head, and once the
+ * pile gets big, the scribble of stress above them. An original figure, nobody in particular.
+ */
+function Owner({ frantic }: { frantic: boolean }) {
+  return (
+    <svg className="sc-owner-figure" data-frantic={frantic || undefined} viewBox="0 0 150 170" width="150" height="170" aria-hidden="true">
+      <g className="sc-stress" fill="none" stroke="#f2a93b" strokeWidth="5" strokeLinecap="round">
+        <path d="M44 22 l-10 -14" /><path d="M75 12 v-12" /><path d="M106 22 l10 -14" />
+        <path d="M120 40 q8 -6 4 -14 q-4 -8 6 -12" />
+      </g>
+      <path d="M22 170 q0 -58 53 -58 q53 0 53 58 z" fill="#4a2d6e" />
+      <path d="M58 112 l17 18 l17 -18" fill="#eee7f6" />
+      <g className="sc-arms" fill="none" stroke="#4a2d6e" strokeWidth="17" strokeLinecap="round">
+        <path d="M32 132 q-14 -36 8 -60" /><path d="M118 132 q14 -36 -8 -60" />
+      </g>
+      <circle cx="75" cy="72" r="34" fill="#e8b48c" />
+      <path d="M41 66 q2 -34 34 -34 q34 0 34 34 q-8 -14 -22 -16 q-14 8 -34 2 q-8 4 -12 14 z" fill="#2d1a45" />
+      <circle cx="42" cy="72" r="8" fill="#e8b48c" /><circle cx="108" cy="72" r="8" fill="#e8b48c" />
+      <g className="sc-face" stroke="#1d1a22" strokeWidth="3.5" strokeLinecap="round" fill="none">
+        <path d="M60 70 l8 6 M68 70 l-8 6" /><path d="M82 70 l8 6 M90 70 l-8 6" />
+        <ellipse cx="75" cy="91" rx="7" ry="9" fill="#1d1a22" stroke="none" />
+      </g>
+    </svg>
   )
 }
 
@@ -122,30 +150,57 @@ function FilmScene() {
   )
 }
 
-type Alert = { said: boolean; task: boolean }
-const alertScript = async (a: Act<Alert>) => {
+/** One week's list as the kitchen reads it: the same rows, then in Polish, then sent to the supplier. */
+const LIST = [
+  { supplier: 'Harrow Lane Foods', rows: [['Chicken thighs', 'Udka z kurczaka', '18 kg']] },
+  { supplier: 'Northgate Wholesale', rows: [['Brown onions', 'Cebula', '12 kg'], ['Tomatoes', 'Pomidory', '8 kg'], ['Basmati rice', 'Ryż basmati', '10 kg']] },
+] as const
+
+type List = { rows: number; polish: boolean; sent: boolean }
+const listScript = async (a: Act<List>) => {
   await a.wait(500)
-  a.set({ said: true })
-  await a.wait(2000)
-  a.mark('task')
-  a.set({ task: true })
-  await a.wait(3400)
+  for (const rows of [1, 2, 3, 4]) {
+    a.set({ rows })
+    await a.wait(380)
+  }
+  await a.wait(900)
+  a.mark('polish')
+  a.set({ polish: true })
+  await a.wait(1900)
+  a.mark('sent')
+  a.set({ sent: true })
+  await a.wait(2400)
 }
 
-function AlertScene() {
+/** Where each row sits in the whole list, so they arrive one after another across suppliers. */
+const ORDER_OF = new Map(LIST.flatMap((group) => group.rows.map(([english]) => english)).map((name, index) => [name, index + 1]))
+
+function ListScene() {
   return (
-    <Scene<Alert> initial={{ said: false, task: false }} poster={{ said: true, task: true }} script={alertScript}>
+    <Scene<List> initial={{ rows: 0, polish: false, sent: false }} poster={{ rows: 4, polish: true, sent: true }} script={listScript}>
       {(s) => (
-        <Phone width={306} frame="pro" time="07:42" className="story-phone">
-          <div className="sc-owner">
-            <p className="sc-bubble" data-show={s.said || undefined}><Microphone size={18} weight="fill" />Brakuje jednego pudełka</p>
-            <div className="sc-task" data-show={s.task || undefined}>
-              <span className="sc-urgent"><Siren size={16} weight="fill" />{t('Urgent')}</span>
-              <p>{t('Chicken thighs: short, {arrived} of {ordered} kg', { arrived: ORDER.arrived, ordered: ORDER.kilos })}</p>
-              <span className="sc-call-btn"><PhoneCall size={20} weight="fill" />{t('Call Dave')}</span>
+        <div className="sc-list">
+          <div className="sc-sheet">
+            <div className="sc-sheet-head">
+              <States align="start" className="sc-sheet-title" value={s.polish ? 'pl' : 'en'} states={{ en: 'This week', pl: 'Ten tydzień' }} />
+              <span className="sc-lang" data-on={s.polish || undefined}><b>EN</b><b>PL</b></span>
+            </div>
+            {LIST.map((group) => (
+              <div className="sc-group" key={group.supplier}>
+                <p className="sc-supplier">{group.supplier}</p>
+                {group.rows.map(([english, polish, amount]) => (
+                  <div className="sc-line" key={english} data-show={s.rows >= ORDER_OF.get(english)! || undefined}>
+                    <States align="start" value={s.polish ? 'pl' : 'en'} states={{ en: english, pl: polish }} />
+                    <b>{amount}</b>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <div className="sc-send" data-sent={s.sent || undefined}>
+              <States value={s.sent ? 'sent' : 'send'} states={{ send: <><WhatsappLogo size={20} weight="fill" />Wyślij do Northgate</>, sent: <><Checks size={20} weight="bold" />Wysłano</> }} />
             </div>
           </div>
-        </Phone>
+        </div>
       )}
     </Scene>
   )
@@ -203,24 +258,73 @@ function PayoffScene() {
         <div className="sc-payoff">
           <Mascot size={72} tone="light" />
           <Count className="sc-total" value={s.shown ? TOTAL : 0} duration={1000} format={pounds} />
+          <p className="sc-saved-label">{t('saved on one order')}</p>
           <ul data-show={s.split || undefined}>
-            <li><b>{pounds(TALKED_DOWN)}</b> {t('talked down on calls')}</li>
-            <li><b>{pounds(CLAIMED)}</b> {t('found on invoices')}</li>
+            <li style={{ ['--share' as string]: TALKED_DOWN / TOTAL }}><span><PhoneCall size={18} weight="fill" />{t('On the call')}</span><b>{pounds(TALKED_DOWN)}</b><i /></li>
+            <li style={{ ['--share' as string]: CLAIMED / TOTAL }}><span><Receipt size={18} weight="fill" />{t('On the receipt')}</span><b>{pounds(CLAIMED)}</b><i /></li>
           </ul>
-          <p className="sc-more" data-show={s.split || undefined}>{t('And checklists, crisis cards and {count} languages.', { count: 18 })}</p>
         </div>
       )}
     </Scene>
   )
 }
 
+
+type Crisis = { said: boolean; card: boolean; pressed: boolean; sent: boolean }
+const crisisScript = async (a: Act<Crisis>) => {
+  await a.wait(500)
+  a.set({ said: true })
+  await a.wait(1600)
+  a.mark('card')
+  a.set({ card: true })
+  await a.wait(2000)
+  a.set({ pressed: true })
+  await a.wait(260)
+  a.mark('sent')
+  a.set({ pressed: false, sent: true })
+  await a.wait(3200)
+}
+
+/**
+ * The card exactly as the owner's Tasks screen shows it: what staff said, the order Stockpot wrote, and the three
+ * buttons. Staff say it in Polish; one tap on WhatsApp orders more from the supplier.
+ */
+function CrisisScene() {
+  return (
+    <Scene<Crisis> initial={{ said: false, card: false, pressed: false, sent: false }} poster={{ said: true, card: true, pressed: false, sent: true }} script={crisisScript}>
+      {(s) => (
+        <Phone width={306} frame="pro" time="16:10" className="story-phone">
+          <div className="sc-owner sc-tasks">
+            <p className="sc-bubble from-staff" data-show={s.said || undefined}><Microphone size={18} weight="fill" />Skończyła się cebula!</p>
+            <div className="sc-confirm" data-show={s.card || undefined}>
+              <p className="sc-confirm-label">{t('To confirm')}</p>
+              <p className="sc-confirm-title">{t('Ran out of onions')}</p>
+              <small>{t('{name} reported this in {language}', { name: t('Staff'), language: t('Polish') })}, 16:10</small>
+              <p className="sc-note">{t('Order {amount} of {item} from {supplier} today', { amount: '7 kg', item: t('Brown onions'), supplier: 'Fresh Fields Produce' })}</p>
+              <span className="sc-wa-btn" data-pressed={s.pressed || undefined} data-sent={s.sent || undefined}>
+                <States value={s.sent ? 'sent' : 'send'} states={{ send: <><WhatsappLogo size={20} weight="fill" />{t('WhatsApp {name}', { name: 'Fresh Fields Produce' })}</>, sent: <><Checks size={20} weight="bold" />{t('Sent to {name}', { name: 'Fresh Fields Produce' })}</> }} />
+              </span>
+              <div className="sc-pair">
+                <span><PhoneCall size={18} />{t('Call')}</span>
+                <span><UserPlus size={18} />{t('Give to staff')}</span>
+              </div>
+              <div className="sc-decide"><b>{t('Confirm')}</b><span>{t('Dismiss')}</span></div>
+            </div>
+          </div>
+        </Phone>
+      )}
+    </Scene>
+  )
+}
+
 const STORIES = [
-  { title: tk("It's 11pm. The receipts are still in a shoebox."), seconds: 5, ground: 'ink', saved: null, picture: () => <PileScene /> },
+  { title: tk("It's 11pm. The receipts are still in a shoebox."), seconds: 6, ground: 'ink', saved: null, picture: () => <PileScene /> },
   { title: tk('Dave puts the price up. Stockpot catches it.'), seconds: 7, ground: 'plum', saved: TALKED_DOWN, picture: () => <CallScene /> },
   { title: tk('Maria films the delivery. Stockpot counts the boxes.'), seconds: 8, ground: 'saffron', saved: TALKED_DOWN, picture: () => <FilmScene /> },
-  { title: tk('She says it in Polish. You read it in English.'), seconds: 7, ground: 'chilli', saved: TALKED_DOWN, picture: () => <AlertScene /> },
+  { title: tk("The week's shopping list writes itself, in Polish too."), seconds: 8, ground: 'mint', saved: TALKED_DOWN, picture: () => <ListScene /> },
   { title: tk('The invoice still bills the full 20 kg.'), seconds: 7, ground: 'cream', saved: TOTAL, picture: () => <PaperScene /> },
-  { title: tk('One order. All of it found for you.'), seconds: 7, ground: 'herb', saved: null, picture: () => <PayoffScene /> },
+  { title: tk('What one order saved, from the call and the receipt.'), seconds: 7, ground: 'herb', saved: null, picture: () => <PayoffScene /> },
+  { title: tk('Staff run out of onions. You order more in one tap.'), seconds: 9, ground: 'chilli', saved: null, picture: () => <CrisisScene /> },
 ]
 
 /** What this order has saved so far. It only moves once the story has shown why. */

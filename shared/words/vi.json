@@ -1415,5 +1415,19 @@
   "{supplier} charged {amount} on {date}": "{supplier} tính {amount} vào {date}",
   "{urgent} urgent": "{urgent} gấp",
   "{value} or above": "{value} trở lên",
-  "{value} or below": "{value} trở xuống"
+  "{value} or below": "{value} trở xuống",
+  "Crisis communication.": "Liên lạc khi khẩn cấp.",
+  "On the call": "Trong cuộc gọi",
+  "On the receipt": "Trên hóa đơn",
+  "Ran out of onions": "Hết hành tây",
+  "Recipes and sales add up to each supplier's weekly order.": "Công thức và doanh số cộng lại thành đơn hàng tuần cho từng nhà cung cấp.",
+  "Send order": "Gửi đơn",
+  "Sent to {name}": "Đã gửi cho {name}",
+  "Shopping list.": "Danh sách mua hàng.",
+  "Staff run out of onions. You order more in one tap.": "Bếp hết hành tây. Bạn đặt thêm chỉ với một chạm.",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "Nhân viên báo thứ đã hết bằng tiếng của họ. Bạn nhắn hoặc gọi nhà cung cấp chỉ với một chạm.",
+  "The week's shopping list writes itself, in Polish too.": "Danh sách mua hàng tuần tự lên, cả bằng tiếng Ba Lan.",
+  "Tomatoes": "Cà chua",
+  "What one order saved, from the call and the receipt.": "Một đơn hàng tiết kiệm được bao nhiêu, nhờ cuộc gọi và hóa đơn.",
+  "saved on one order": "tiết kiệm trong một đơn"
 }

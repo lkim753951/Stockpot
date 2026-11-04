@@ -1452,5 +1452,19 @@
   "{supplier} charged {amount} on {date}": "{supplier} {date} তারিখে {amount} নিয়েছে",
   "{urgent} urgent": "{urgent}টি জরুরি",
   "{value} or above": "{value} বা তার বেশি",
-  "{value} or below": "{value} বা তার কম"
+  "{value} or below": "{value} বা তার কম",
+  "Crisis communication.": "সংকটে যোগাযোগ।",
+  "On the call": "কলে",
+  "On the receipt": "রসিদে",
+  "Ran out of onions": "পেঁয়াজ শেষ",
+  "Recipes and sales add up to each supplier's weekly order.": "রেসিপি আর বিক্রি মিলে প্রতিটি সাপ্লায়ারের সাপ্তাহিক অর্ডার হয়।",
+  "Send order": "অর্ডার পাঠান",
+  "Sent to {name}": "{name}-কে পাঠানো হয়েছে",
+  "Shopping list.": "কেনাকাটার তালিকা।",
+  "Staff run out of onions. You order more in one tap.": "স্টাফের পেঁয়াজ শেষ। আপনি এক ট্যাপে আরও অর্ডার করুন।",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "স্টাফ নিজের ভাষায় বলে কী শেষ হয়েছে। আপনি এক ট্যাপে সাপ্লায়ারকে মেসেজ বা কল করুন।",
+  "The week's shopping list writes itself, in Polish too.": "সপ্তাহের কেনাকাটার তালিকা নিজেই তৈরি হয়, পোলিশেও।",
+  "Tomatoes": "টমেটো",
+  "What one order saved, from the call and the receipt.": "একটি অর্ডারে কত বাঁচল, কল আর রসিদ থেকে।",
+  "saved on one order": "একটি অর্ডারে সাশ্রয়"
 }

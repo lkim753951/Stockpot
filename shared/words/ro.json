@@ -1579,5 +1579,19 @@
   "{supplier} charged {amount} on {date}": "{supplier} a facturat {amount} pe {date}",
   "{urgent} urgent": "Urgente: {urgent}",
   "{value} or above": "{value} sau mai mult",
-  "{value} or below": "{value} sau mai puțin"
+  "{value} or below": "{value} sau mai puțin",
+  "Crisis communication.": "Comunicare în criză.",
+  "On the call": "La apel",
+  "On the receipt": "Pe bon",
+  "Ran out of onions": "S-a terminat ceapa",
+  "Recipes and sales add up to each supplier's weekly order.": "Rețetele și vânzările dau comanda săptămânală pentru fiecare furnizor.",
+  "Send order": "Trimite comanda",
+  "Sent to {name}": "Trimis către {name}",
+  "Shopping list.": "Listă de cumpărături.",
+  "Staff run out of onions. You order more in one tap.": "S-a terminat ceapa. Comanzi mai multă dintr-o atingere.",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "Personalul spune ce s-a terminat în limba lui. Tu scrii sau suni furnizorul dintr-o atingere.",
+  "The week's shopping list writes itself, in Polish too.": "Lista de cumpărături a săptămânii se face singură, și în poloneză.",
+  "Tomatoes": "Roșii",
+  "What one order saved, from the call and the receipt.": "Cât a economisit o comandă, la apel și pe bon.",
+  "saved on one order": "economisiți la o comandă"
 }

@@ -1452,5 +1452,19 @@
   "{supplier} charged {amount} on {date}": "{supplier}, {date} tarihinde {amount} aldı",
   "{urgent} urgent": "{urgent} acil",
   "{value} or above": "{value} veya üstü",
-  "{value} or below": "{value} veya altı"
+  "{value} or below": "{value} veya altı",
+  "Crisis communication.": "Kriz iletişimi.",
+  "On the call": "Aramada",
+  "On the receipt": "Fişte",
+  "Ran out of onions": "Soğan bitti",
+  "Recipes and sales add up to each supplier's weekly order.": "Tarifler ve satışlar her tedarikçinin haftalık siparişini oluşturur.",
+  "Send order": "Siparişi gönder",
+  "Sent to {name}": "{name} firmasına gönderildi",
+  "Shopping list.": "Alışveriş listesi.",
+  "Staff run out of onions. You order more in one tap.": "Mutfakta soğan bitti. Tek dokunuşla sipariş verirsin.",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "Personel neyin bittiğini kendi dilinde söyler. Sen tek dokunuşla tedarikçiye yazar ya da onu ararsın.",
+  "The week's shopping list writes itself, in Polish too.": "Haftanın alışveriş listesi kendiliğinden hazır, Lehçe de.",
+  "Tomatoes": "Domates",
+  "What one order saved, from the call and the receipt.": "Bir siparişte kazanılan: aramada ve fişte.",
+  "saved on one order": "bir siparişte tasarruf"
 }

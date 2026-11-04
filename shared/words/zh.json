@@ -1415,5 +1415,19 @@
   "{supplier} charged {amount} on {date}": "{supplier}在{date}收了{amount}",
   "{urgent} urgent": "{urgent}项紧急",
   "{value} or above": "{value}或以上",
-  "{value} or below": "{value}或以下"
+  "{value} or below": "{value}或以下",
+  "Crisis communication.": "危机沟通。",
+  "On the call": "通话中",
+  "On the receipt": "收据上",
+  "Ran out of onions": "洋葱用完了",
+  "Recipes and sales add up to each supplier's weekly order.": "食谱和销量汇总成每家供应商的每周订单。",
+  "Send order": "发送订单",
+  "Sent to {name}": "已发给 {name}",
+  "Shopping list.": "采购清单。",
+  "Staff run out of onions. You order more in one tap.": "员工说洋葱用完了，你一键就能补货。",
+  "Staff say what ran out in their own language. You message or call the supplier in one tap.": "员工用自己的语言说什么用完了，你一键给供应商发消息或打电话。",
+  "The week's shopping list writes itself, in Polish too.": "本周采购清单自动生成，也有波兰语版。",
+  "Tomatoes": "番茄",
+  "What one order saved, from the call and the receipt.": "一笔订单省下的钱：来自通话和收据。",
+  "saved on one order": "一笔订单节省"
 }
