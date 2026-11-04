@@ -21,6 +21,9 @@ export const LANGUAGES = [
 ] as const
 
 export type Lang = (typeof LANGUAGES)[number]['code']
+
+/** The languages with a phone voice. Turkish, Urdu, Nepali and Vietnamese have none confirmed yet. */
+export const CALL_LANGUAGES: readonly Lang[] = ['en', 'pl', 'ro', 'es', 'pt', 'it', 'fr', 'bn', 'hi', 'ar', 'zh', 'tl', 'ko', 'ja']
 export type Words = Record<string, string | Record<string, string>>
 export type Values = Record<string, string | number | null | undefined>
 

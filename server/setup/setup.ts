@@ -1,3 +1,4 @@
+import { CALL_LANGUAGES } from '../../shared/lang.ts'
 import { all, get, insert, priceOn, run, saveSetting, setting, transaction } from '../core/db.ts'
 import { config } from '../core/config.ts'
 import { localTime } from '../core/clock.ts'
@@ -169,7 +170,7 @@ export async function readMenu(file: string, name: string) {
 }
 
 export async function listChecklists() {
-  return await Promise.all((await all('SELECT id, name, frequency, due_time AS dueTime, schedule, assignee, chase_after AS chaseAfter, call_who AS callWho FROM checklist_templates WHERE retired = 0 ORDER BY due_time')).map(async (template) => ({
+  return await Promise.all((await all('SELECT id, name, frequency, due_time AS dueTime, schedule, assignee, chase_after AS chaseAfter, call_who AS callWho, language FROM checklist_templates WHERE retired = 0 ORDER BY due_time')).map(async (template) => ({
     ...template, schedule: scheduleFor(template) ?? fromFrequency(String(template.frequency)),
     items: (await all(`SELECT id, label, check_type AS type, unit, min_value AS min, max_value AS max, proof, proof_hint AS proofHint
                 FROM checklist_items WHERE template_id = ? AND retired = 0 ORDER BY position`, template.id)).map((item) => ({ ...item, proof: !!item.proof })),
@@ -196,6 +197,7 @@ export async function saveChecklist(input: Record<string, any>, id?: number) {
   const chaseAfter = input.chaseAfter === null || input.chaseAfter === undefined || input.chaseAfter === '' ? null : Number(input.chaseAfter)
   if (chaseAfter !== null && !(chaseAfter >= EARLIEST_CHASE && chaseAfter <= 720)) throw new SetupError('Choose when to chase.')
   const callWho = chaseAfter !== null && ['assignee', 'owner'].includes(input.callWho) ? String(input.callWho) : null
+  const language = CALL_LANGUAGES.includes(input.language) ? String(input.language) : null
   if (!/^\d{2}:\d{2}$/.test(dueTime)) throw new SetupError('Choose a due time.')
   const items = (Array.isArray(input.items) ? input.items : []).filter((item: any) => text(item?.label))
   if (!items.length) throw new SetupError('Add at least one check.')
@@ -206,9 +208,9 @@ export async function saveChecklist(input: Record<string, any>, id?: number) {
   // A retired list keeps its old records and its old name stays free.
   await run(`UPDATE checklist_templates SET name = name || ' (old ' || id || ')' WHERE name = ? AND retired = 1`, name)
   if (await get('SELECT id FROM checklist_templates WHERE name = ? AND id != ?', name, id ?? 0)) throw new SetupError('You already have a checklist with that name.')
-  const fields = [name, frequency, dueTime, JSON.stringify(schedule), assignee, chaseAfter, callWho]
-  const templateId = id ?? await insert('INSERT INTO checklist_templates (name, frequency, due_time, schedule, assignee, chase_after, call_who) VALUES (?, ?, ?, ?, ?, ?, ?)', ...fields)
-  if (id) await run('UPDATE checklist_templates SET name = ?, frequency = ?, due_time = ?, schedule = ?, assignee = ?, chase_after = ?, call_who = ? WHERE id = ?', ...fields, id)
+  const fields = [name, frequency, dueTime, JSON.stringify(schedule), assignee, chaseAfter, callWho, language]
+  const templateId = id ?? await insert('INSERT INTO checklist_templates (name, frequency, due_time, schedule, assignee, chase_after, call_who, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', ...fields)
+  if (id) await run('UPDATE checklist_templates SET name = ?, frequency = ?, due_time = ?, schedule = ?, assignee = ?, chase_after = ?, call_who = ?, language = ? WHERE id = ?', ...fields, id)
   const kept = new Set<number>()
   for (const [position, item] of items.entries()) {
     const label = text(item.label)

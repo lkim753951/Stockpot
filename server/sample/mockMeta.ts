@@ -120,6 +120,7 @@ function replyFor(name: string, system: string, text: string) {
     if (/Onions are eighty five/i.test(newest)) return { quotes: [quote({ item_id: onions, kind: 'agreed', price_pence: 85 })] }
     return { quotes: [] }
   }
+  if (name === 'reminder_call' && /Worded list/.test(text)) return { message: 'This is Stockpot. Worded list was due at noon. The fryer is still not done, so please do it now.' }
   if (name === 'draft_order') {
     if (/chicken thighs/i.test(text)) {
       const turnOf = (pattern: RegExp) => Number(text.match(new RegExp(`Turn (\\d+) [^\\n]*${pattern.source}`, 'i'))?.[1] ?? 0) || null

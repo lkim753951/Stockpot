@@ -182,6 +182,7 @@ const LATER_COLUMNS: Array<[string, string, string]> = [
   ['checklist_templates', 'assignee', 'TEXT'],
   ['checklist_templates', 'chase_after', 'INTEGER'],
   ['checklist_templates', 'call_who', 'TEXT'],
+  ['checklist_templates', 'language', 'TEXT'],
   ['checklist_runs', 'reminded_at', 'TEXT'],
   ['checklist_runs', 'chased_at', 'TEXT'],
   ['actions', 'urgency_set', 'INTEGER NOT NULL DEFAULT 0'],

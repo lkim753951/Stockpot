@@ -1,6 +1,9 @@
 import { nowIso, run, setting, all } from '../core/db.ts'
 import { localTime } from '../core/clock.ts'
-import { inLanguage, t } from '../core/lang.ts'
+import { inLanguage, languageName, t } from '../core/lang.ts'
+import { sparkJson } from '../ai/meta.ts'
+import { reminderCallPrompt, reminderCallSchema } from '../ai/prompts.ts'
+import { runView } from './checklists.ts'
 import { ownerPhone, placeCall, spokenLanguage } from '../integrations/phone.ts'
 import { sendToPerson, team, whatsappReady, type Contact } from '../integrations/whatsapp.ts'
 
@@ -33,7 +36,7 @@ const claimStep = async (step: 'reminded_at' | 'chased_at', id: unknown) =>
 
 export async function chaseLate() {
   const { stamp } = localTime()
-  const open = await all(`SELECT r.id, r.due_at, r.sent_at, r.reminded_at, r.chased_at, t.name, t.assignee, t.chase_after, t.call_who FROM checklist_runs r
+  const open = await all(`SELECT r.id, r.due_at, r.sent_at, r.reminded_at, r.chased_at, t.name, t.assignee, t.chase_after, t.call_who, t.language FROM checklist_runs r
                           JOIN checklist_templates t ON t.id = r.template_id
                           WHERE r.completed_at IS NULL AND t.retired = 0 AND t.chase_after IS NOT NULL AND r.due_at <= ? AND (r.reminded_at IS NULL OR r.chased_at IS NULL)`, later(stamp, -EARLIEST_CHASE))
   for (const row of open) {
@@ -65,13 +68,35 @@ export async function chaseLate() {
   }
 }
 
+const LONGEST_MESSAGE = 400
+
+/** Muse Spark words the call around what is really left. If it can't, the plain sentence still goes. */
+async function callWords(row: Record<string, any>, language: string, plain: string) {
+  try {
+    const view = await runView(Number(row.id))
+    const notDone = (view?.items ?? []).filter((item) => !item.entry).map((item) => t(String(item.label)))
+    const facts = { checklist: t(String(row.name)), due_time: String(row.due_at).slice(11, 16), late: minutesLate(String(row.due_at), localTime().stamp) > 0, not_done: notDone }
+    const { message } = await sparkJson<{ message: string }>({
+      name: 'reminder_call', schema: reminderCallSchema, system: reminderCallPrompt(languageName()), effort: 'low', attempts: 1, timeoutMs: 15000,
+      content: [{ type: 'text', text: JSON.stringify(facts) }],
+    })
+    return message.trim().slice(0, LONGEST_MESSAGE) || plain
+  } catch (error) {
+    console.error('call words:', (error as Error).message)
+    return plain
+  }
+}
+
 async function ring(row: Record<string, any>, toOwner: (who: string) => string, toPerson: () => string) {
+  const chosen = row.language ? String(row.language) : null
   if (row.call_who === 'assignee') {
     for (const person of toRing(row.assignee)) {
-      const language = spokenLanguage(await languageFor(person))
-      await placeCall(person.number, inLanguage(language, toPerson), language)
+      const language = spokenLanguage(chosen ?? await languageFor(person))
+      await placeCall(person.number, await inLanguage(language, () => callWords(row, language, toPerson())), language)
     }
   } else if (row.call_who === 'owner') {
-    await placeCall(ownerPhone(), toOwner(row.assignee ? String(row.assignee) : 'Staff'), 'en')
+    const language = spokenLanguage(chosen ?? 'en')
+    const plain = language === 'en' ? toOwner(row.assignee ? String(row.assignee) : 'Staff') : inLanguage(language, toPerson)
+    await placeCall(ownerPhone(), await inLanguage(language, () => callWords(row, language, plain)), language)
   }
 }

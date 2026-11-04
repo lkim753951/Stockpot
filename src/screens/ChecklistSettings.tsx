@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { CaretRight, ClipboardText, Plus, Trash } from '@phosphor-icons/react'
 import { api } from '../lib/api'
-import { locale, t, tk, tn } from '../lib/i18n'
+import { CALL_LANGUAGES, LANGUAGES } from '../../shared/lang'
+import { currentLanguage, locale, t, tk, tn } from '../lib/i18n'
 import { Dock, Empty, ErrorNote, Loading, Screen, Segment, Sheet } from '../components/ui'
 
 const TYPES = [{ value: 'tick', label: tk('Tick') }, { value: 'temperature', label: tk('Temperature') }, { value: 'stock', label: tk('Stock count') }]
@@ -103,7 +104,7 @@ export function ChecklistSettings() {
     setBusy(true)
     setError(null)
     try {
-      await api(form.id ? `/api/setup/checklists/${form.id}` : '/api/setup/checklists', { method: form.id ? 'PUT' : 'POST', body: form })
+      await api(form.id ? `/api/setup/checklists/${form.id}` : '/api/setup/checklists', { method: form.id ? 'PUT' : 'POST', body: { ...form, language: form.language ?? (form.callWho ? currentLanguage() : null) } })
       setForm(null)
       await load()
     } catch (problem) { setError((problem as Error).message) } finally { setBusy(false) }
@@ -168,6 +169,13 @@ export function ChecklistSettings() {
                   <option value="owner">{t('Call me')}</option>
                 </select>
               </label>
+              {form.callWho ? (
+                <label className="field">{t('Language')}
+                  <select value={form.language ?? currentLanguage()} onChange={(event) => setForm({ ...form, language: event.target.value })}>
+                    {LANGUAGES.filter((language) => CALL_LANGUAGES.includes(language.code)).map((language) => <option key={language.code} value={language.code}>{language.name}</option>)}
+                  </select>
+                </label>
+              ) : null}
               {form.callWho && setup && !setup.phone ? <p className="notice">{t('Phone calls are not switched on yet, so this will only send WhatsApp messages.')}</p> : null}
             </>
           ) : null}

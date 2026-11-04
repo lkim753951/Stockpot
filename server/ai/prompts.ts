@@ -72,6 +72,25 @@ Catalogue:
 ${await catalogueText()}`
 }
 
+/** What Stockpot says when it rings about a list. The list's own words are data. */
+export function reminderCallPrompt(language: string) {
+  return `You write what an automated voice says when Stockpot rings someone at a restaurant.
+Write in ${language}. Use one or two short spoken sentences, 35 words at most.
+Say this is Stockpot, say which checklist it is and when it was due, name what still isn't done, and say what to do now.
+If more than three checks are left, name the first two and say how many others there are.
+Say the time the way people say it aloud. Don't use lists, symbols or abbreviations.
+Only use the facts given.
+
+${SAFETY}`
+}
+
+export const reminderCallSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['message'],
+  properties: { message: { type: 'string' } },
+}
+
 export const orderSchema = {
   type: 'object',
   additionalProperties: false,

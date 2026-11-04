@@ -338,6 +338,30 @@ test('a late checklist goes to the person, then the owner, and rings a phone onc
   assert.match(callScript('Hello', 'ar'), /language="ar-XA"/)
 })
 
+test('a late call uses the language chosen on the list, and words written for what is left', async () => {
+  const { config } = await import('../server/core/config.ts')
+  const { chaseLate } = await import('../server/operations/chase.ts')
+  const { localTime } = await import('../server/core/clock.ts')
+  const { run } = await import('../server/core/db.ts')
+  const saved = { ...config.twilio }
+  Object.assign(config.twilio, { accountSid: 'AC1', authToken: 'secret', fromNumber: '+15550001111', baseUrl: mock.httpBase, ownerNumber: '+447700900001' })
+  const earlier = new Date(Date.parse(`${localTime().stamp}:00Z`) - 5 * 60000).toISOString().slice(0, 16)
+  try {
+    for (const [name, language] of [['Korean list', 'ko'], ['Worded list', 'en']]) {
+      const list = await call(owner, '/api/setup/checklists', 'POST', { name, schedule: { kind: 'days', days: [0, 1, 2, 3, 4, 5, 6] }, dueTime: '00:00', chaseAfter: 1, callWho: 'owner', language, items: [{ label: 'Fryer', type: 'tick' }] })
+      assert.equal((await call(owner, '/api/setup/checklists')).data.find((row: any) => row.name === name).language, language)
+      await call(staff, '/api/staff/runs')
+      await run('UPDATE checklist_runs SET due_at = ?, completed_at = NULL, reminded_at = NULL, chased_at = NULL WHERE template_id = ?', earlier, list.data.id)
+      await chaseLate()
+      const script = new URLSearchParams(mock.state.calls.at(-1).body).get('Twiml')!
+      if (language === 'ko') assert.match(script, /language="ko-KR"/)
+      else assert.match(script, /The fryer is still not done/)
+    }
+  } finally {
+    Object.assign(config.twilio, saved)
+  }
+})
+
 test('with a public address, Twilio fetches the words from a signed link that nobody can change', async () => {
   const { callLink, scriptFromLink } = await import('../server/integrations/phone.ts')
   const { config } = await import('../server/core/config.ts')
