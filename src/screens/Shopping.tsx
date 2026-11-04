@@ -300,7 +300,7 @@ function DishesTab({ data, onChange }: { data: any; onChange: (next: any) => voi
           </li>
         ))}
       </ul>
-      {data.dishes.some((dish: any) => !dish.hasRecipe) ? <a className="link-btn" href="#/settings/menu">{t('Add recipes in Menu and recipes')}</a> : null}
+      {data.dishes.some((dish: any) => !dish.hasRecipe) ? <a className="link-btn" href="#/menu">{t('Add recipes in Menu and recipes')}</a> : null}
       <FromReceipts data={data} onChange={onChange} />
     </>
   )
@@ -361,7 +361,7 @@ export function Shopping() {
       {!hasRecipes && tab !== 'dishes' ? (
         <Empty title={t('No recipes yet.')}>
           <p className="muted">{t('The list is built from your recipes. Add them, and the ingredients show up here.')}</p>
-          <a className="btn small" href="#/settings/menu">{t('Add recipes')}</a>
+          <a className="btn small" href="#/menu">{t('Add recipes')}</a>
         </Empty>
       ) : null}
       {hasRecipes && tab === 'list' ? <ListTab data={data} onOpen={(item) => setOpen(item.id)} onDishes={() => setTab('dishes')} /> : null}
