@@ -23,6 +23,15 @@ Stockpot is for independent restaurant and café owners who are too busy to chec
 
 Prices change on the phone, deliveries arrive short and invoices don't always match. Stockpot checks all of it, then shows the owner what needs attention today, with the numbers behind it.
 
+## Try it
+
+| | Link | How to get in |
+| --- | --- | --- |
+| **Sample site** | [stockpot-app.vercel.app](https://stockpot-app.vercel.app) | No sign-in. A made-up restaurant with sample data, and AI answers are simulated, so you can press every button safely. |
+| **Real app** | [stockpot-five.vercel.app](https://stockpot-five.vercel.app) | Choose **Owner** or **Staff**, then use the passcode **1111** for either. Real Meta models, WhatsApp and phone calls. |
+
+Start on the welcome page: seven short stories walk through one order, from the shoebox of receipts to the money saved.
+
 ## How one order works
 
 ```mermaid
@@ -60,6 +69,31 @@ flowchart LR
 | **Deliveries** | Records what arrived, where it went and what went wrong |
 
 The app works in 18 languages. [See every feature](docs/features.md).
+
+## Built during the hackathon
+
+Stockpot was built from scratch for the Meta Global AI Developer Hackathon 2026, between 27 October and 4 November 2026. Everything in this repository is hackathon work except the third-party parts listed below.
+
+**What was built**
+
+- Supplier calls: live transcription, the last price paid shown while the supplier is talking, then a summary, a draft order and tasks.
+- Deliveries: agreed, delivered and billed side by side; boxes counted on video and drawn live over the camera with SAM 3.1.
+- Receipts and invoices read from photos and PDFs, with the printed sums checked, and a price check across old invoices.
+- Menu and margins: recipes read from any file, dish costs, AI cost estimates and the price that hits an 80% margin.
+- Weekly shopping list from recipes and sales, grouped by supplier, sent on WhatsApp or email, with delivery tracking.
+- Stock counts in containers, boxes and crates, with AI weight estimates.
+- Staff checklists by voice, photo or video, chased on WhatsApp or by phone call, and built from a photo of the station.
+- Staff reports in any language; "ran out" reports come with one-press WhatsApp and call buttons to the supplier.
+- Crisis cards that open offline, an analyst that traces a number to its cause, and a two-way phone voice agent.
+- Owner and staff apps in 18 languages, light and dark, on phone and desktop.
+
+**Third-party parts**
+
+| Part | Where | Licence |
+| --- | --- | --- |
+| Stageshow animation kit by Benji Taylor | `src/kit/` (welcome page stories only) | MIT, see [`src/kit/LICENSE`](src/kit/LICENSE) |
+| Figtree font | `public/fonts/` | SIL Open Font License 1.1, see [`public/fonts/OFL.txt`](public/fonts/OFL.txt) |
+| npm packages (React, Express, Phosphor icons and others) | `package.json` | Each package's own licence |
 
 ## Technical implementation
 
@@ -169,7 +203,7 @@ npm start
 
 ## Testing
 
-- ✅ 261 automated tests
+- ✅ 262 automated tests
 - ✅ 13 of 13 real Meta model checks
 - ✅ 22 of 22 sample files read correctly by real Muse Spark
 - ✅ Real deployment on Vercel and Supabase
