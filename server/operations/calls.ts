@@ -277,7 +277,7 @@ export class LiveCall {
         schema: quotesSchema,
         system: await quotesPrompt(),
         content: [{ type: 'text', text: `Earlier turns:\n${earlier}\n\nNewest turn:\n${turn.text}` }],
-        effort: 'low',
+        effort: 'minimal',
         timeoutMs: 15000,
         attempts: 1,
       })
