@@ -269,6 +269,12 @@ export function App() {
             </NavSlot>
           )
         })}
+        {staffView ? null : (
+          <a href="#/settings" className={`nav-item nav-settings${route.startsWith('settings') ? ' on' : ''}`} aria-current={route.startsWith('settings') ? 'page' : undefined}>
+            <span className="pill"><GearSix size={24} weight={route.startsWith('settings') ? 'fill' : 'regular'} aria-hidden="true" /></span>
+            {t('Settings')}
+          </a>
+        )}
       </nav>
     </div>
   )
