@@ -394,6 +394,7 @@ export function RunDetail({ id, sample, readOnly = false }: { id: string; sample
   const [proofValue, setProofValue] = useState('')
   const [preview, setPreview] = useState<string | null>(null)
   const [picking, setPicking] = useState<any>(null)
+  const [checkingVideo, setCheckingVideo] = useState(false)
   const spoken = useRef<string | null>(null)
 
   useEffect(() => { api(`/api/staff/runs/${id}`).then(setRun).catch((e) => setError(e.message)) }, [id])
@@ -417,6 +418,7 @@ export function RunDetail({ id, sample, readOnly = false }: { id: string; sample
     setBusy(true)
     setError(null)
     setProof(null)
+    setCheckingVideo(file.type.startsWith('video/'))
     try {
       const form = await evidenceForm(file, { itemId: String(item.id) })
       setPreview(file.type.startsWith('image/') ? URL.createObjectURL(file) : null)
@@ -456,7 +458,7 @@ export function RunDetail({ id, sample, readOnly = false }: { id: string; sample
       </div>
       <ErrorNote message={error ?? recorder.error} />
       {proposal ? <Proposal key={JSON.stringify(proposal)} proposal={proposal} runId={id} needsPicture={!!run.items.find((item: any) => item.id === proposal.itemId)?.needsProof} onPicture={needPicture} onSaved={saved} onClose={() => setProposal(null)} /> : null}
-      {busy && !proposal ? <p className="thinking" role="status">{t('Checking the picture')}</p> : null}
+      {busy && !proposal ? <p className="thinking" role="status">{checkingVideo ? t('Checking the video. This can take a minute.') : t('Checking the picture')}</p> : null}
       {proof ? <ProofCard proof={proof} preview={preview} value={proofValue} onValue={setProofValue} onSave={saveProof} onRetake={() => { setPicking(proof.returnTo); setProof(null) }} /> : null}
       {picking ? <EvidenceSheet title={t(picking.label)} hint={picking.proofHint} sample={sample} live={!sample && picking.proofTarget ? { what: '', item: picking.proofTarget } : undefined} onFile={sendProof} onClose={() => setPicking(null)} /> : null}
       <ul className="items">

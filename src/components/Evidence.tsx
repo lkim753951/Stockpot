@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Camera, FolderOpen, ImageSquare, Record, Stop, VideoCamera } from '@phosphor-icons/react'
 import { api } from '../lib/api'
+import { rememberStills, stillOf } from '../lib/media'
 import { t } from '../lib/i18n'
 import { ErrorNote, Sheet } from './ui'
 
 const LONGEST_CLIP_SECONDS = 30
+const STILL_EVERY_SECONDS = 2
+const CLIP_BITS_PER_SECOND = 2500000
 const LIVE_SECONDS = 60
 const LIVE_PAUSE_MS = 700
 const LIVE_WIDTH = 480
@@ -51,6 +54,8 @@ function Camcorder({ mode, live, onFile, onBack }: { mode: 'photo' | 'video'; li
   const preview = useRef<HTMLVideoElement>(null)
   const stream = useRef<MediaStream | null>(null)
   const recorder = useRef<MediaRecorder | null>(null)
+  const stills = useRef<Blob[]>([])
+  const started = useRef(0)
   const [seconds, setSeconds] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const seen = useLiveFind(preview, mode === 'video' ? live : undefined)
@@ -72,10 +77,24 @@ function Camcorder({ mode, live, onFile, onBack }: { mode: 'photo' | 'video'; li
 
   useEffect(() => {
     if (seconds === null) return
-    if (seconds >= LONGEST_CLIP_SECONDS) { recorder.current?.stop(); return }
+    if (seconds >= LONGEST_CLIP_SECONDS) { void finish(); return }
+    if (seconds % STILL_EVERY_SECONDS === 0) void grab()
     const timer = setTimeout(() => setSeconds(seconds + 1), 1000)
     return () => clearTimeout(timer)
   }, [seconds])
+
+  const grab = async () => {
+    const video = preview.current
+    if (video?.videoWidth) stills.current.push(await stillOf(video).catch(() => null) as Blob)
+    stills.current = stills.current.filter(Boolean)
+  }
+
+  const finish = async () => {
+    if (recorder.current?.state !== 'recording') return
+    const media = recorder.current
+    await grab()
+    if (media.state === 'recording') media.stop()
+  }
 
   const snap = () => {
     const video = preview.current!
@@ -90,12 +109,17 @@ function Camcorder({ mode, live, onFile, onBack }: { mode: 'photo' | 'video'; li
     // SAM reads H.264 in MP4 and can't read WebM, so ask for that first.
     const type = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm'].find((candidate) => MediaRecorder.isTypeSupported(candidate)) ?? ''
     const chunks: Blob[] = []
-    const media = new MediaRecorder(stream.current!, type ? { mimeType: type } : undefined)
+    const media = new MediaRecorder(stream.current!, { videoBitsPerSecond: CLIP_BITS_PER_SECOND, ...(type ? { mimeType: type } : {}) })
     media.ondataavailable = (event) => chunks.push(event.data)
     media.onstop = () => {
       const kind = media.mimeType.split(';')[0] || 'video/webm'
-      onFile(new File(chunks, `video.${kind.includes('mp4') ? 'mp4' : 'webm'}`, { type: kind }))
+      const file = new File(chunks, `video.${kind.includes('mp4') ? 'mp4' : 'webm'}`, { type: kind })
+      if (!file.size) { setSeconds(null); return setError(t("That didn't work. Try again.")) }
+      rememberStills(file, stills.current, (performance.now() - started.current) / 1000)
+      onFile(file)
     }
+    stills.current = []
+    started.current = performance.now()
     media.start()
     recorder.current = media
     setSeconds(0)
@@ -119,7 +143,7 @@ function Camcorder({ mode, live, onFile, onBack }: { mode: 'photo' | 'video'; li
         ? <button className="btn primary block" type="button" disabled={!!error} onClick={snap}><Camera size={24} aria-hidden="true" />{t('Take the photo')}</button>
         : seconds === null
           ? <button className="btn primary block" type="button" disabled={!!error} onClick={record}><Record size={24} weight="fill" aria-hidden="true" />{t('Start recording')}</button>
-          : <button className="btn danger block" type="button" onClick={() => recorder.current?.stop()}><Stop size={24} weight="fill" aria-hidden="true" />{t('Stop, {seconds}s', { seconds })}</button>}
+          : <button className="btn danger block" type="button" onClick={() => void finish()}><Stop size={24} weight="fill" aria-hidden="true" />{t('Stop, {seconds}s', { seconds })}</button>}
       <button className="btn text block" type="button" onClick={onBack}>{t('Back')}</button>
     </div>
   )
