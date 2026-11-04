@@ -19,7 +19,10 @@ export class SetupError extends Error {
 
 const text = (value: unknown, limit = 120) => (typeof value === 'string' ? value.trim().slice(0, limit) : '')
 
-export const listSuppliers = () => all('SELECT id, name, contact, email, phone FROM suppliers ORDER BY name')
+/** What a supplier sells, and what an ingredient is. The shopping list groups by these. */
+export const CATEGORIES = ['Veg and fruit', 'Meat and fish', 'Dairy', 'Spices and dry goods', 'Drinks', 'Other']
+
+export const listSuppliers = () => all('SELECT id, name, contact, email, phone, category FROM suppliers ORDER BY name')
 
 export async function saveSupplier(input: Record<string, unknown>, id?: number) {
   const name = text(input.name)
@@ -28,12 +31,13 @@ export async function saveSupplier(input: Record<string, unknown>, id?: number) 
   if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new SetupError('That email address looks wrong.')
   const clash = await get('SELECT id FROM suppliers WHERE name = ? AND id != ?', name, id ?? 0)
   if (clash) throw new SetupError('You already have a supplier with that name.')
-  const values = [name, text(input.contact) || null, email || null, text(input.phone, 30) || null]
+  const category = CATEGORIES.includes(String(input.category)) ? String(input.category) : null
+  const values = [name, text(input.contact) || null, email || null, text(input.phone, 30) || null, category]
   if (id) {
-    await run('UPDATE suppliers SET name = ?, contact = ?, email = ?, phone = ? WHERE id = ?', ...values, id)
+    await run('UPDATE suppliers SET name = ?, contact = ?, email = ?, phone = ?, category = ? WHERE id = ?', ...values, id)
     return id
   }
-  return insert('INSERT INTO suppliers (name, contact, email, phone) VALUES (?, ?, ?, ?)', ...values)
+  return insert('INSERT INTO suppliers (name, contact, email, phone, category) VALUES (?, ?, ?, ?, ?)', ...values)
 }
 
 export async function deleteSupplier(id: number) {

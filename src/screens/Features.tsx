@@ -14,11 +14,12 @@ const WORDS: Record<string, string> = {
   checklists: tk('Daily, weekly and monthly checks, in the app or on WhatsApp.'),
   reports: tk('Staff report a problem in their own language. You read it in English.'),
   crisis: tk('Step-by-step cards for power, water, gas, fridge and wifi. Work offline.'),
+  shopping: tk("This week's ingredients from your recipes and sales, ordered from each supplier."),
 }
 
 const GROUPS = [
   { title: tk('Money'), keys: ['receipts', 'deliveries', 'analyst'] },
-  { title: tk('Kitchen'), keys: ['calls', 'checklists', 'crisis'] },
+  { title: tk('Kitchen'), keys: ['shopping', 'calls', 'checklists', 'crisis'] },
   { title: tk('Team'), keys: ['reports'] },
 ]
 

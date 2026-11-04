@@ -2,7 +2,7 @@ import { t } from '../lib/i18n'
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowDown, ArrowUp, ChartLineUp, ChatTeardropDots, CheckCircle, CircleDashed, ClipboardText, Clock, PauseCircle, PencilSimple, PhoneCall,
-  PlugsConnected, Receipt, Scales, Siren, Tray, Truck, WarningCircle, X, XCircle, type Icon,
+  PlugsConnected, Receipt, Scales, ShoppingCart, Siren, Tray, Truck, WarningCircle, X, XCircle, type Icon,
 } from '@phosphor-icons/react'
 
 const CHIP_ICONS = {
@@ -31,7 +31,7 @@ export function Brand({ kind = 'logo', width, height }: { kind?: 'logo' | 'mark'
 /** One fixed icon for each feature, used everywhere that feature appears. */
 export const FEATURE_ICONS: Record<string, Icon> = {
   receipts: Receipt, calls: PhoneCall, checklists: ClipboardText, reports: ChatTeardropDots, deliveries: Truck, crisis: Siren,
-  analyst: ChartLineUp, connections: PlugsConnected, checks: Scales,
+  analyst: ChartLineUp, connections: PlugsConnected, checks: Scales, shopping: ShoppingCart,
 }
 
 /** Closes its height along with the fade, so the things below move up instead of jumping. */

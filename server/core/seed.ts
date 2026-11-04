@@ -20,11 +20,13 @@ const CURRY_BY_DAY = [30, 24, 26, 28, 32, 44, 52]
 /** Fictional restaurant and suppliers. Every name and price here is sample data. */
 async function seedAll() {
   // 020 7946 0xxx is set aside by Ofcom for fiction, so these numbers can't ring anyone.
-  const supplier = (name: string, contact: string, email: string, phone: string) =>
-    insert('INSERT INTO suppliers (name, contact, email, phone) VALUES (?, ?, ?, ?)', name, contact, email, phone)
-  const harrow = await supplier('Harrow Lane Foods', 'Dave', 'orders@harrowlane.example', '020 7946 0101')
-  const northgate = await supplier('Northgate Wholesale', 'Priya', 'sales@northgate.example', '020 7946 0102')
-  const oakfield = await supplier('Oakfield Dairy', 'Tom', 'hello@oakfield.example', '020 7946 0103')
+  const supplier = (name: string, contact: string, email: string, phone: string, category: string) =>
+    insert('INSERT INTO suppliers (name, contact, email, phone, category) VALUES (?, ?, ?, ?, ?)', name, contact, email, phone, category)
+  const harrow = await supplier('Harrow Lane Foods', 'Dave', 'orders@harrowlane.example', '020 7946 0101', 'Meat and fish')
+  const northgate = await supplier('Northgate Wholesale', 'Priya', 'sales@northgate.example', '020 7946 0102', 'Veg and fruit')
+  const oakfield = await supplier('Oakfield Dairy', 'Tom', 'hello@oakfield.example', '020 7946 0103', 'Dairy')
+  // Rice and oil come from a dry-goods supplier, so the shopping list shows each kind of supplier with its own items.
+  const spice = await supplier('Spice Route Traders', 'Amir', 'orders@spiceroute.example', '020 7946 0104', 'Spices and dry goods')
 
   const item = (name: string, aliases: string[], unit: string, caseQty: number | null = null) =>
     insert('INSERT INTO items (name, aliases, base_unit, case_qty) VALUES (?, ?, ?, ?)', name, JSON.stringify(aliases), unit, caseQty)
@@ -49,6 +51,12 @@ async function seedAll() {
     for (const [itemId, qty] of lines) await run('INSERT INTO recipe_lines (dish_id, item_id, qty_base) VALUES (?, ?, ?)', id, itemId, qty)
     return id
   }
+  // Who the shopping list sends each ingredient to. Prices above stay as they were paid.
+  for (const [itemId, supplierId, category] of [[thighs, harrow, 'Meat and fish'], [onions, northgate, 'Veg and fruit'], [tomatoes, northgate, 'Veg and fruit'],
+    [rice, spice, 'Spices and dry goods'], [oil, spice, 'Spices and dry goods'], [cream, oakfield, 'Dairy']] as Array<[number, number, string]>) {
+    await run('UPDATE items SET supplier_id = ?, category = ? WHERE id = ?', supplierId, category, itemId)
+  }
+
   const curry = await dish('Chicken curry', 950, 80, [[thighs, 0.2], [rice, 0.15], [cream, 0.05], [onions, 0.1], [oil, 0.02]])
   const wrap = await dish('Grilled chicken wrap', 850, 85, [[thighs, 0.16], [tomatoes, 0.05], [onions, 0.03]])
 

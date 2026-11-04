@@ -8,6 +8,7 @@ import { Brand, Segment } from './components/ui'
 import { Home } from './screens/Home'
 import { Actions } from './screens/Actions'
 import { Features } from './screens/Features'
+import { Shopping } from './screens/Shopping'
 import { Call } from './screens/Call'
 import { CallDetail, Calls } from './screens/Calls'
 import { Order } from './screens/Order'
@@ -91,6 +92,7 @@ function OwnerScreen({ parts, sample, onClock }: { parts: string[]; sample: bool
   switch (screen) {
     case 'actions': return <Actions sample={sample} />
     case 'features': return <Features />
+    case 'shopping': return <Shopping />
     case 'call': return <Call sample={sample} />
     case 'calls': return id ? <CallDetail id={id} /> : <Calls sample={sample} />
     case 'order': return <Order id={id} />

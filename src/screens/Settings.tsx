@@ -3,6 +3,7 @@ import { CaretRight, ClipboardText, CookingPot, DownloadSimple, FileArrowUp, Glo
 import { SalesPreview } from './ImportSettings'
 import { readableImage } from '../lib/reading'
 import { api } from '../lib/api'
+import { CATEGORIES } from '../lib/categories'
 import { t, tk, tn, LANGUAGES } from '../lib/i18n'
 import { LanguagePicker } from '../components/Language'
 import { Mascot } from '../components/Mascot'
@@ -87,7 +88,7 @@ export function Settings() {
   )
 }
 
-const BLANK = { name: '', contact: '', email: '', phone: '' }
+const BLANK = { name: '', contact: '', email: '', phone: '', category: '' }
 
 export function SuppliersSettings() {
   const [suppliers, setSuppliers] = useState<any[] | null>(null)
@@ -129,7 +130,7 @@ export function SuppliersSettings() {
                 <Truck size={24} aria-hidden="true" />
                 <strong>{supplier.name}</strong>
                 <CaretRight className="note" size={20} aria-hidden="true" />
-                <small>{[supplier.contact, supplier.email, supplier.phone].filter(Boolean).join(', ') || t('Add their email so invoices come in by themselves.')}</small>
+                <small>{[supplier.category ? t(supplier.category) : null, supplier.contact, supplier.email, supplier.phone].filter(Boolean).join(', ') || t('Add their email so invoices come in by themselves.')}</small>
               </button>
             </li>
           ))}
@@ -139,6 +140,12 @@ export function SuppliersSettings() {
       {editing ? (
         <Sheet title={editing.id ? editing.name : t('Add a supplier')} onClose={() => { setEditing(null); setError(null) }}>
           {field('name', t('Name'))}
+          <label className="field">{t('What they sell')}
+            <select value={editing.category ?? ''} onChange={(event) => setEditing({ ...editing, category: event.target.value })}>
+              <option value="">{t('Not chosen')}</option>
+              {CATEGORIES.map((category) => <option key={category} value={category}>{t(category)}</option>)}
+            </select>
+          </label>
           {field('contact', t('Contact person'))}
           {field('email', t('Email'), 'email')}
           {field('phone', t('Phone'), 'tel')}
