@@ -266,20 +266,28 @@ test('the shopping list is recipes times portions a week, with spare, rounded up
 
   // Two weeks of receipts: 39.6 kg of lamb is 19.8 a week, 18 kg without the 10% spare, so 100 curries at 180 g.
   const lambId = lamb.id
+  // A second dish shares the cumin. Its own split peas say 30 a week; the little cumin left over must not drag that down.
+  const dal = (await call(owner, '/api/setup/dishes', 'POST', { name: 'Shop dal', pricePence: 800, lines: [{ name: 'Yellow split peas', quantity: 100, unit: 'g' }, { name: 'Cumin seeds', quantity: 3, unit: 'g' }] })).data.id
+  const peas = Number((await get("SELECT id FROM items WHERE name = 'Yellow split peas'"))?.id)
   for (const [day, number] of [['2099-01-01', 'T-1'], ['2099-01-08', 'T-2']]) {
     const receipt = await insert(`INSERT INTO invoices (file, status, supplier_id, number, date, issues, created_at) VALUES ('', 'read', ?, ?, ?, '[]', ?)`, meat, number, day, `${day}T09:00:00.000Z`)
     await run(`INSERT INTO invoice_lines (invoice_id, item_id, description, qty_billed, unit, unit_price_p, line_total_p, qty_base_milli, price_base_p) VALUES (?, ?, 'Lamb', 19.8, 'kg', 900, 17820, 19800, 900)`, receipt, lambId)
+    await run(`INSERT INTO invoice_lines (invoice_id, item_id, description, qty_billed, unit, unit_price_p, line_total_p, qty_base_milli, price_base_p) VALUES (?, ?, 'Split peas', 3.3, 'kg', 150, 495, 3300, 150)`, receipt, peas)
+    await run(`INSERT INTO invoice_lines (invoice_id, item_id, description, qty_billed, unit, unit_price_p, line_total_p, qty_base_milli, price_base_p) VALUES (?, ?, 'Cumin', 0.3, 'kg', 1200, 360, 300, 1200)`, receipt, cumin.id)
   }
   list = (await call(owner, '/api/shopping')).data
   assert.deepEqual([list.fromPurchases.from, list.fromPurchases.to, list.fromPurchases.receipts], ['2099-01-01', '2099-01-08', 2])
   const guessed = list.fromPurchases.dishes.find((row: any) => row.id === dish)
+  // Only the lamb was bought, so the shared onions, cumin and limes can't pull the number down.
   assert.deepEqual([guessed.portions, guessed.from], [100, ['Lamb shoulder']])
+  assert.equal(list.fromPurchases.dishes.find((row: any) => row.id === dal).portions, 30)
   await call(owner, `/api/shopping/portions/${dish}`, 'POST', { portions: 7 })
   list = (await call(owner, '/api/shopping/portions-from-receipts', 'POST')).data
   assert.equal(list.dishes.find((row: any) => row.id === dish).portions, 100)
   await run("DELETE FROM price_history WHERE date >= '2099-01-01'")
   await run("DELETE FROM invoice_lines WHERE invoice_id IN (SELECT id FROM invoices WHERE date >= '2099-01-01')")
   await run("DELETE FROM invoices WHERE date >= '2099-01-01'")
+  await call(owner, `/api/setup/dishes/${dal}`, 'DELETE')
 })
 
 test('a new checklist reaches staff, and a removed check keeps its past records', async () => {

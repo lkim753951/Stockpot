@@ -144,13 +144,15 @@ async function purchaseEstimate(lines: Array<Record<string, any>>, dishIds: numb
   }
   const known = new Map<number, { portions: number; from: string[] }>()
   const names = new Map(lines.map((line) => [Number(line.item_id), String(line.name)]))
-  for (let pass = 0; pass < dishIds.length; pass += 1) {
+  // The first pass uses only ingredients a single dish uses: they are the clearest signal. Later passes share out the rest.
+  for (let pass = 0; pass <= dishIds.length; pass += 1) {
     let found = false
     for (const dish of dishIds) {
       if (known.has(dish)) continue
       const guesses: Array<{ value: number; item: number }> = []
       for (const [item, users] of uses) {
         if (!users.has(dish) || !perWeek.has(item)) continue
+        if (pass === 0 && users.size !== 1) continue
         const open = [...users.keys()].filter((user) => !known.has(user))
         if (open.length !== 1 || open[0] !== dish) continue
         const left = perWeek.get(item)! - [...users].filter(([user]) => known.has(user)).reduce((sum, [user, qty]) => sum + known.get(user)!.portions * qty, 0)
@@ -162,7 +164,7 @@ async function purchaseEstimate(lines: Array<Record<string, any>>, dishIds: numb
       known.set(dish, { portions: Math.round(middle.value), from: sorted.map((guess) => names.get(guess.item)!).slice(0, 3) })
       found = true
     }
-    if (!found) break
+    if (!found && pass > 0) break
   }
   return {
     from: isoOf(first), to: isoOf(last), receipts,
