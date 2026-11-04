@@ -217,6 +217,71 @@ test('an AI estimate uses a price paid first, guesses the rest, suggests an 80% 
   assert.equal((await call(staff, '/api/setup/dishes/estimate', 'POST', { name: 'Dal' })).status, 403)
 })
 
+test('the shopping list is recipes times portions a week, with spare, rounded up, and grouped by supplier', async () => {
+  const veg = (await call(owner, '/api/setup/suppliers', 'POST', { name: 'Green Veg Co', category: 'Veg and fruit', email: 'orders@greenveg.test', contact: 'Ana' })).data.id
+  const meat = (await call(owner, '/api/setup/suppliers', 'POST', { name: 'Best Meats', category: 'Meat and fish' })).data.id
+  const spice = (await call(owner, '/api/setup/suppliers', 'POST', { name: 'Spice Hub', category: 'Spices and dry goods' })).data.id
+  const dish = (await call(owner, '/api/setup/dishes', 'POST', { name: 'Shop curry', pricePence: 1200, lines: [
+    { name: 'Lamb shoulder', quantity: 180, unit: 'g' }, { name: 'Red onions', quantity: 75, unit: 'g' }, { name: 'Cumin seeds', quantity: 3, unit: 'g' }, { name: 'Shop limes', quantity: 1, unit: 'each' },
+  ] })).data.id
+  let list = (await call(owner, '/api/shopping')).data
+  const curry = list.dishes.find((row: any) => row.id === dish)
+  assert.deepEqual([curry.portions, curry.source], [null, null])
+  assert.equal(list.items.find((row: any) => row.name === 'Lamb shoulder').order, 0)
+
+  list = (await call(owner, `/api/shopping/portions/${dish}`, 'POST', { portions: 100 })).data
+  const lamb = list.items.find((row: any) => row.name === 'Lamb shoulder')
+  // 0.18 kg x 100 = 18 kg, plus 10% = 19.8 kg, rounded up to the next half kilo above 10 kg.
+  assert.equal(lamb.need, 19.8)
+  assert.equal(lamb.order, 20)
+  assert.deepEqual([lamb.category, lamb.supplierId, lamb.supplierSource], ['Meat and fish', meat, 'category'])
+  const onions = list.items.find((row: any) => row.name === 'Red onions')
+  assert.deepEqual([onions.order, onions.supplierId], [8.3, veg])
+  const cumin = list.items.find((row: any) => row.name === 'Cumin seeds')
+  assert.deepEqual([cumin.order, cumin.supplierId], [0.4, spice])
+  const limes = list.items.find((row: any) => row.name === 'Shop limes')
+  assert.deepEqual([limes.order, limes.category, limes.supplierId], [110, 'Veg and fruit', veg])
+  assert.ok(list.suppliers.find((row: any) => row.id === veg).items.includes(limes.id))
+
+  // The owner moves the limes to the spice supplier, and the choice sticks.
+  list = (await call(owner, `/api/shopping/items/${limes.id}`, 'POST', { supplierId: spice })).data
+  assert.deepEqual([list.items.find((row: any) => row.id === limes.id).supplierId, list.items.find((row: any) => row.id === limes.id).supplierSource], [spice, 'set'])
+  assert.equal((await call(owner, `/api/shopping/portions/${dish}`, 'POST', { portions: 1.5 })).status, 400)
+
+  // With no number set, the latest weeks of sales the restaurant has decide, even an import from months ago.
+  await insert("INSERT INTO sales (date, dish_id, qty, net_p) VALUES ('2020-01-01', ?, 35, 0), ('2020-01-02', ?, 35, 0)", dish, dish)
+  list = (await call(owner, `/api/shopping/portions/${dish}`, 'POST', { portions: null })).data
+  const fromSales = list.dishes.find((row: any) => row.id === dish)
+  assert.equal(fromSales.source, list.sales.from <= '2020-01-02' ? 'sales' : null)
+  if (list.sales.to === '2020-01-02') assert.equal(fromSales.portions, Math.round((70 * 7) / list.sales.days))
+  await run('DELETE FROM sales WHERE dish_id = ?', dish)
+  await call(owner, `/api/shopping/portions/${dish}`, 'POST', { portions: 100 })
+
+  const order = (await call(owner, `/api/shopping/order/${veg}`)).data
+  assert.equal(order.to, 'orders@greenveg.test')
+  assert.match(order.body, /Hi Ana/)
+  assert.match(order.body, /- Red onions: 8\.3 kg/)
+  assert.doesNotMatch(order.body, /Shop limes|£/)
+  assert.equal((await call(staff, '/api/shopping')).status, 403)
+
+  // Two weeks of receipts: 39.6 kg of lamb is 19.8 a week, 18 kg without the 10% spare, so 100 curries at 180 g.
+  const lambId = lamb.id
+  for (const [day, number] of [['2099-01-01', 'T-1'], ['2099-01-08', 'T-2']]) {
+    const receipt = await insert(`INSERT INTO invoices (file, status, supplier_id, number, date, issues, created_at) VALUES ('', 'read', ?, ?, ?, '[]', ?)`, meat, number, day, `${day}T09:00:00.000Z`)
+    await run(`INSERT INTO invoice_lines (invoice_id, item_id, description, qty_billed, unit, unit_price_p, line_total_p, qty_base_milli, price_base_p) VALUES (?, ?, 'Lamb', 19.8, 'kg', 900, 17820, 19800, 900)`, receipt, lambId)
+  }
+  list = (await call(owner, '/api/shopping')).data
+  assert.deepEqual([list.fromPurchases.from, list.fromPurchases.to, list.fromPurchases.receipts], ['2099-01-01', '2099-01-08', 2])
+  const guessed = list.fromPurchases.dishes.find((row: any) => row.id === dish)
+  assert.deepEqual([guessed.portions, guessed.from], [100, ['Lamb shoulder']])
+  await call(owner, `/api/shopping/portions/${dish}`, 'POST', { portions: 7 })
+  list = (await call(owner, '/api/shopping/portions-from-receipts', 'POST')).data
+  assert.equal(list.dishes.find((row: any) => row.id === dish).portions, 100)
+  await run("DELETE FROM price_history WHERE date >= '2099-01-01'")
+  await run("DELETE FROM invoice_lines WHERE invoice_id IN (SELECT id FROM invoices WHERE date >= '2099-01-01')")
+  await run("DELETE FROM invoices WHERE date >= '2099-01-01'")
+})
+
 test('a new checklist reaches staff, and a removed check keeps its past records', async () => {
   const saved = await call(owner, '/api/setup/checklists', 'POST', {
     name: 'Fryer close', dueTime: '23:00',

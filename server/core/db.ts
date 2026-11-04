@@ -198,6 +198,10 @@ const LATER_COLUMNS: Array<[string, string, string]> = [
   ['dishes', 'photo_file', 'TEXT'],
   ['proof_checks', 'track', 'TEXT'],
   ['crisis_cards', 'added_at', 'TEXT'],
+  ['suppliers', 'category', 'TEXT'],
+  ['items', 'supplier_id', 'INTEGER'],
+  ['items', 'category', 'TEXT'],
+  ['dishes', 'weekly_portions', 'INTEGER'],
   ['calls', 'connections', 'INTEGER NOT NULL DEFAULT 0'],
   ['calls', 'last_seen_at', 'TEXT'],
   ['dishes', 'portions', 'INTEGER'],
@@ -260,7 +264,7 @@ const VIEWS = ['v_three_way', 'v_dish_margin', 'v_food_cost']
 const RELATIONS = new Set([...TABLES, ...VIEWS])
 
 /** Bump this when the schema changes. Postgres only runs its setup when this number moves. */
-const SCHEMA_VERSION = '3'
+const SCHEMA_VERSION = '4'
 
 /** Runs fn over the code in a statement, leaving strings, quoted names and comments alone. */
 function mapCode(sql: string, fn: (code: string) => string) {

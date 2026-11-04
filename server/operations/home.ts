@@ -8,6 +8,7 @@ import { whatsappReady } from '../integrations/whatsapp.ts'
 import { config } from '../core/config.ts'
 import { crisisCards } from './crisisCards.ts'
 import { hasSampleData, setupSteps } from '../setup/setup.ts'
+import { shoppingList } from './shopping.ts'
 import { t, tn } from '../core/lang.ts'
 
 const percentChange = (now: number, before: number) => (before ? Math.round(((now - before) / before) * 1000) / 10 : null)
@@ -72,6 +73,11 @@ export async function homeView() {
       { key: 'checklists', label: t('Checklists'), href: '#/checklists', state: overdue ? 'attention' : 'good', note: overdue ? t('{count} overdue', { count: overdue }) : t('{done} of {total} done today', { done: today.filter((run) => run.state === 'done').length, total: today.length }) },
       { key: 'reports', label: t('Staff reports'), href: '#/actions', state: reports ? 'attention' : 'good', note: reports ? t('{count} open', { count: reports }) : t('None open') },
       { key: 'deliveries', label: t('Deliveries'), href: '#/checks', state: owed.length || checks.some((check) => check.problem) ? 'attention' : 'good', note: owed.length ? tn(owed.length, '{n} claim open', '{n} claims open') : t('{count} waiting', { count: checks.filter((check) => check.state === 'waiting').length }) },
+      ((list) => {
+        const toBuy = list.items.filter((item) => item.order > 0).length
+        const unset = list.dishes.filter((dish) => dish.hasRecipe && dish.portions === null).length
+        return { key: 'shopping', label: t('Shopping list'), href: '#/shopping', state: unset ? 'attention' : toBuy ? 'good' : 'idle', note: unset ? tn(unset, '{n} dish needs portions a week', '{n} dishes need portions a week') : toBuy ? tn(toBuy, '{n} ingredient to buy', '{n} ingredients to buy') : t('Add recipes first') }
+      })(await shoppingList()),
       { key: 'crisis', label: t('Crisis cards'), href: '#/crisis', state: 'good', note: t('{count} ready', { count: (await crisisCards()).length }) },
       { key: 'analyst', label: t('AI analyst'), href: '#/dashboard', state: below ? 'attention' : 'good', note: below ? tn(below, '{n} dish below target', '{n} dishes below target') : t('On target') },
     ],

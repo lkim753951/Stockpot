@@ -20,6 +20,7 @@ import { imageAllowed, ingestAllowed, MAX_FILE_BYTES, menuAllowed, readIngest, r
 import type { IngestKind } from '../ai/prompts.ts'
 import { deleteDish, deleteSupplier, hasSampleData, listChecklists, changeItemUnit, listDishes, listSuppliers, restaurantName, retireChecklist, saveChecklist, saveDish, setDishPortions, saveRestaurant, saveSupplier, SetupError } from './setup.ts'
 import { estimateDish } from './estimate.ts'
+import { orderText, setItemSource, setWeeklyPortions, shoppingList, usePurchaseEstimate } from '../operations/shopping.ts'
 import { changeStaff, whatsappReady } from '../integrations/whatsapp.ts'
 import { crisisCard, crisisCards, isCrisisPhoto, resetCrisisCard, saveCrisisCard } from '../operations/crisisCards.ts'
 import { saveSetting, setting } from '../core/db.ts'
@@ -121,6 +122,18 @@ export function setupRoutes(app: Express) {
   app.delete('/api/setup/suppliers/:id', requireOwner, guarded(async (request, response) => { await deleteSupplier(id(request)); response.json({ ok: true }) }))
 
   app.get('/api/setup/dishes', requireOwner, async (_request, response) => response.json(await listDishes()))
+  /** The weekly shopping list: recipes times portions a week, by supplier. Nothing here orders on its own. */
+  app.get('/api/shopping', requireOwner, async (_request, response) => response.json(await shoppingList()))
+  app.post('/api/shopping/portions/:id', requireOwner, guarded(async (request, response) => { await setWeeklyPortions(id(request), request.body?.portions); response.json(await shoppingList()) }))
+  app.post('/api/shopping/portions-from-receipts', requireOwner, guarded(async (_request, response) => response.json(await usePurchaseEstimate())))
+  app.post('/api/shopping/items/:id', requireOwner, guarded(async (request, response) => { await setItemSource(id(request), request.body ?? {}); response.json(await shoppingList()) }))
+  app.get('/api/shopping/order/:id', requireOwner, guarded(async (request, response) => response.json({ ...await orderText(id(request)), gmail: await gmailConnected() })))
+  app.post('/api/shopping/order/:id/send', requireOwner, guarded(async (request, response) => {
+    const { to, subject, body } = request.body ?? {}
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(to ?? ''))) throw new SetupError('Add the supplier email address.')
+    await sendMail({ to: String(to), subject: String(subject ?? '').slice(0, 200), body: String(body ?? '').slice(0, 5000) })
+    response.json({ ok: true })
+  }))
   app.post('/api/setup/items/unit', requireOwner, guarded(async (request, response) => { await changeItemUnit(String(request.body?.name ?? ''), String(request.body?.unit ?? '')); response.json({ ok: true }) }))
   app.post('/api/setup/dishes', requireOwner, guarded(async (request, response) => response.status(201).json({ id: await saveDish(request.body ?? {}) })))
   app.put('/api/setup/dishes/:id', requireOwner, guarded(async (request, response) => response.json({ id: await saveDish(request.body ?? {}, id(request)) })))
