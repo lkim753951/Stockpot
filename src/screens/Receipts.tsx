@@ -47,10 +47,12 @@ function PriceCheck({ period, refresh }: { period: any; refresh: number }) {
   useEffect(() => { api(`/api/invoices/price-check?${rangeQuery(period)}`).then(setFound).catch(() => setFound(null)) }, [period, refresh])
   if (!found || (!found.extraPence && !found.twice.length)) return null
   return (
-    <section className="money-hero">
-      <p className="money-label">{t('Paid above the first price')}</p>
-      <p className="money-figure num">{pounds(found.extraPence)}</p>
-      <p>{t('Invoices checked: {count}', { count: found.invoices })}</p>
+    <section className="money-hero price-check">
+      <div>
+        <p className="money-label">{t('Paid above the first price')}</p>
+        <p className="money-figure num">{pounds(found.extraPence)}</p>
+        <p className="money-empty">{t('Invoices checked: {count}', { count: found.invoices })}</p>
+      </div>
       <ul className="price-rises">
         {found.items.map((row: any) => (
           <li key={`${row.supplier}-${row.item}`}><span>{row.item}<small>{row.supplier}: {pounds(row.firstPence)} → {pounds(row.lastPence)}</small></span><strong className="num">{pounds(row.extraPence)}</strong></li>

@@ -895,6 +895,9 @@ a.card:hover, .report-list a:hover, .demo-link:hover, .tile-btn:hover { box-shad
   .money-hero { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: var(--space-5); }
   .money-hero.none { align-items: center; }
   .money-hero .money-split { justify-content: flex-end; }
+  .money-hero.price-check { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: start; gap: var(--space-6); }
+  .price-check .price-rises { margin-top: 0; }
+  .price-check .price-rises li:first-child { padding-top: 0; border-top: 0; }
 
   .run-line { grid-template-columns: minmax(0, 1fr) 190px 84px 84px; min-height: 56px; }
   .run-line > * { grid-row: 1; }
