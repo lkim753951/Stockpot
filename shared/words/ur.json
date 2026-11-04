@@ -2,6 +2,7 @@
   " (should be {range})": " ({range} ہونا چاہیے)",
   " by {name}": " ({name})",
   " by {name} on WhatsApp": " ({name}، WhatsApp پر)",
+  " by {name} on the phone": " {name} نے فون پر",
   ", simulated": "، فرضی",
   ", voice note": "، وائس نوٹ",
   ", with Save and Change buttons": "، \"محفوظ کریں\" اور \"تبدیل کریں\" بٹن کے ساتھ",
@@ -414,6 +415,7 @@
     "other": "مجھے {n} ڈشز ملیں۔"
   },
   "I heard: \"{words}\"": "میں نے سنا: \"{words}\"",
+  "I'll let you finish it in the app. Goodbye.": "باقی ایپ میں مکمل کر لیں۔ خدا حافظ۔",
   "I'm staff": "میں اسٹاف ہوں",
   "I'm the owner": "میں مالک ہوں",
   "I've told the supplier this call is being recorded.": "میں نے سپلائر کو بتا دیا ہے کہ یہ کال ریکارڈ ہو رہی ہے۔",
@@ -834,6 +836,7 @@
   "Snooze": "بعد میں",
   "Some days": "کچھ دن",
   "Something is wrong": "کچھ غلط ہے",
+  "Sorry, I didn't catch that. Please say it again.": "معاف کیجیے، سمجھ نہیں آیا۔ براہ کرم دوبارہ بولیں۔",
   "Sort": "ترتیب",
   "Spanish": "ہسپانوی",
   "Speaker {speaker}": "اسپیکر {speaker}",

@@ -106,7 +106,7 @@ export function rangeWords(item: Record<string, any>) {
 
 export interface EntryInput {
   value?: number | null
-  source?: 'tick' | 'typed' | 'voice' | 'photo' | 'whatsapp'
+  source?: 'tick' | 'typed' | 'voice' | 'photo' | 'whatsapp' | 'phone'
   transcript?: string | null
   photoFile?: string | null
   reportedBy?: string | null

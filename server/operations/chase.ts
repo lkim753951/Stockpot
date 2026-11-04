@@ -4,7 +4,7 @@ import { inLanguage, languageName, t } from '../core/lang.ts'
 import { sparkJson } from '../ai/meta.ts'
 import { reminderCallPrompt, reminderCallSchema } from '../ai/prompts.ts'
 import { runView } from './checklists.ts'
-import { ownerPhone, placeCall, spokenLanguage } from '../integrations/phone.ts'
+import { ownerPhone, placeAgentCall, spokenLanguage } from '../integrations/phone.ts'
 import { assigneesFor, sendToPerson, team, whatsappReady, type Contact } from '../integrations/whatsapp.ts'
 
 /**
@@ -71,11 +71,11 @@ export async function chaseLate() {
 const LONGEST_MESSAGE = 400
 
 /** Muse Spark words the call around what is really left. If it can't, the plain sentence still goes. */
-async function callWords(row: Record<string, any>, language: string, plain: string) {
+async function callWords(row: Record<string, any>, language: string, plain: string, person?: string) {
   try {
     const view = await runView(Number(row.id))
     const notDone = (view?.items ?? []).filter((item) => !item.entry).map((item) => t(String(item.label)))
-    const facts = { checklist: t(String(row.name)), due_time: String(row.due_at).slice(11, 16), late: minutesLate(String(row.due_at), localTime().stamp) > 0, not_done: notDone }
+    const facts = { person: person ?? null, checklist: t(String(row.name)), due_time: String(row.due_at).slice(11, 16), late: minutesLate(String(row.due_at), localTime().stamp) > 0, not_done: notDone }
     const { message } = await sparkJson<{ message: string }>({
       name: 'reminder_call', schema: reminderCallSchema, system: reminderCallPrompt(languageName()), effort: 'low', attempts: 1, timeoutMs: 15000,
       content: [{ type: 'text', text: JSON.stringify(facts) }],
@@ -92,11 +92,11 @@ async function ring(row: Record<string, any>, toOwner: (who: string) => string, 
   if (row.call_who === 'assignee') {
     for (const person of toRing(row.assignee)) {
       const language = spokenLanguage(chosen ?? await languageFor(person))
-      await placeCall(person.number, await inLanguage(language, () => callWords(row, language, toPerson())), language)
+      await placeAgentCall(person.number, await inLanguage(language, () => callWords(row, language, toPerson(), person.name)), language, Number(row.id), person.name)
     }
   } else if (row.call_who === 'owner') {
     const language = spokenLanguage(chosen ?? 'en')
     const plain = language === 'en' ? toOwner(row.assignee ? String(row.assignee) : 'Staff') : inLanguage(language, toPerson)
-    await placeCall(ownerPhone(), await inLanguage(language, () => callWords(row, language, plain)), language)
+    await placeAgentCall(ownerPhone(), await inLanguage(language, () => callWords(row, language, plain)), language, Number(row.id), 'Owner')
   }
 }

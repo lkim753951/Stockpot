@@ -2,6 +2,7 @@
   " (should be {range})": " （基準：{range}）",
   " by {name}": " 担当：{name}",
   " by {name} on WhatsApp": " 担当：{name}（WhatsApp）",
+  " by {name} on the phone": "（{name}、電話）",
   ", simulated": "、シミュレーション",
   ", voice note": "、音声メモ",
   ", with Save and Change buttons": "、「保存」「変更」ボタン付き",
@@ -412,6 +413,7 @@
     "other": "{n}品見つけました。"
   },
   "I heard: \"{words}\"": "聞き取った内容：「{words}」",
+  "I'll let you finish it in the app. Goodbye.": "続きはアプリでお願いします。失礼します。",
   "I'm staff": "スタッフです",
   "I'm the owner": "オーナーです",
   "I've told the supplier this call is being recorded.": "この通話を録音していることを仕入先に伝えました。",
@@ -825,6 +827,7 @@
   "Snooze": "スヌーズ",
   "Some days": "曜日指定",
   "Something is wrong": "問題があります",
+  "Sorry, I didn't catch that. Please say it again.": "すみません、聞き取れませんでした。もう一度お願いします。",
   "Sort": "並べ替え",
   "Spanish": "スペイン語",
   "Speaker {speaker}": "話者{speaker}",

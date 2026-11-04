@@ -246,6 +246,14 @@ function replyFor(name: string, system: string, text: string) {
     const value = findNumbers(text).at(-1) ?? null
     return { kind: 'checks', language, updates: found.map((check) => ({ item_id: check.id, value: check.type === 'tick' ? null : value })) }
   }
+  if (name === 'voice_turn') {
+    const facts = JSON.parse(text)
+    const newest = String(facts.newest)
+    if (/^yes/i.test(newest)) return { say: 'Saved. Goodbye.', updates: [], confirmed: true, problem: false, finished: true }
+    if (/broken|leak/i.test(newest)) return { say: 'I will tell the owner.', updates: [], confirmed: false, problem: true, finished: false }
+    const found = facts.open_checks.filter((check: any) => newest.toLowerCase().includes(check.label.toLowerCase()))
+    return { say: found.length ? 'Is that right?' : 'Which check?', updates: found.map((check: any) => ({ item_id: check.id, value: check.type === 'tick' ? null : findNumbers(newest).at(-1) ?? null })), confirmed: false, problem: false, finished: false }
+  }
   if (name === 'connection_check') return { ok: true }
   if (name === 'analyst_answer') {
     const question = text.match(/^Question: (.*)$/m)?.[1] ?? ''

@@ -2,6 +2,7 @@
   " (should be {range})": " (trebuie să fie {range})",
   " by {name}": " de {name}",
   " by {name} on WhatsApp": " de {name} pe WhatsApp",
+  " by {name} on the phone": " de {name} la telefon",
   ", simulated": ", simulat",
   ", voice note": ", notă vocală",
   ", with Save and Change buttons": ", cu butoanele Salvează și Modifică",
@@ -449,6 +450,7 @@
     "other": "Am găsit {n} de preparate."
   },
   "I heard: \"{words}\"": "Am auzit: „{words}”",
+  "I'll let you finish it in the app. Goodbye.": "Poți termina în aplicație. La revedere.",
   "I'm staff": "Sunt din echipă",
   "I'm the owner": "Sunt patronul",
   "I've told the supplier this call is being recorded.": "I-am spus furnizorului că apelul e înregistrat.",
@@ -909,6 +911,7 @@
   "Snooze": "Amână",
   "Some days": "Unele zile",
   "Something is wrong": "Ceva nu e în regulă",
+  "Sorry, I didn't catch that. Please say it again.": "Scuze, nu am înțeles. Te rog să repeți.",
   "Sort": "Sortează",
   "Spanish": "spaniolă",
   "Speaker {speaker}": "Vorbitor {speaker}",

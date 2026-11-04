@@ -777,3 +777,33 @@ test('Test Meta covers images, video, voice and live calls', async () => {
   assert.match(tested.data.detail, /Voice: heard/)
   assert.match(tested.data.detail, /Live call: connected/)
 })
+
+test('a phone call asks, reads a reading back, and saves it only after a yes', async () => {
+  const { agentLink, planFromLink } = await import('../server/integrations/phone.ts')
+  const { config } = await import('../server/core/config.ts')
+  const runs = (await call(staff, '/api/staff/runs')).data.filter((row: any) => row.state !== 'done')
+  const views = await Promise.all(runs.map(async (row: any) => (await call(staff, `/api/staff/runs/${row.id}`)).data))
+  const view = views.find((item: any) => item.items.some((one: any) => !one.entry && !one.needsProof))
+  const run = view
+  const check = view.items.find((item: any) => !item.entry && !item.needsProof)
+  const reading = check.type === 'tick' ? '' : ' 4'
+  const saved = config.publicUrl
+  config.publicUrl = base
+  const plan = { runId: Number(run.id), name: 'Maria', language: 'en', until: Date.now() + 60000 }
+  const post = async (words: string, sid = 'CA1') => fetch(new URL(agentLink('turn', plan)), { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ CallSid: sid, SpeechResult: words }) })
+  const entry = async () => (await call(staff, `/api/staff/runs/${run.id}`)).data.items.find((item: any) => item.id === check.id).entry
+
+  const open = await fetch(agentLink('open', { ...plan, opening: 'Fridge checks are late.' }))
+  assert.match(await open.text(), /<Gather input="speech"[^>]*action="[^"]*\/api\/phone\/turn[^"]*&amp;s=/)
+
+  assert.match(await (await post(`${check.label}${reading}`)).text(), /Is that right\?/)
+  assert.ok(!await entry())
+  assert.match(await (await post('yes')).text(), /<Hangup\/>/)
+  assert.ok(await entry())
+
+  assert.match(await (await post('', 'CA2')).text(), /Sorry, I didn/)
+  assert.match(await (await post('', 'CA2')).text(), /<Hangup\/>/)
+  assert.equal(planFromLink('e30', 'wrong'), null)
+  assert.equal((await fetch(`${base}/api/phone/turn?c=e30&s=wrong`, { method: 'POST' })).status, 403)
+  config.publicUrl = saved
+})

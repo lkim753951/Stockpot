@@ -2,6 +2,7 @@
   " (should be {range})": " (phải là {range})",
   " by {name}": " bởi {name}",
   " by {name} on WhatsApp": " bởi {name} qua WhatsApp",
+  " by {name} on the phone": " bởi {name} qua điện thoại",
   ", simulated": ", mô phỏng",
   ", voice note": ", tin nhắn thoại",
   ", with Save and Change buttons": ", có nút Lưu và Sửa",
@@ -412,6 +413,7 @@
     "other": "Mình tìm thấy {n} món."
   },
   "I heard: \"{words}\"": "Mình nghe được: \"{words}\"",
+  "I'll let you finish it in the app. Goodbye.": "Bạn có thể hoàn thành trong ứng dụng. Tạm biệt.",
   "I'm staff": "Nhân viên",
   "I'm the owner": "Chủ quán",
   "I've told the supplier this call is being recorded.": "Đã báo nhà cung cấp cuộc gọi này được ghi âm.",
@@ -825,6 +827,7 @@
   "Snooze": "Hoãn lại",
   "Some days": "Vài ngày",
   "Something is wrong": "Có vấn đề",
+  "Sorry, I didn't catch that. Please say it again.": "Xin lỗi, tôi chưa nghe rõ. Vui lòng nói lại.",
   "Sort": "Sắp xếp",
   "Spanish": "Tiếng Tây Ban Nha",
   "Speaker {speaker}": "Người nói {speaker}",

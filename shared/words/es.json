@@ -2,6 +2,7 @@
   " (should be {range})": " (debe ser {range})",
   " by {name}": " por {name}",
   " by {name} on WhatsApp": " por {name} en WhatsApp",
+  " by {name} on the phone": " por {name} por teléfono",
   ", simulated": ", simulado",
   ", voice note": ", nota de voz",
   ", with Save and Change buttons": ", con los botones Guarda y Cambia",
@@ -449,6 +450,7 @@
     "other": "Encontré {n} platos."
   },
   "I heard: \"{words}\"": "Oí: \"{words}\"",
+  "I'll let you finish it in the app. Goodbye.": "Puedes terminarlo en la app. Adiós.",
   "I'm staff": "Soy del personal",
   "I'm the owner": "Soy el dueño",
   "I've told the supplier this call is being recorded.": "Ya le dije al proveedor que esta llamada se está grabando.",
@@ -909,6 +911,7 @@
   "Snooze": "Pospón",
   "Some days": "Algunos días",
   "Something is wrong": "Algo va mal",
+  "Sorry, I didn't catch that. Please say it again.": "Perdona, no te he entendido. Dilo otra vez, por favor.",
   "Sort": "Ordenar",
   "Spanish": "español",
   "Speaker {speaker}": "Hablante {speaker}",

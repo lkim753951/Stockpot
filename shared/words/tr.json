@@ -2,6 +2,7 @@
   " (should be {range})": " (olması gereken: {range})",
   " by {name}": " (yapan: {name})",
   " by {name} on WhatsApp": " (yapan: {name}, WhatsApp)",
+  " by {name} on the phone": " {name} tarafından telefonla",
   ", simulated": ", deneme",
   ", voice note": ", sesli mesaj",
   ", with Save and Change buttons": ", Kaydet ve Değiştir düğmeleriyle",
@@ -414,6 +415,7 @@
     "other": "{n} yemek buldum."
   },
   "I heard: \"{words}\"": "Duyduğum: \"{words}\"",
+  "I'll let you finish it in the app. Goodbye.": "Gerisini uygulamada bitirebilirsiniz. Hoşça kalın.",
   "I'm staff": "Ben personelim",
   "I'm the owner": "Ben patronum",
   "I've told the supplier this call is being recorded.": "Tedarikçiye bu aramanın kaydedildiğini söyledim.",
@@ -834,6 +836,7 @@
   "Snooze": "Ertele",
   "Some days": "Bazı günler",
   "Something is wrong": "Bir sorun var",
+  "Sorry, I didn't catch that. Please say it again.": "Üzgünüm, anlayamadım. Lütfen tekrar söyleyin.",
   "Sort": "Sırala",
   "Spanish": "İspanyolca",
   "Speaker {speaker}": "Konuşmacı {speaker}",

@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { config } from '../core/config.ts'
 import { get, insert, nowIso } from '../core/db.ts'
+import { listRuns } from '../operations/checklists.ts'
 import type { Lang } from '../../shared/lang.ts'
 
 /** Real phone calls through Twilio, for a check nobody has finished. The number stays in .env. */
@@ -20,6 +21,26 @@ const VOICES: Partial<Record<Lang, string>> = {
 export const spokenLanguage = (language: string) => (VOICES[language as Lang] ? language : 'en')
 
 const xml = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+/** The newer voices sound far more natural. Google lists them for these two, and a call in any other language keeps its usual voice. */
+const NATURAL_VOICES: Partial<Record<Lang, string>> = { en: 'en-GB-Chirp3-HD-Aoede', ko: 'ko-KR-Chirp3-HD-Aoede' }
+/** What Twilio should listen for. It names some languages differently from its voices. */
+const LISTEN_AS: Record<string, string> = { 'cmn-CN': 'cmn-Hans-CN', 'ar-XA': 'ar-SA' }
+const localeOf = (voice: string) => voice.split(/-(?:Standard|Chirp3)/)[0]
+const speak = (text: string, language: string) => {
+  const code = spokenLanguage(language) as Lang
+  const voice = NATURAL_VOICES[code] ?? VOICES[code]!
+  return `<Say language="${localeOf(voice)}" voice="Google.${voice}">${xml(text)}</Say>`
+}
+
+/** Says something and listens. They can talk over it, as on a real call, and silence comes back to the same address so the call can ask again. */
+export function askScript(text: string, language: string, action: string) {
+  const code = localeOf(VOICES[spokenLanguage(language) as Lang]!)
+  return `<Response><Gather input="speech" language="${LISTEN_AS[code] ?? code}" speechTimeout="auto" timeout="7" actionOnEmptyResult="true" method="POST" action="${xml(action)}">${speak(text, language)}</Gather></Response>`
+}
+
+export const goodbyeScript = (text: string, language: string) => `<Response>${speak(text, language)}<Hangup/></Response>`
+export const holdScript = (action: string) => `<Response><Pause length="1"/><Redirect method="POST">${xml(action)}</Redirect></Response>`
 
 export function callScript(text: string, language: string) {
   const voice = VOICES[spokenLanguage(language) as Lang]!
@@ -44,6 +65,23 @@ export function scriptFromLink(payload: string, signature: string) {
   return Date.now() > Number(until) ? null : callScript(String(text), String(language))
 }
 
+export interface CallPlan { runId: number; name: string; language: string; opening?: string; until: number }
+
+/** Each turn of a call comes back on a signed link, which is what lets Twilio in without a sign-in. */
+export function agentLink(path: 'open' | 'turn' | 'wait', plan: CallPlan, extra = '') {
+  const payload = Buffer.from(JSON.stringify(plan)).toString('base64url')
+  return `${config.publicUrl}/api/phone/${path}?c=${payload}&s=${seal(payload)}${extra}`
+}
+
+export function planFromLink(payload: string, signature: string): CallPlan | null {
+  const [given, expected] = [Buffer.from(signature), Buffer.from(seal(payload))]
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null
+  const plan = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as CallPlan
+  return Date.now() > Number(plan.until) ? null : plan
+}
+
+const CALL_LASTS_MS = 15 * 60000
+
 /** Twilio wants +447700900123. People type 07700 900123 or 0044 7700 900123. Local numbers are taken as UK. */
 export function dialable(number: string) {
   const digits = number.replace(/\D/g, '')
@@ -66,7 +104,7 @@ const PLAIN_ERRORS: Record<number, string> = {
   21606: "The From number can't make calls.",
 }
 
-async function dial(number: string, text: string, language: string) {
+async function dial(number: string, text: string, language: string, conversation?: { runId: number; name: string }) {
   const to = dialable(number)
   if (!phoneReady() || !to) return { ok: false, detail: 'Phone calls are not set up.' }
   const { accountSid, authToken, fromNumber, baseUrl } = config.twilio
@@ -76,7 +114,12 @@ async function dial(number: string, text: string, language: string) {
     const response = await fetch(`${baseUrl}/Accounts/${accountSid}/Calls.json`, {
       method: 'POST',
       headers: { Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ To: to, From: dialable(fromNumber), ...(config.publicUrl ? { Url: callLink(text, language) } : { Twiml: callScript(text, language) }) }),
+      body: new URLSearchParams({
+        To: to, From: dialable(fromNumber),
+        ...(!config.publicUrl ? { Twiml: callScript(text, language) }
+          : conversation ? { Url: agentLink('open', { ...conversation, language, opening: text, until: Date.now() + CALL_LASTS_MS }) }
+          : { Url: callLink(text, language) }),
+      }),
       signal: AbortSignal.timeout(15000),
     })
     ok = response.ok
@@ -94,10 +137,16 @@ async function dial(number: string, text: string, language: string) {
 /** Never throws, because a failed call must not stop the rest of the chasing. */
 export const placeCall = async (number: string, text: string, language: string) => (await dial(number, text, language)).ok
 
+/** Rings and then talks it through. Without a public address Twilio can't reach Stockpot, so it just says the message. */
+export const placeAgentCall = async (number: string, text: string, language: string, runId: number, name: string) => (await dial(number, text, language, { runId, name })).ok
+
 export async function testCall() {
   if (!phoneReady()) return { ok: false, detail: 'Add the Twilio account SID, auth token and From number first.' }
   if (!ownerPhone()) return { ok: false, detail: 'Add the phone that should ring first.' }
-  const { ok, detail } = await dial(ownerPhone(), 'This is Stockpot. Your phone calls are working.', 'en')
+  const open = (await listRuns()).find((run) => run.state !== 'done')
+  const { ok, detail } = open
+    ? await dial(ownerPhone(), `Hi, it's Stockpot, just checking in on ${open.name}. How's it going?`, 'en', { runId: Number(open.id), name: 'Owner' })
+    : await dial(ownerPhone(), 'This is Stockpot. Your phone calls are working.', 'en')
   return { ok, detail: ok ? 'Calling you now.' : detail }
 }
 

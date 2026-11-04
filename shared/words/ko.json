@@ -2,6 +2,7 @@
   " (should be {range})": " (기준: {range})",
   " by {name}": " ({name})",
   " by {name} on WhatsApp": " ({name}, WhatsApp)",
+  " by {name} on the phone": " ({name}, 전화)",
   ", simulated": ", 시뮬레이션",
   ", voice note": ", 음성 메시지",
   ", with Save and Change buttons": ", 저장·수정 버튼 포함",
@@ -445,6 +446,7 @@
     "other": "메뉴 {n}개를 찾았어요."
   },
   "I heard: \"{words}\"": "이렇게 들었어요: \"{words}\"",
+  "I'll let you finish it in the app. Goodbye.": "나머지는 앱에서 마무리해 주세요. 안녕히 계세요.",
   "I'm staff": "직원이에요",
   "I'm the owner": "사장님이에요",
   "I've told the supplier this call is being recorded.": "공급처에 이 통화를 녹음한다고 알렸어요.",
@@ -891,6 +893,7 @@
   "Snooze": "나중에",
   "Some days": "특정 요일",
   "Something is wrong": "문제가 있어요",
+  "Sorry, I didn't catch that. Please say it again.": "죄송해요, 잘 못 들었어요. 다시 말씀해 주세요.",
   "Sort": "정렬",
   "Spanish": "스페인어",
   "Speaker {speaker}": "화자 {speaker}",

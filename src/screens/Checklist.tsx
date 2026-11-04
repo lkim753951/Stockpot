@@ -31,7 +31,7 @@ function RunChip({ state, done, total }: { state: string; done?: number; total?:
   return <Chip tone="plain">{done !== undefined ? t('{done} of {total}', { done, total }) : t('To do')}</Chip>
 }
 
-const byWhom = (entry: any) => (!entry.by ? '' : entry.source === 'whatsapp' ? t(' by {name} on WhatsApp', { name: entry.by }) : t(' by {name}', { name: entry.by }))
+const byWhom = (entry: any) => (!entry.by ? '' : entry.source === 'whatsapp' ? t(' by {name} on WhatsApp', { name: entry.by }) : entry.source === 'phone' ? t(' by {name} on the phone', { name: entry.by }) : t(' by {name}', { name: entry.by }))
 
 const SAMPLE_REPLIES = ['Fridge one 4', 'Fridge two 9', 'yes', 'no', 'done']
 

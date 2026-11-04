@@ -2,6 +2,7 @@
   " (should be {range})": " ({range} हुनुपर्छ)",
   " by {name}": " {name}बाट",
   " by {name} on WhatsApp": " {name}बाट WhatsAppमा",
+  " by {name} on the phone": " {name} द्वारा फोनमा",
   ", simulated": ", सिमुलेसन",
   ", voice note": ", भ्वाइस नोट",
   ", with Save and Change buttons": ", सेभ र बदल्ने बटनसहित",
@@ -414,6 +415,7 @@
     "other": "मैले {n} परिकार भेट्टाएँ।"
   },
   "I heard: \"{words}\"": "मैले सुनेँ: \"{words}\"",
+  "I'll let you finish it in the app. Goodbye.": "बाँकी एपमा सक्नुहोस्। बिदा।",
   "I'm staff": "म स्टाफ हुँ",
   "I'm the owner": "म मालिक हुँ",
   "I've told the supplier this call is being recorded.": "मैले सप्लायरलाई यो कल रेकर्ड भइरहेको छ भनेको छु।",
@@ -834,6 +836,7 @@
   "Snooze": "पछि सम्झाउनुहोस्",
   "Some days": "केही दिन",
   "Something is wrong": "केही गडबड छ",
+  "Sorry, I didn't catch that. Please say it again.": "माफ गर्नुहोस्, बुझिनँ। कृपया फेरि भन्नुहोस्।",
   "Sort": "क्रम",
   "Spanish": "स्पेनिस",
   "Speaker {speaker}": "वक्ता {speaker}",

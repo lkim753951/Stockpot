@@ -2,6 +2,7 @@
   " (should be {range})": " （应为{range}）",
   " by {name}": " 由{name}提交",
   " by {name} on WhatsApp": " 由{name}通过WhatsApp提交",
+  " by {name} on the phone": "（{name}，电话）",
   ", simulated": "，模拟",
   ", voice note": "，语音留言",
   ", with Save and Change buttons": "，带“保存”和“更改”按钮",
@@ -412,6 +413,7 @@
     "other": "我找到了{n}道菜。"
   },
   "I heard: \"{words}\"": "我听到：“{words}”",
+  "I'll let you finish it in the app. Goodbye.": "剩下的请在应用里完成。再见。",
   "I'm staff": "我是员工",
   "I'm the owner": "我是老板",
   "I've told the supplier this call is being recorded.": "我已告诉供应商这通电话在录音。",
@@ -825,6 +827,7 @@
   "Snooze": "稍后提醒",
   "Some days": "部分日子",
   "Something is wrong": "出问题了",
+  "Sorry, I didn't catch that. Please say it again.": "抱歉，我没听清。请再说一遍。",
   "Sort": "排序",
   "Spanish": "西班牙语",
   "Speaker {speaker}": "说话人{speaker}",

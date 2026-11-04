@@ -621,7 +621,7 @@ function allRoutes() {
   return routes
 }
 
-const OPEN_TO_ALL = new Set(['/healthz', '/api/session', '/api/login', '/api/logout', '/api/copilotkit/info', '/api/cron', '/api/crisis', '/api/crisis/photo/:name'])
+const OPEN_TO_ALL = new Set(['/healthz', '/api/session', '/api/login', '/api/logout', '/api/copilotkit/info', '/api/cron', '/api/crisis', '/api/crisis/photo/:name', '/api/phone/turn', '/api/phone/wait'])
 const FOR_STAFF = /^\/api\/(staff\/|files\/|uploads\/|crisis\/photo$)/
 
 test('every route needs a sign-in, unless it is on the short list of open ones', async () => {

@@ -2,6 +2,7 @@
   " (should be {range})": " (dapat {range})",
   " by {name}": " ni {name}",
   " by {name} on WhatsApp": " ni {name} sa WhatsApp",
+  " by {name} on the phone": " ni {name} sa telepono",
   ", simulated": ", kunwari lang",
   ", voice note": ", voice note",
   ", with Save and Change buttons": ", may button na I-save at Baguhin",
@@ -414,6 +415,7 @@
     "other": "Nakakita ako ng {n} putahe."
   },
   "I heard: \"{words}\"": "Narinig ko: \"{words}\"",
+  "I'll let you finish it in the app. Goodbye.": "Tapusin mo na lang sa app. Paalam.",
   "I'm staff": "Staff ako",
   "I'm the owner": "Ako ang may-ari",
   "I've told the supplier this call is being recorded.": "Sinabi ko sa supplier na nire-record ang tawag na ito.",
@@ -834,6 +836,7 @@
   "Snooze": "I-snooze",
   "Some days": "Piling araw",
   "Something is wrong": "May problema",
+  "Sorry, I didn't catch that. Please say it again.": "Pasensya, hindi ko narinig. Pakiulit po.",
   "Sort": "I-sort",
   "Spanish": "Espanyol",
   "Speaker {speaker}": "Speaker {speaker}",

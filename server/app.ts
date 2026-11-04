@@ -20,7 +20,8 @@ import { whatToSay } from './ai/whatToSay.ts'
 import { RefusedWipe, refreshStaleSample, resetSample, seedIfEmpty } from './core/seed.ts'
 import { addOwnAction, assignAction, confirmAction, dismissAction, finishAction, listActions, listDoneToday, reopenAction, setUrgency, snoozeAction } from './operations/actions.ts'
 import { connectionStatus, testMeta } from './integrations/connections.ts'
-import { scriptFromLink, testCall } from './integrations/phone.ts'
+import { planFromLink, scriptFromLink, testCall } from './integrations/phone.ts'
+import { callTurn, callWait, openCall } from './operations/voiceAgent.ts'
 import { loadStaff, sendToPerson, sendWhatsAppTest, team, whatsappReady } from './integrations/whatsapp.ts'
 import { receive, sendChecklist, teamView, whatsappWebhook } from './operations/team.ts'
 import { homeView } from './operations/home.ts'
@@ -206,6 +207,25 @@ export function createApp() {
     await syncDemoClock()
     await loadStaff()
     next()
+  })
+
+  /** A phone call, one turn at a time. As with the words above, the signed link is the way in. */
+  const planOf = (request: express.Request) => planFromLink(String(request.query.c ?? ''), String(request.query.s ?? ''))
+  const twilioForm = express.urlencoded({ extended: false })
+  app.all('/api/phone/open', (request, response) => {
+    const plan = planOf(request)
+    if (!plan) return void response.status(403).end()
+    response.type('text/xml').send(openCall(plan))
+  })
+  app.post('/api/phone/turn', twilioForm, async (request, response) => {
+    const plan = planOf(request)
+    if (!plan) return void response.status(403).end()
+    response.type('text/xml').send(await callTurn(plan, String(request.body?.CallSid ?? ''), String(request.body?.SpeechResult ?? '')))
+  })
+  app.post('/api/phone/wait', twilioForm, async (request, response) => {
+    const plan = planOf(request)
+    if (!plan) return void response.status(403).end()
+    response.type('text/xml').send(await callWait(plan, String(request.body?.CallSid ?? ''), Number(request.query.n) || 1))
   })
 
   app.get('/api/session', async (request, response) => {

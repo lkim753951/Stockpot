@@ -2,6 +2,7 @@
   " (should be {range})": " ({range} হওয়া উচিত)",
   " by {name}": " ({name})",
   " by {name} on WhatsApp": " ({name}, WhatsApp-এ)",
+  " by {name} on the phone": " {name} ফোনে",
   ", simulated": ", সিমুলেটেড",
   ", voice note": ", ভয়েস নোট",
   ", with Save and Change buttons": ", সেভ করুন ও বদলান বাটনসহ",
@@ -414,6 +415,7 @@
     "other": "আমি {n}টি ডিশ পেয়েছি।"
   },
   "I heard: \"{words}\"": "আমি শুনলাম: \"{words}\"",
+  "I'll let you finish it in the app. Goodbye.": "আপনি এটি অ্যাপে শেষ করতে পারেন। বিদায়।",
   "I'm staff": "আমি স্টাফ",
   "I'm the owner": "আমি মালিক",
   "I've told the supplier this call is being recorded.": "আমি সাপ্লায়ারকে বলেছি এই কল রেকর্ড হচ্ছে।",
@@ -834,6 +836,7 @@
   "Snooze": "পরে মনে করান",
   "Some days": "কিছু দিন",
   "Something is wrong": "কিছু একটা সমস্যা হয়েছে",
+  "Sorry, I didn't catch that. Please say it again.": "দুঃখিত, বুঝতে পারিনি। আবার বলুন।",
   "Sort": "সাজান",
   "Spanish": "স্প্যানিশ",
   "Speaker {speaker}": "বক্তা {speaker}",

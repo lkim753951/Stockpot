@@ -2,6 +2,7 @@
   " (should be {range})": " (المطلوب: {range})",
   " by {name}": " بواسطة {name}",
   " by {name} on WhatsApp": " بواسطة {name} على WhatsApp",
+  " by {name} on the phone": " بواسطة {name} عبر الهاتف",
   ", simulated": "، محاكاة",
   ", voice note": "، رسالة صوتية",
   ", with Save and Change buttons": "، مع زرّي احفظ وغيّر",
@@ -422,6 +423,7 @@
     "other": "وجدت {n} طبق."
   },
   "I heard: \"{words}\"": "سمعت: «{words}»",
+  "I'll let you finish it in the app. Goodbye.": "سأتركك تُكملها في التطبيق. مع السلامة.",
   "I'm staff": "أنا موظف",
   "I'm the owner": "أنا المالك",
   "I've told the supplier this call is being recorded.": "أخبرت المورد أن هذه المكالمة تُسجَّل.",
@@ -870,6 +872,7 @@
   "Snooze": "أجّل",
   "Some days": "أيام محددة",
   "Something is wrong": "هناك مشكلة",
+  "Sorry, I didn't catch that. Please say it again.": "عذرًا، لم أفهم ذلك. يرجى قوله مرة أخرى.",
   "Sort": "رتّب",
   "Spanish": "الإسبانية",
   "Speaker {speaker}": "المتحدث {speaker}",

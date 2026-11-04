@@ -2,6 +2,7 @@
   " (should be {range})": " ({range} होना चाहिए)",
   " by {name}": " {name} ने",
   " by {name} on WhatsApp": " {name} ने WhatsApp पर",
+  " by {name} on the phone": " {name} द्वारा फ़ोन पर",
   ", simulated": ", डेमो",
   ", voice note": ", वॉइस नोट",
   ", with Save and Change buttons": ", \"सेव करें\" और \"बदलें\" बटन के साथ",
@@ -414,6 +415,7 @@
     "other": "मुझे {n} डिश मिलीं।"
   },
   "I heard: \"{words}\"": "मैंने सुना: \"{words}\"",
+  "I'll let you finish it in the app. Goodbye.": "आप इसे ऐप में पूरा कर लीजिए। अलविदा।",
   "I'm staff": "मैं स्टाफ़ हूँ",
   "I'm the owner": "मैं मालिक हूँ",
   "I've told the supplier this call is being recorded.": "मैंने सप्लायर को बता दिया है कि यह कॉल रिकॉर्ड हो रही है।",
@@ -834,6 +836,7 @@
   "Snooze": "स्नूज़ करें",
   "Some days": "कुछ दिन",
   "Something is wrong": "कुछ गड़बड़ है",
+  "Sorry, I didn't catch that. Please say it again.": "माफ़ कीजिए, मैं समझ नहीं पाया। कृपया फिर से बोलिए।",
   "Sort": "क्रम",
   "Spanish": "स्पेनिश",
   "Speaker {speaker}": "व्यक्ति {speaker}",
