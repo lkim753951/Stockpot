@@ -299,7 +299,7 @@ export async function setupSteps() {
   const count = async (sql: string) => Number((await get(sql))?.total ?? 0)
   return [
     { key: 'suppliers', label: 'Add your suppliers', href: '#/settings/suppliers', done: await count('SELECT COUNT(*) AS total FROM suppliers') > 0 },
-    { key: 'menu', label: 'Add your menu', href: '#/settings/menu', done: await count('SELECT COUNT(*) AS total FROM recipe_lines') > 0 },
+    { key: 'menu', label: 'Add your menu', href: '#/menu', done: await count('SELECT COUNT(*) AS total FROM recipe_lines') > 0 },
     { key: 'checklists', label: 'Check your checklists', href: '#/settings/checklists', done: !!await setting('checklists_seen') || await count('SELECT COUNT(*) AS total FROM checklist_templates WHERE retired = 0') > 5 },
     { key: 'sales', label: 'Import your sales', href: '#/settings/sales', done: await count('SELECT COUNT(*) AS total FROM sales') > 0 },
     { key: 'team', label: 'Invite your team', href: '#/settings/team', done: config.whatsapp.staff.length > 0 },

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { CaretRight, ClipboardText, CookingPot, DownloadSimple, FileArrowUp, GlobeSimple, LinkSimple, PlugsConnected, Plus, Trash, Truck, UploadSimple, UsersThree, ChartBar } from '@phosphor-icons/react'
+import { CaretRight, ClipboardText, DownloadSimple, FileArrowUp, GlobeSimple, LinkSimple, PlugsConnected, Plus, Trash, Truck, UploadSimple, UsersThree, ChartBar } from '@phosphor-icons/react'
 import { SalesPreview } from './ImportSettings'
 import { readableImage } from '../lib/reading'
 import { api } from '../lib/api'
@@ -11,7 +11,6 @@ import { Dock, Empty, ErrorNote, Loading, Screen, Sheet } from '../components/ui
 
 const ROWS = [
   { href: '#/settings/suppliers', Icon: Truck, title: tk('Suppliers'), note: tk('Who you buy from, with their email and phone.') },
-  { href: '#/settings/menu', Icon: CookingPot, title: tk('Menu and recipes'), note: tk('Dishes, prices and what goes in them.') },
   { href: '#/settings/checklists', Icon: ClipboardText, title: tk('Checklists'), note: tk('What staff check, and when.') },
   { href: '#/settings/team', Icon: UsersThree, title: tk('Team'), note: tk('Invite staff with a link.') },
   { href: '#/settings/sales', Icon: ChartBar, title: tk('Sales'), note: tk('Import what you sold from your till.') },

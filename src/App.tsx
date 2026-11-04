@@ -60,6 +60,7 @@ const OWNER_TABS = [
   { href: 'home', label: tk('Home'), Icon: House },
   { href: 'dashboard', label: tk('Dashboard'), Icon: ChartLineUp },
   { href: 'actions', label: tk('Tasks'), Icon: Tray },
+  { href: 'menu', label: tk('Menu'), Icon: CookingPot },
   { href: 'stock', label: tk('Stock'), Icon: Package },
   { href: 'features', label: tk('Features'), Icon: SquaresFour },
 ]
@@ -98,6 +99,7 @@ function OwnerScreen({ parts, sample, onClock }: { parts: string[]; sample: bool
     case 'features': return <Features />
     case 'shopping': return <Shopping />
     case 'stock': return <Stock owner />
+    case 'menu': return <MenuSettings sample={sample} />
     case 'call': return <Call sample={sample} />
     case 'calls': return id ? <CallDetail id={id} /> : <Calls sample={sample} />
     case 'order': return <Order id={id} />
@@ -264,13 +266,13 @@ export function App() {
       </div>
       {staffView ? null : <AlertToasts toasts={alerts.toasts} onClose={alerts.dismiss} />}
       {asking ? <Agent onClose={() => setAsking(false)} /> : null}
-      <nav className="nav" aria-label={staffView ? t('Staff') : t('Owner')} style={{ ['--tabs' as string]: 6 }}>
+      <nav className="nav" aria-label={staffView ? t('Staff') : t('Owner')} style={{ ['--tabs' as string]: staffView ? 6 : 7 }}>
         <a className="nav-logo" href="#/welcome" aria-label={t('About Stockpot')}>{logo}</a>
         {tabs.map(({ href, label, Icon }, index) => {
           const on = activeTab === href
           const badge = href === 'actions' ? alerts.count : 0
           return (
-            <NavSlot key={href} snap={!staffView && index === 2 ? <PotButton onOpen={() => setAsking(true)} /> : null}>
+            <NavSlot key={href} snap={!staffView && index === 3 ? <PotButton onOpen={() => setAsking(true)} /> : null}>
               <a href={`#/${href}`} className={`nav-item${on ? ' on' : ''}`} aria-current={on ? 'page' : undefined}>
                 <span className="pill">
                   <Icon size={24} weight={on ? 'fill' : 'regular'} aria-hidden="true" />

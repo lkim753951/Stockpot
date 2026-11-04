@@ -372,6 +372,18 @@ a.panel-row:hover strong { text-decoration: underline; }
 .nav-item.on { color: var(--aubergine); }
 .nav-item.on .pill { background: var(--aubergine-soft); }
 .staff .nav-item { min-height: var(--staff-tap); font-size: 14px; justify-content: center; }
+@media (max-width: 839.98px) {
+  /* The owner bar holds seven slots, so each takes the width its word needs. */
+  .shell:not(.staff) .nav { grid-template-columns: repeat(7, auto); justify-content: space-between; padding-inline: var(--space-2); }
+  .shell:not(.staff) .nav-item { font-size: 12px; }
+  .shell:not(.staff) .nav-item .pill { width: 44px; }
+}
+@media (max-width: 379.98px) {
+  .shell:not(.staff) .nav { padding-inline: var(--space-1); }
+  .shell:not(.staff) .nav-item { font-size: 11px; }
+  .shell:not(.staff) .nav-item .pill { width: 32px; }
+  .shell:not(.staff) .nav .snap { width: 46px; height: 46px; margin-top: -14px; }
+}
 .snap { justify-self: center; display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; margin-top: -22px; border: 0; border-radius: var(--radius-pill); background: var(--aubergine); color: var(--on-aubergine); box-shadow: var(--shadow-sheet); cursor: pointer; text-decoration: none; transition: transform var(--motion-fast) ease-out; }
 .snap:active { transform: scale(.95); }
 .snap span { display: none; }
