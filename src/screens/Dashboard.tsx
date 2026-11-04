@@ -94,7 +94,7 @@ export function Dashboard() {
         <div className="split-main">
           <section className="stack" aria-label={t('Numbers')}>
             <div className="tiles led">
-              <Tile lead label={t('Food cost')} value={cost.food_cost_percent === null ? t('None') : `${cost.food_cost_percent}%`} change={costChange} chip={<Chip tone="brand">{t('Estimated')}</Chip>} />
+              <Tile lead label={t('Food cost')} value={cost.food_cost_percent === null ? t('None') : `${wholePounds(cost.food_cost_pence)} (${cost.food_cost_percent}%)`} change={costChange} chip={<Chip tone="brand">{t('Estimated')}</Chip>} />
               <Tile label={t('Sales')} value={wholePounds(cost.net_sales_pence)} change={salesChange} />
               <Tile label={t('Dishes sold')} value={sold.toLocaleString(locale())} />
               <Tile label={t('Deliveries')} href="#/checks" value={String(data.deliveries.count)} note={data.deliveries.problems ? `${t('Needs you')}: ${data.deliveries.problems}` : undefined} />
