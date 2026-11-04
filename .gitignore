@@ -24,3 +24,4 @@ notes
 .DS_Store
 .vercel
 _to_delete
+.env*
